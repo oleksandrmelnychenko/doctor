@@ -1189,7 +1189,8 @@ points. In parallel, $ss_{\mathrm{kem}}$ remains protected under the
 IND-CCA security of ML-KEM-768 together with correct erasure and absence
 of leakage from the session-local $sk_{\mathrm{kem}}$. Thus
 post-session exposure of long-term keys alone does not reconstruct the
-full input to the hybrid extractor:
+full input to the hybrid extractor. We record the following as an
+interpretive bound under the stated extractor model, not as a theorem:
 \begin{equation}
   \label{eq:fs-advantage-bound}
   \begin{aligned}
@@ -1253,8 +1254,8 @@ $\mathrm{IKM}_{\mathrm{cl}} \| \mathrm{IKM}_{\mathrm{pq}}$ may be
 written as a concatenation of $S$ and $X$. The standard extractor property of HMAC-based
 HKDF-Extract~\cite{krawczyk2010hkdf} suggests that if $S$ is hidden from the
 adversary with sufficient entropy, then $\mathrm{PRK}$
-remains pseudorandom even for arbitrary $X$. This yields the upper
-bound: indistinguishability of the final key can fail only
+remains pseudorandom even for arbitrary $X$. We read this as an interpretive bound rather than a theorem.
+Indistinguishability of the final key can fail only
 through a break of the surviving source or a break of the extractor
 itself:
 \begin{equation}
