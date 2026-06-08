@@ -584,7 +584,7 @@ analyses rather than an in-document proof. Hybrid PQ-OPAQUE differs on the three
 axes that matter for a migration. It keeps the asymmetric OPAQUE record model
 and the unchanged three-message KE1--KE2--KE3 flow rather than introducing a new
 or longer interaction. It is a classical-plus-post-quantum hybrid rather than a
-post-quantum-only PAKE. And it binds the KEM by concatenating the ephemeral
+post-quantum-only PAKE. It also binds the KEM by concatenating the ephemeral
 ML-KEM secret with the four Diffie--Hellman values inside a single
 transcript-salted extraction, rather than running a second PAKE in sequence or
 making the KEM the core primitive, while leaving the OPRF and password layer
@@ -1953,14 +1953,17 @@ as separate Criterion workload and harness effects within an Argon2id-dominated
 path, not as a stable cost ordering.
 
 The point estimates and intervals reported in this section come from a single
-representative session, and the 95\% intervals are within-run Criterion bootstrap
-intervals rather than run-to-run confidence intervals. To bound
-session-to-session variability we repeated the dominant workloads across three
-independent sessions on the same platform. Isolated Argon2id ranged from $787$ to
-$842$~ms, the end-to-end cycle from $806$ to $814$~ms, and the KSF-free hybrid
-full handshake stayed near $1.12$~ms. The KSF-free post-quantum overhead is a
+representative session, the first of the three, and the 95\% intervals are
+within-run Criterion bootstrap intervals rather than run-to-run confidence
+intervals. To bound session-to-session variability we repeated the dominant
+workloads across three independent sessions on the same platform. Across those
+sessions isolated Argon2id measured $787$, $798$, and $842$~ms, the end-to-end
+cycle measured $806$, $810$, and $814$~ms, and the KSF-free hybrid full handshake
+stayed near $1.12$~ms in every session. The KSF-free post-quantum overhead is a
 difference of two sub-millisecond measurements, so it varied between roughly
-$0.30$ and $0.35$~ms across sessions. Sub-millisecond figures should therefore be
+$0.30$ and $0.35$~ms across sessions. The Criterion benchmark targets that
+produce these workloads are part of the reproducibility artifact, so the variance
+is reproducible on other hardware. Sub-millisecond figures should therefore be
 read with a tolerance of order ten percent.
 
 \subsection{Key Quantitative Findings and Implementation Implications}
