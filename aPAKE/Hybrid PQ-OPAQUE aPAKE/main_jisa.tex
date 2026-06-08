@@ -128,7 +128,7 @@ key from them with HKDF under a transcript-derived salt, using a fixed byte-leve
 wire format that binds account context. The result is an OPAQUE-derived profile
 rather than RFC 9807-conformant OPAQUE. Relative to classical OPAQUE the handshake grows by 2272
 bytes, about 516 percent of the classical payload, while adding 351.80
-microseconds of key-stretching-free computation, about 45.8 percent. End-to-end authentication takes about 806 milliseconds and is dominated by
+microseconds of key-stretching-free computation (+45.8 percent). End-to-end authentication takes about 806 milliseconds and is dominated by
 the Argon2id key-stretching function, while ML-KEM mainly enlarges transport.
 The post-quantum guarantee is scoped to session-key confidentiality, because the
 OPRF and password layer stays classical, and the design is backed by symbolic
@@ -2110,8 +2110,7 @@ practical post-quantum or hybrid OPRF, which current lattice constructions do
 not yet provide at competitive cost~\cite{esgin2024}. A symbolic model that
 separates the classical-only and KEM-only disclosure events, together with a
 cross-platform performance study, would further tighten the evidence. We regard
-these as the natural next steps toward turning a reproducible migration profile
-into a fully proven post-quantum augmented PAKE.
+these as the natural next steps toward a proof-oriented post-quantum aPAKE line.
 
 % ============================================================
 \section{Conclusion}
@@ -2123,7 +2122,7 @@ the three-message KE1--KE2--KE3 flow and the account-record model unchanged. The
 construction combines four Ristretto255 Diffie--Hellman values with the ML-KEM
 shared secret through a single transcript-salted HKDF extraction. On the
 benchmark platform it adds 2272 bytes to the wire format and 351.80
-microseconds of key-stretching-free computation, about 45.8 percent, with
+microseconds of key-stretching-free computation (+45.8 percent), with
 end-to-end authentication near 806 milliseconds dominated by the Argon2id
 key-stretching function. The design is supported by split ProVerif models, a
 surrogate Tamarin model, and a public, version-pinned Rust artifact, so the
