@@ -126,9 +126,8 @@ post-quantum account state. The construction concatenates four Ristretto255
 Diffie--Hellman values with the ML-KEM shared secret and compresses them with
 HKDF under a transcript-derived salt, using a fixed byte-level wire format that
 binds account context. Relative to classical OPAQUE the handshake grows by 2272
-bytes, about 516 percent of the classical payload, while adding only 351.80
-microseconds of computation, about 45.8 percent, on the key-stretching-free
-path. End-to-end authentication takes about 806 milliseconds and is dominated by
+bytes, about 516 percent of the classical payload, while adding 351.80
+microseconds of key-stretching-free computation, about 45.8 percent. End-to-end authentication takes about 806 milliseconds and is dominated by
 the Argon2id key-stretching function, while ML-KEM mainly enlarges transport.
 The post-quantum guarantee is scoped to session-key confidentiality, because the
 OPRF and password layer stays classical, and the design is backed by symbolic
@@ -1951,8 +1950,8 @@ cycle measured $806$, $810$, and $814$~ms, and the KSF-free hybrid full handshak
 stayed near $1.12$~ms in every session. The KSF-free post-quantum overhead is a
 difference of two sub-millisecond measurements, so it varied between roughly
 $0.30$ and $0.35$~ms across sessions. The Criterion benchmark targets that
-produce these workloads are part of the reproducibility artifact, so the variance
-is reproducible on other hardware. Sub-millisecond figures should therefore be
+produce these workloads are part of the reproducibility artifact, so the
+measurement procedure can be rerun on other hardware. Sub-millisecond figures should therefore be
 read with a tolerance of order ten percent.
 
 \subsection{Key Quantitative Findings and Implementation Implications}
@@ -2025,7 +2024,6 @@ Key-source recovery condition & Weakening of the classical contribution & Break 
 
 % ============================================================
 \section{Discussion of Results}
-\label{sec:discussion}
 % ============================================================
 
 The evidence assembled in this work is layered rather than monolithic, and each
@@ -2088,7 +2086,6 @@ into a fully proven post-quantum augmented PAKE.
 
 % ============================================================
 \section{Conclusion}
-\label{sec:conclusions}
 % ============================================================
 
 This work specifies and evaluates Hybrid PQ-OPAQUE, an OPAQUE-derived augmented
@@ -2096,7 +2093,7 @@ PAKE that adds ephemeral ML-KEM-768 to the authenticated transcript while leavin
 the three-message KE1--KE2--KE3 flow and the account-record model unchanged. The
 construction combines four Ristretto255 Diffie--Hellman values with the ML-KEM
 shared secret through a single transcript-salted HKDF extraction. On the
-benchmark platform it adds 2272 bytes to the wire format and only 351.80
+benchmark platform it adds 2272 bytes to the wire format and 351.80
 microseconds of key-stretching-free computation, about 45.8 percent, with
 end-to-end authentication near 806 milliseconds dominated by the Argon2id
 key-stretching function. The design is supported by split ProVerif models, a
