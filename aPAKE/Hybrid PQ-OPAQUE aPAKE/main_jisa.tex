@@ -1488,19 +1488,13 @@ itself:
 \end{equation}
 \end{sketchproof}
 
-This bound captures the hybrid-source reading carried through the rest of
-the paper. When at least one of the two sources stays computationally
-hidden and HKDF-Extract behaves as a split-key PRF on the concatenated input,
-the derived PRK stays pseudorandom up to the additive
-$\mathrm{Adv}_{\mathrm{HKDF}}^{\mathrm{skPRF}}$ term. The reading is
-narrow. Across this combiner-rationale argument and the symbolic analysis
-below, we model compromise of the final key as requiring either a break of
-the split-key PRF behavior of HKDF-Extract or simultaneous weakening of the
-classical and post-quantum layers. This has the same min-plus-combiner form
-as the forward-secrecy bound in Eq.~\eqref{eq:fs-advantage-bound}, but the
-forward-secrecy setting is narrower: after long-term key exposure, the
-relevant surviving classical contribution is $dh_4$, not the full 4DH
-input.
+This bound carries the hybrid-source reading through the rest of the paper: the
+derived PRK stays pseudorandom whenever at least one source survives, up to the
+additive $\mathrm{Adv}_{\mathrm{HKDF}}^{\mathrm{skPRF}}$ term. It has the same
+min-plus-combiner form as the forward-secrecy bound in
+Eq.~\eqref{eq:fs-advantage-bound}, though the forward-secrecy setting is narrower:
+after long-term key exposure the surviving classical contribution is $dh_4$, not
+the full 4DH input.
 Figure~\ref{fig:hybrid-condition-surface} visualizes this interpretation.
 
 \begin{figure}[htbp]
