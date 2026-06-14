@@ -1,0 +1,47 @@
+\chapter{Метод серверно-сліпого каналу нагляду}
+\label{ch:relay}
+
+% ============================================================
+%  РОЗДІЛ 7 -- privacy-preserving data-plane метод.
+%  Джерело: aura-platform (canonical) + aura-messenger-ios.
+%  ПОТРЕБА: зафіксований відтворюваний E2E-доказ (див. розділ 8/додатки).
+% ============================================================
+
+\section{Постановка задачі: приватний контрольований перегляд}
+\label{sec:relay-problem}
+% -- Дитину треба захищати, але сервер не має бачити приватний safety payload.
+
+\section{Згода, контрольована child endpoint-ом}
+\label{sec:relay-consent}
+% -- child-controlled consent як умова активації каналу.
+
+\section{Активний parent-child зв'язок}
+\label{sec:relay-binding}
+% -- parent-child binding; авторизаційна модель.
+
+\section{Provisioning pair-key для кожного пристрою}
+\label{sec:relay-pairkey}
+% -- Початковий relay pair key генерується на клієнті,
+%    запаковується per parent device через наявний E2E key-package шлях.
+
+\section{Маршрутизація opaque payload і роль сервера}
+\label{sec:relay-routing}
+% -- Сервер виконує лише authz, rate limiting, зберігання ciphertext,
+%    доставку sealed key packages; pair key і payload не читає.
+
+\section{Життєвий цикл ACK / revoke / purge}
+\label{sec:relay-lifecycle}
+% -- ACK лише після parent install; revoke/purge -> crypto-shredding стану.
+
+\section{Межі: replay, TTL, DoS та межа приватності}
+\label{sec:relay-limits}
+% -- Контрзаходи; privacy boundary.
+
+\section{Наскрізний сценарій та відтворюваний доказ}
+\label{sec:relay-e2e}
+% -- grant consent -> list recipient devices -> wrap pair key -> submit package ->
+%    parent consume -> ACK -> child sends sealed relay message -> parent opens -> revoke purges.
+Метод ілюструється наскрізним сценарієм від надання згоди до відкликання, що супроводжується відтворюваним інтеграційним тестом і артефактним документом з точною командою та очікуваним результатом (див.\ розділ~8 і додатки). \emph{[Зафіксувати E2E-доказ.]}
+
+\rozdilconcl{7}
+\emph{[Висновки до розділу 7.]}

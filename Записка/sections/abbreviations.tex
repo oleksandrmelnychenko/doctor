@@ -1,0 +1,41 @@
+% ============================================================
+%  ПЕРЕЛІК УМОВНИХ ПОЗНАЧЕНЬ, СИМВОЛІВ І СКОРОЧЕНЬ
+%  Розшифровуємо при першій згадці в тексті; тут -- зведений перелік.
+% ============================================================
+
+\chapter*{Перелік умовних позначень, символів і скорочень}
+\addcontentsline{toc}{chapter}{Перелік умовних позначень, символів і скорочень}
+
+\begin{longtable}{p{3.2cm} p{11.5cm}}
+\textbf{Скорочення} & \textbf{Розшифрування} \\
+\midrule
+\endhead
+AURA Runtime & центральний рівень оцінювання інформаційного ризику та прийняття safety-рішень \\
+E2EE & наскрізне шифрування (end-to-end encryption) \\
+PAKE & протокол парольно-автентифікованого обміну ключами (password-authenticated key exchange) \\
+aPAKE & augmented PAKE; асиметричний PAKE \\
+OPAQUE & augmented PAKE-протокол на основі OPRF \\
+OPRF & сліпа псевдовипадкова функція (oblivious pseudorandom function) \\
+PQ & постквантовий (post-quantum) \\
+KEM & механізм інкапсуляції ключа (key encapsulation mechanism) \\
+ML-KEM-768 & постквантовий KEM (FIPS 203), рівень безпеки 3 \\
+X25519 & протокол Діффі--Геллмана на кривій Curve25519 \\
+Ed25519 & схема цифрового підпису EdDSA на Curve25519 \\
+Argon2id & функція хешування паролів із підсиленням пам'яті \\
+HKDF & функція виведення ключів на основі HMAC \\
+HMAC & код автентифікації повідомлень на основі гешу \\
+AEAD & автентифіковане шифрування з асоційованими даними \\
+MRAE & misuse-resistant authenticated encryption \\
+DH & протокол Діффі--Геллмана \\
+Double Ratchet & протокол подвійного «храповика» Signal \\
+X3DH / PQXDH & протоколи початкового узгодження ключів Signal (класичний / постквантовий) \\
+MLS & Messaging Layer Security (RFC 9420) \\
+relay & серверно-сліпий канал нагляду (server-blind supervision relay) \\
+guardian endpoint & пристрій опікуна у сценарії контрольованого перегляду \\
+ACK & підтвердження доставки/встановлення \\
+TTL & час життя запису (time to live) \\
+FFI & інтерфейс міжмовної взаємодії (foreign function interface) \\
+ДСТУ & національний стандарт України \\
+\texttt{PASS} / \texttt{FAIL} / & статуси release-gated оцінювання якості \\
+\texttt{INSUFFICIENT\_SUPPORT} / \texttt{BLOCKED} & \\
+\end{longtable}

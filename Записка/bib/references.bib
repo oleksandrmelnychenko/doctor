@@ -1,6 +1,176 @@
-@misc{placeholder,
-  author = {Placeholder},
-  title = {Placeholder reference},
-  year = {2026},
-  note = {To be replaced}
+% ============================================================
+%  ПОСІВНА БІБЛІОГРАФІЯ (seed) для Розділу 1 (SOTA) і крипто-розділів.
+%  УВАГА: усі записи перевірити за першоджерелами (DOI/сторінки) та
+%  перевести у формат ДСТУ 8302:2015 перед фінальною версією.
+%  Доменні джерела (child safety / grooming / маніпуляція) додати
+%  через skill citation-management / paper-lookup.
+% ============================================================
+
+% --- PAKE / OPAQUE / автентифікація ---
+@inproceedings{bellovin-eke,
+  author    = {Bellovin, Steven M. and Merritt, Michael},
+  title     = {Encrypted Key Exchange: Password-Based Protocols Secure Against Dictionary Attacks},
+  booktitle = {Proceedings of the IEEE Symposium on Security and Privacy (S\&P)},
+  pages     = {72--84},
+  year      = {1992}
 }
+
+@inproceedings{opaque-jkx,
+  author    = {Jarecki, Stanislaw and Krawczyk, Hugo and Xu, Jiayu},
+  title     = {{OPAQUE}: An Asymmetric {PAKE} Protocol Secure Against Pre-Computation Attacks},
+  booktitle = {Advances in Cryptology -- EUROCRYPT 2018},
+  series    = {LNCS},
+  volume    = {10822},
+  pages     = {456--486},
+  publisher = {Springer},
+  year      = {2018}
+}
+
+@misc{rfc-opaque,
+  author = {Bourdrez, Daniel and Krawczyk, Hugo and Lewi, Kevin and Wood, Christopher A.},
+  title  = {The {OPAQUE} Augmented {PAKE} Protocol},
+  howpublished = {IRTF CFRG Internet-Draft, draft-irtf-cfrg-opaque},
+  note   = {Work in progress},
+  year   = {2024}
+}
+
+% --- E2EE-месенджери / протоколи ---
+@misc{marlinspike-x3dh,
+  author = {Marlinspike, Moxie and Perrin, Trevor},
+  title  = {The {X3DH} Key Agreement Protocol},
+  howpublished = {Signal Specification, revision 1},
+  year   = {2016}
+}
+
+@misc{signal-doubleratchet,
+  author = {Perrin, Trevor and Marlinspike, Moxie},
+  title  = {The Double Ratchet Algorithm},
+  howpublished = {Signal Specification, revision 1},
+  year   = {2016}
+}
+
+@misc{pqxdh,
+  author = {Kret, Ehren and Schmidt, Rolfe},
+  title  = {The {PQXDH} Key Agreement Protocol},
+  howpublished = {Signal Specification},
+  year   = {2023}
+}
+
+@misc{pq3,
+  author = {{Apple Security Engineering and Architecture (SEAR)}},
+  title  = {{iMessage} with {PQ3}: The New State of the Art in Quantum-Secure Messaging at Scale},
+  howpublished = {Apple Security Research},
+  year   = {2024}
+}
+
+@techreport{rfc9420,
+  author      = {Barnes, Richard and Beurdouche, Benjamin and Robert, Raphael and Millican, Jon and Omara, Emad and Cohn-Gordon, Katriel},
+  title       = {The Messaging Layer Security ({MLS}) Protocol},
+  number      = {RFC 9420},
+  institution = {IETF},
+  year        = {2023}
+}
+
+% --- Постквантова криптографія / стандарти ---
+@inproceedings{kyber,
+  author    = {Bos, Joppe and Ducas, L\'eo and Kiltz, Eike and Lepoint, Tancr\`ede and Lyubashevsky, Vadim and Schanck, John M. and Schwabe, Peter and Seiler, Gregor and Stehl\'e, Damien},
+  title     = {{CRYSTALS-Kyber}: A {CCA}-Secure Module-Lattice-Based {KEM}},
+  booktitle = {IEEE European Symposium on Security and Privacy (EuroS\&P)},
+  pages     = {353--367},
+  year      = {2018}
+}
+
+@techreport{fips203,
+  author      = {{National Institute of Standards and Technology}},
+  title       = {{FIPS} 203: Module-Lattice-Based Key-Encapsulation Mechanism Standard},
+  institution = {NIST},
+  year        = {2024}
+}
+
+@techreport{fips204,
+  author      = {{National Institute of Standards and Technology}},
+  title       = {{FIPS} 204: Module-Lattice-Based Digital Signature Standard},
+  institution = {NIST},
+  year        = {2024}
+}
+
+% --- Примітиви ---
+@techreport{rfc5869,
+  author      = {Krawczyk, Hugo and Eronen, Pasi},
+  title       = {{HMAC}-based Extract-and-Expand Key Derivation Function ({HKDF})},
+  number      = {RFC 5869},
+  institution = {IETF},
+  year        = {2010}
+}
+
+@techreport{rfc9106,
+  author      = {Biryukov, Alex and Dinu, Daniel and Khovratovich, Dmitry and Josefsson, Simon},
+  title       = {{Argon2} Memory-Hard Function for Password Hashing and Proof-of-Work Applications},
+  number      = {RFC 9106},
+  institution = {IETF},
+  year        = {2021}
+}
+
+% --- Формальна верифікація ---
+@inproceedings{tamarin,
+  author    = {Meier, Simon and Schmidt, Benedikt and Cremers, Cas and Basin, David},
+  title     = {The {TAMARIN} Prover for the Symbolic Analysis of Security Protocols},
+  booktitle = {Computer Aided Verification (CAV)},
+  series    = {LNCS},
+  volume    = {8044},
+  pages     = {696--701},
+  publisher = {Springer},
+  year      = {2013}
+}
+
+@article{proverif,
+  author  = {Blanchet, Bruno},
+  title   = {Modeling and Verifying Security Protocols with the Applied Pi Calculus and {ProVerif}},
+  journal = {Foundations and Trends in Privacy and Security},
+  volume  = {1},
+  number  = {1--2},
+  pages   = {1--135},
+  year    = {2016}
+}
+
+% --- Дилема модерації / client-side scanning ---
+@article{abelson-bugs,
+  author  = {Abelson, Harold and Anderson, Ross and Bellovin, Steven M. and Benaloh, Josh and Blaze, Matt and Callas, Jon and Diffie, Whitfield and Landau, Susan and Neumann, Peter G. and Rivest, Ronald L. and Schiller, Jeffrey I. and Schneier, Bruce and Teague, Vanessa and Troncoso, Carmela},
+  title   = {Bugs in Our Pockets: The Risks of Client-Side Scanning},
+  journal = {Journal of Cybersecurity},
+  volume  = {10},
+  number  = {1},
+  year    = {2024}
+}
+
+% --- Контентна класифікація / токсичність (generic-класифікатори) ---
+@inproceedings{perspective-api,
+  author    = {Lees, Alyssa and Tran, Vinh Q. and Tay, Yi and Sorensen, Jeffrey and Gupta, Jai and Metzler, Donald and Vasserman, Lucy},
+  title     = {A New Generation of {Perspective API}: Efficient Multilingual Character-level Transformers},
+  booktitle = {Proceedings of the 28th ACM SIGKDD Conference on Knowledge Discovery and Data Mining (KDD)},
+  pages     = {3197--3207},
+  year      = {2022}
+}
+
+@inproceedings{hatespeech-survey,
+  author    = {Schmidt, Anna and Wiegand, Michael},
+  title     = {A Survey on Hate Speech Detection Using Natural Language Processing},
+  booktitle = {Proceedings of the Fifth International Workshop on Natural Language Processing for Social Media},
+  pages     = {1--10},
+  year      = {2017}
+}
+
+% --- Відтворюваність / artifact evaluation ---
+@article{artifact-eval,
+  author  = {Krishnamurthi, Shriram and Vitek, Jan},
+  title   = {The Real Software Crisis: Repeatability as a Core Value},
+  journal = {Communications of the ACM},
+  volume  = {58},
+  number  = {3},
+  pages   = {34--36},
+  year    = {2015}
+}
+
+% --- TODO(author): додати доменні джерела про child safety / grooming /
+%     маніпуляцію (через citation-management / paper-lookup) та
+%     національні нормативні джерела за потреби.

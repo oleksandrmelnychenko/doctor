@@ -32,24 +32,44 @@
 
 \graphicspath{{figures/}}
 
+% --- Допоміжна команда для висновків до розділу ---
+\newcommand{\rozdilconcl}[1]{\section*{Висновки до розділу #1}\addcontentsline{toc}{section}{Висновки до розділу #1}}
+
 \newcommand{\thesistitle}{Методологія та інформаційна технологія захисту контекстної приватності особи в умовах інференційних загроз цифрового середовища}
 
 \begin{document}
 
+% === Передня частина ===
 \input{sections/title}
+\input{sections/abstract}        % Анотація (укр) + Abstract (eng) + список публікацій
+
 \tableofcontents
 
+\input{sections/abbreviations}   % Перелік умовних позначень, символів і скорочень
+
+% === Вступ ===
 \input{sections/introduction}
-\input{sections/chapter1_analysis}
-\input{sections/chapter2_general_idea}
-\input{sections/chapter3_contextual_risk}
-\input{sections/chapter4_policy_decisions}
-\input{sections/chapter5_crypto_foundation}
-\input{sections/chapter6_supervision_relay}
-\input{sections/chapter7_information_technology}
+
+% === Розділи ===
+\input{sections/chapter1_analysis}              % Аналіз стану проблеми (SOTA)
+\input{sections/chapter2_general_idea}          % Концепція AURA Runtime + модель загроз + межі тверджень
+\input{sections/chapter3_contextual_risk}       % Метод контекстної оцінки інформаційного ризику
+\input{sections/chapter4_policy_decisions}      % Метод policy-aware safety-рішень
+\input{sections/chapter5_opaque}                % Метод PQ-OPAQUE автентифікації
+\input{sections/chapter6_e2ee}                  % Метод гібридного PQ E2EE
+\input{sections/chapter7_supervision_relay}     % Метод серверно-сліпого каналу нагляду
+\input{sections/chapter8_information_technology} % Інформаційна технологія + експериментальна перевірка
+
+% === Висновки ===
 \input{sections/conclusions}
 
-\bibliographystyle{plain}
+% === Список використаних джерел ===
+% TODO(final): для фінальної версії перейти на biblatex зі стилем ДСТУ 8302:2015.
+% Зараз використано числовий стиль (unsrt) як сумісний робочий варіант.
+\bibliographystyle{unsrt}
 \bibliography{bib/references}
+
+% === Додатки ===
+\input{sections/appendices}
 
 \end{document}

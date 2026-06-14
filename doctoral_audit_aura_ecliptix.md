@@ -167,6 +167,16 @@ Before dissertation artifact freeze: every method must have a clean commit hash,
 
 ## 6. Recommended Dissertation Structure
 
+> **⚠️ ЗАСТАРІЛО (станом на 2026-06-14).** Структуру нижче (крипто-центричну:
+> OPAQUE = розділ 3, E2EE = розділ 4) **замінено** на runtime-центричну
+> 8-розділову структуру в `Записка/` (git: «Center dissertation on AURA runtime»).
+> Актуальна структура: 1) Аналіз; 2) Концепція AURA Runtime + модель загроз;
+> 3) Контекстна оцінка ризику; 4) policy-aware рішення; 5) PQ-OPAQUE;
+> 6) гібридний PQ E2EE; 7) серверно-сліпий канал нагляду; 8) інформаційна технологія.
+> Розділи 3–9 цього аудиту (**claim boundaries, готовність методів, шви,
+> ProVerif drift, evidence**) залишаються чинними й використовуються як джерело
+> меж тверджень.
+
 ### Розділ 1. Аналіз стану проблеми
 
 Scope:

@@ -1,4 +1,4 @@
-# TeX-проєкт докторської записки
+# TeX-проєкт докторської записки (DSc)
 
 Основний файл:
 
@@ -18,15 +18,40 @@ xelatex main.tex
 xelatex main.tex
 ```
 
-Поточна логіка структури:
+## Структура (runtime-центрична, 8 розділів)
 
-- `sections/chapter1_analysis.tex` -- аналіз проблеми приватного контекстного захисту;
-- `sections/chapter2_general_idea.tex` -- концепція AURA Runtime-орієнтованої технології;
+Передня частина:
+
+- `sections/title.tex` -- титульний аркуш;
+- `sections/abstract.tex` -- анотація (укр) + Abstract (eng) + список публікацій;
+- `sections/abbreviations.tex` -- перелік умовних позначень, символів і скорочень.
+
+Вступ і розділи:
+
+- `sections/introduction.tex` -- вступ (11 канонічних блоків; наукова новизна -- джерело істини);
+- `sections/chapter1_analysis.tex` -- аналіз стану проблеми (SOTA);
+- `sections/chapter2_general_idea.tex` -- концепція AURA Runtime + модель загроз + дві опорні таблиці (проблема→метод, межі тверджень);
 - `sections/chapter3_contextual_risk.tex` -- метод контекстної оцінки інформаційного ризику;
 - `sections/chapter4_policy_decisions.tex` -- метод policy-aware safety-рішень;
-- `sections/chapter5_crypto_foundation.tex` -- криптографічна основа приватного AURA Runtime;
-- `sections/chapter6_supervision_relay.tex` -- серверно-сліпий канал нагляду;
-- `sections/chapter7_information_technology.tex` -- інформаційна технологія та експериментальна перевірка;
-- `figures/` -- рисунки;
-- `bib/references.bib` -- бібліографія;
+- `sections/chapter5_opaque.tex` -- метод постквантово-посиленої OPAQUE-автентифікації;
+- `sections/chapter6_e2ee.tex` -- метод гібридного постквантового E2EE;
+- `sections/chapter7_supervision_relay.tex` -- метод серверно-сліпого каналу нагляду;
+- `sections/chapter8_information_technology.tex` -- інформаційна технологія та експериментальна перевірка.
+
+Завершальна частина:
+
+- `sections/conclusions.tex` -- висновки (8 результатів);
+- `sections/appendices.tex` -- додатки (А: індекс артефактів; Б: формальні моделі; В: бенчмарки; Г: акти впровадження/публікації);
+- `bib/references.bib` -- посівна бібліографія (звірити й перевести у ДСТУ 8302 перед фіналом);
 - `main.tex` -- головний файл.
+
+## Статус
+
+Це **відполірований каркас**: жанрова структура повна, новизна зафіксована (8 пунктів),
+дві опорні таблиці й межі тверджень на місці. Прозу пишемо порозділово, починаючи з Розділу 1.
+
+Перед фінальною версією:
+
+- перевести бібліографію у формат ДСТУ 8302:2015 (розглянути `biblatex-dstu`);
+- звірити всі джерела за першоджерелами;
+- закрити claim drift (ProVerif), зафіксувати commit-hash артефактів (Додаток А).
