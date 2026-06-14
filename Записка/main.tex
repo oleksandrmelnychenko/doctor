@@ -1,0 +1,55 @@
+\documentclass[14pt,a4paper,oneside]{extreport}
+
+\usepackage{fontspec}
+\usepackage{polyglossia}
+\setmainlanguage{ukrainian}
+\setotherlanguage{english}
+\setmainfont{Times New Roman}
+\setmonofont{Menlo}
+\newfontfamily\cyrillicfonttt{Menlo}
+
+\usepackage{geometry}
+\geometry{
+  left=30mm,
+  right=15mm,
+  top=20mm,
+  bottom=20mm
+}
+
+\usepackage{setspace}
+\onehalfspacing
+
+\usepackage{indentfirst}
+\setlength{\parindent}{1.25cm}
+
+\usepackage{microtype}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{longtable}
+\usepackage{amsmath,amssymb}
+\usepackage[hidelinks]{hyperref}
+
+\graphicspath{{figures/}}
+
+\newcommand{\thesistitle}{Методи та інформаційна технологія постквантово-посиленої автентифікації, захищеного обміну повідомленнями та приватної контекстної безпеки в месенджерах}
+
+\begin{document}
+
+\input{sections/title}
+\tableofcontents
+
+\input{sections/introduction}
+\input{sections/chapter1_analysis}
+\input{sections/chapter2_general_idea}
+\input{sections/chapter3_pq_opaque}
+\input{sections/chapter4_pq_e2ee}
+\input{sections/chapter5_contextual_safety}
+\input{sections/chapter6_supervision_relay}
+\input{sections/chapter7_information_technology}
+\input{sections/conclusions}
+
+\bibliographystyle{plain}
+\bibliography{bib/references}
+
+\end{document}
