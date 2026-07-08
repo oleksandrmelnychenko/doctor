@@ -31,6 +31,14 @@ TeX Live Basic setup, install the recommended font packages first:
 tlmgr --usermode install helvetic courier
 ```
 
+The final author-biography panel uses the `stfloats` package from `sttools`,
+which is part of a full TeX Live installation. On TeX Live Basic, install it
+before building:
+
+```sh
+tlmgr --usermode install sttools
+```
+
 ## Editorial Placeholders
 
 The issue, DOI suffix, and publication date are intentionally left as
