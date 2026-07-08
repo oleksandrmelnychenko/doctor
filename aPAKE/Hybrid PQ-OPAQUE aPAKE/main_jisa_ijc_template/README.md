@@ -36,6 +36,6 @@ tlmgr --usermode install helvetic courier
 The issue, DOI suffix, and publication date are intentionally left as
 editorial placeholders:
 
-- `XX(X) 2026`
+- `VOLUME XX(X), 2026`
 - `10.47839/ijc.XX.X.XX`
 - `Date of publication to be assigned`
