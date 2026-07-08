@@ -23,6 +23,14 @@ pdflatex -interaction=nonstopmode -halt-on-error main_ijc.tex
 No BibTeX step is required because the bibliography is embedded in
 `main_ijc.tex`.
 
+The template uses Times-compatible, Helvetica-compatible, and Courier-compatible
+PSNFSS fonts. A full TeX Live installation already includes them. On a minimal
+TeX Live Basic setup, install the recommended font packages first:
+
+```sh
+tlmgr --usermode install helvetic courier
+```
+
 ## Editorial Placeholders
 
 The issue, DOI suffix, and publication date are intentionally left as

@@ -1,6 +1,4 @@
 \documentclass{ieeeijc}
-\renewcommand{\sfdefault}{cmss}
-\renewcommand{\ttdefault}{cmtt}
 
 \makeatletter
 \let\vec\@undefined
@@ -13,13 +11,16 @@
 \usepackage{graphicx}
 \usepackage{textcomp}
 \usepackage[T1]{fontenc}
+\makeatletter
+\InputIfFileExists{t1phv.fd}{}{}
+\InputIfFileExists{t1pcr.fd}{}{}
+\makeatother
 \DeclareFontShape{T1}{ptm}{n}{n}{<->ssub*ptm/m/n}{}
 \DeclareFontShape{T1}{ptm}{n}{it}{<->ssub*ptm/m/it}{}
-\DeclareFontShape{T1}{cmss}{n}{n}{<->ssub*cmss/m/n}{}
-\DeclareFontShape{T1}{cmss}{b}{n}{<->ssub*cmss/m/n}{}
-\DeclareFontShape{T1}{cmss}{b}{sl}{<->ssub*cmss/m/n}{}
-\DeclareFontShape{T1}{cmss}{n}{sl}{<->ssub*cmss/m/sl}{}
-\DeclareFontShape{T1}{cmtt}{n}{n}{<->ssub*cmtt/m/n}{}
+\DeclareFontShape{T1}{phv}{n}{n}{<->ssub*phv/m/n}{}
+\DeclareFontShape{T1}{phv}{n}{sl}{<->ssub*phv/m/sl}{}
+\DeclareFontShape{T1}{phv}{n}{it}{<->ssub*phv/m/it}{}
+\DeclareFontShape{T1}{pcr}{n}{n}{<->ssub*pcr/m/n}{}
 \usepackage[utf8]{inputenc}
 \usepackage[english]{babel}
 \usepackage[labelsep=period]{caption}
