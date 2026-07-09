@@ -440,6 +440,12 @@
   \let\abstractwidth\titlewidth
   \advance\abstractwidth by -2.39mm
 \fi
+\newlength\ijcabstractbodywidth
+\setlength\ijcabstractbodywidth{\abstractwidth}
+\ifjtehm\else
+  \addtolength\ijcabstractbodywidth{-6pt}
+  \addtolength\ijcabstractbodywidth{-1.5mm}
+\fi
 \newcounter{addrCtr}
 \newsavebox\abstractbox
 \newsavebox\indexbox
@@ -467,7 +473,7 @@
 \renewenvironment{abstract}
      {\global\setbox99=\hbox\bgroup\noindent%
       \ifjtehm\else\raisebox{-.8pc}{\includegraphics[width=6pt]{bullet.png}}\hspace*{1.5mm}\fi%
-      \begin{minipage}[t]{\abstractwidth}%
+      \begin{minipage}[t]{\ijcabstractbodywidth}%
       \abstracttitle\bodyfont%
      }
      {\end{minipage}%
@@ -481,7 +487,7 @@
 \renewenvironment{keywords}
      {\global\setbox88=\hbox\bgroup\noindent%
       \ifjtehm\else\raisebox{-.8pc}{\includegraphics[width=6pt]{bullet.png}}\hspace*{1.5mm}\fi%
-      \begin{minipage}[t]{\abstractwidth}%
+      \begin{minipage}[t]{\ijcabstractbodywidth}%
       \indextitle\bodyfont%
      }
      {\end{minipage}%
@@ -491,7 +497,7 @@
 \renewenvironment{IEEEkeywords}
      {\global\setbox88=\hbox\bgroup\noindent%
       \ifjtehm\else\raisebox{-.8pc}{\includegraphics[width=6pt]{bullet.png}}\hspace*{1.5mm}\fi%
-      \begin{minipage}[t]{\abstractwidth}%
+      \begin{minipage}[t]{\ijcabstractbodywidth}%
       \indextitle\bodyfont%
      }
      {\end{minipage}%
