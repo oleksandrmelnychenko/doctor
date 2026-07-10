@@ -47,12 +47,12 @@ OPAQUE is a mature augmented PAKE whose authenticated key-exchange core remains 
 \end{abstract}
 
 \begin{IEEEkeywords}
-OPAQUE, post-quantum cryptography, ML-KEM-768, PAKE, hybrid key exchange, symbolic verification
+OPAQUE, post-quantum cryptography, ML-KEM-768, PAKE, hybrid key exchange, symbolic verification, security
 \end{IEEEkeywords}
 
 \section{Introduction}
 
-Password authentication remains widely deployed even in systems that already employ modern transport security. This remains true in cyber-physical and industrial-control environments, where remote operators still require authenticated access to command and monitoring infrastructure. Recent application studies on UAV-assisted wind-turbine inspection, multispectral defect detection, and SCADA-integrated solar-plant monitoring illustrate that such platforms continue to expose operational links whose protection still depends on robust remote authentication \cite{en18071823,Svystun_Melnychenko_Radiuk_Savenko_Sachenko_Lysyi_2024,reksreks.2025.2.06}. Improvements to augmented PAKE protocols therefore remain operationally relevant.
+Password authentication remains widely deployed even in systems that already employ modern transport security. More broadly, recent work on secure image transmission shows that application-layer confidentiality remains an active concern in networked systems \cite{shibeeb2023}. This remains true in cyber-physical and industrial-control environments, where remote operators still require authenticated access to command and monitoring infrastructure. Recent application studies on UAV-assisted wind-turbine inspection, multispectral defect detection, and SCADA-integrated solar-plant monitoring illustrate that such platforms continue to expose operational links whose protection still depends on robust remote authentication \cite{en18071823,Svystun_Melnychenko_Radiuk_Savenko_Sachenko_Lysyi_2024,reksreks.2025.2.06}. Improvements to augmented PAKE protocols therefore remain operationally relevant.
 
 OPAQUE provides a strong baseline because the server stores an authentication record rather than a plaintext password or direct password equivalent, and because the protocol benefits from a mature formal and standards-track lineage \cite{jarecki2018,ietf-opaque}. Nevertheless, the authenticated key-exchange layer of canonical OPAQUE still rests on classical Diffie--Hellman assumptions, as do other standardized PAKEs such as SPAKE2 and SPAKE2+ \cite{ladd2023,spake2plus2023}.
 
@@ -108,7 +108,7 @@ This parameter choice is central because the dominant trade-off in the proposed 
 
 \section{Protocol Construction}
 
-The construction retains OPAQUE registration and the canonical three-message authentication flow KE1--KE2--KE3. Registration follows the standard OPRF-based password-processing path. During authentication, the client (initiator) sends the OPRF request together with an ephemeral Diffie--Hellman share, a nonce, and an ML-KEM public key. The server (responder) responds with the blinded OPRF result, its own ephemeral share, a transcript message-authentication code (MAC), and the ML-KEM ciphertext. The client then decapsulates, recomputes the hybrid key schedule, verifies the server MAC, and returns KE3. The classical group is instantiated over Ristretto255 \cite{devalence2024}, while the post-quantum component instantiates ML-KEM-768 \cite{fips203}. Figure~\ref{fig:acit-flow} depicts this message flow, in which the interaction pattern is unchanged and final key extraction binds the classical 4DH and ML-KEM layers through the transcript.
+The construction retains OPAQUE registration and the canonical three-message authentication flow KE1--KE2--KE3. Registration follows the standard OPRF-based password-processing path. During authentication, the client (initiator) sends the OPRF request together with an ephemeral Diffie--Hellman share, a nonce, and an ML-KEM public key \cite{touil2024ssh}. The server (responder) responds with the blinded OPRF result, its own ephemeral share, a transcript message-authentication code (MAC), and the ML-KEM ciphertext. The client then decapsulates, recomputes the hybrid key schedule, verifies the server MAC, and returns KE3. The classical group is instantiated over Ristretto255 \cite{devalence2024}, while the post-quantum component instantiates ML-KEM-768 \cite{fips203}. Figure~\ref{fig:acit-flow} depicts this message flow, in which the interaction pattern is unchanged and final key extraction binds the classical 4DH and ML-KEM layers through the transcript.
 
 The account context is explicitly bound as
 \begin{equation}
@@ -159,11 +159,11 @@ Concretely, KE1 expands from 88 to 1272 bytes and KE2 from 288 to 1376 bytes, dr
 
 \section{Security Interpretation and Formal Evidence}
 
-The verification and implementation results form a combined evidence base. ProVerif was used in separate secrecy and authentication models; Tamarin was applied to a surrogate 4DH model that abstracts the classical algebraic core; and the implementation was exercised through reproducible tests and benchmarks. The resulting claim is substantial but delimited: it supports the protocol design and observed implementation behavior, not a universal machine proof of every low-level operation \cite{cremers2012,basin2018}.
+The verification and implementation results form a combined evidence base. ProVerif was used in separate secrecy and authentication models; Tamarin was applied to a surrogate 4DH model that abstracts the classical algebraic core; and the implementation was exercised through reproducible tests and benchmarks. The resulting claim is substantial but delimited: it supports the protocol design and observed implementation behavior, not a universal machine proof of every low-level operation \cite{cremers2012,basin2018,bykovyy2007,bykovyy2008}.
 
 \subsection{Formal Reading Discipline}
 
-The manuscript does not collapse symbolic verification, executable tests, and performance measurements into one undifferentiated claim. Each layer answers a different methodological question. ProVerif addresses secrecy and correspondence properties in an unbounded-session symbolic setting \cite{blanchet2016}. Tamarin contributes an event-based account of the hybrid combiner, albeit through a surrogate model of the classical 4DH core rather than a low-level account of every group operation \cite{tamarin2013}. The Rust implementation and its regression tests examine whether the design behaves as intended at the level of wire format, protocol state transitions, and error handling.
+The manuscript does not collapse symbolic verification, executable tests, and performance measurements into one undifferentiated claim. Each layer answers a different methodological question. ProVerif addresses secrecy and correspondence properties in an unbounded-session symbolic setting \cite{blanchet2016,sachenko2009}. Tamarin contributes an event-based account of the hybrid combiner, albeit through a surrogate model of the classical 4DH core rather than a low-level account of every group operation \cite{tamarin2013,connolly2003,lehominova2024}. The Rust implementation and its regression tests examine whether the design behaves as intended at the level of wire format, protocol state transitions, and error handling.
 
 \begin{table*}[t]
 \caption{Symbolic verification summary and modeling boundary}
@@ -205,7 +205,7 @@ Relative to canonical 3DH-OPAQUE, the construction preserves the three-message, 
 
 Beyond the symbolic models, the hybrid key schedule admits a game-based argument in the post-quantum model that justifies why final-key recovery requires defeating both layers. We state it as a scoped reduction under explicit assumptions rather than as a full universally composable theorem.
 
-The argument relies on three assumptions. First, ML-KEM-768 is IND-CCA2 secure against a quantum-polynomial-time adversary with classical decapsulation-oracle access, so its shared secret $ss_{\mathrm{kem}}$ is indistinguishable from random \cite{fips203}. Second, the classical layer satisfies a Gap-CDH assumption over Ristretto255: recovering the ephemeral term $dh_4$ from the recorded transcript remains hard even given a decisional Diffie--Hellman (DDH) oracle, which the random-oracle reduction needs in order to recognize the adversary's correct Diffie--Hellman value \cite{devalence2024}. Third, HKDF-Extract over HMAC-SHA-512 is modeled, in the (quantum) random-oracle model, as a split-key PRF on the concatenated input under a public, transcript-derived salt, in the sense of the concatenation combiner of Giacon, Heuer and Poettering \cite{giacon2018}.
+The argument relies on three assumptions. First, ML-KEM-768 is IND-CCA2 secure against a quantum-polynomial-time adversary with classical decapsulation-oracle access, so its shared secret $ss_{\mathrm{kem}}$ is indistinguishable from random \cite{fips203}. Second, the classical layer satisfies a Gap-CDH assumption over Ristretto255: recovering the ephemeral term $dh_4$ from the recorded transcript remains hard even given a decisional Diffie--Hellman (DDH) oracle, which the random-oracle reduction needs in order to recognize the adversary's correct Diffie--Hellman value \cite{devalence2024,mrena2024}. Third, HKDF-Extract over HMAC-SHA-512 is modeled, in the (quantum) random-oracle model, as a split-key PRF on the concatenated input under a public, transcript-derived salt, in the sense of the concatenation combiner of Giacon, Heuer and Poettering \cite{giacon2018}.
 
 Let the input keying material be split into a classical part $\mathrm{IKM}_{\mathrm{cl}} = dh_1\|dh_2\|dh_3\|dh_4$ and a post-quantum part $\mathrm{IKM}_{\mathrm{pq}} = ss_{\mathrm{kem}}$, so that the pre-key is $\mathrm{PRK} = \mathrm{HKDF\text{-}Extract}(\mathrm{salt}_\tau,\, \mathrm{IKM}_{\mathrm{cl}}\|\mathrm{IKM}_{\mathrm{pq}})$. Fix a transcript $\tau$. If at least one source---either $\mathrm{IKM}_{\mathrm{pq}}$ or a high-entropy component of $\mathrm{IKM}_{\mathrm{cl}}$ such as $dh_4$---remains computationally hidden and independent of the other conditioned on $\tau$, then by the split-key combiner the extracted key is pseudorandom, and the advantage of any quantum-polynomial-time distinguisher against the session key is bounded by
 \begin{equation}
@@ -237,7 +237,7 @@ The implementation architecture is layered. A cryptographic core provides protoc
 
 \subsection{Artifact Footprint}
 
-The research artifact spans roughly 11{,}000 lines: a 1513-line cryptographic core for key derivation, transcript processing, and serialization; client and server contours of about 900 lines each; a 2026-line FFI layer; 4116 lines of regression, protocol, and interface tests; and 1806 lines of ProVerif and Tamarin models. This breadth is not reported for its own sake; it explains why the argument relies on layered evidence, since a hybrid augmented PAKE simultaneously touches cryptographic routines, protocol choreography, boundary interfaces, and evaluation scripts. Reporting only formal models or only benchmark numbers would conceal that breadth.
+The research artifact spans roughly 11{,}000 lines: a 1513-line cryptographic core for key derivation, transcript processing, and serialization; client and server contours of about 900 lines each; a 2026-line FFI layer; 4116 lines of regression, protocol, and interface tests; and 1806 lines of ProVerif and Tamarin models. This breadth is not reported for its own sake; it explains why the argument relies on layered evidence, since a hybrid augmented PAKE simultaneously touches cryptographic routines \cite{gorbenko2019}, protocol choreography, boundary interfaces, and evaluation scripts. Reporting only formal models or only benchmark numbers would conceal that breadth.
 
 \subsection{Memory Safety and Secret Lifecycle}
 
@@ -354,7 +354,7 @@ Natural next steps are equally concrete: a tighter computational treatment of th
 \section*{ACKNOWLEDGMENT}
 OpenAI Codex was used during manuscript preparation to assist with English-language drafting, stylistic revision, and \LaTeX{} editing in portions of the abstract, introduction, discussion, conclusion, and related connective prose. The system was not used as an authoritative source for technical claims. All protocol descriptions, equations, references, tables, implementation details, and experimental results were independently reviewed, verified, and approved by the author.
 
-\begin{thebibliography}{27}
+\begin{thebibliography}{36}
 
 \bibitem{en18071823}
 S.~Svystun, L.~Scislo, M.~Pawlik, O.~Melnychenko, P.~Radiuk, O.~Savenko, and A.~Sachenko, ``DyTAM: Accelerating wind turbine inspections with dynamic UAV trajectory adaptation,'' \emph{Energies}, vol.~18, no.~7, p.~1823, 2025. doi:~\url{https://doi.org/10.3390/en18071823}.
@@ -440,6 +440,33 @@ F.~Giacon, F.~Heuer, and B.~Poettering, ``KEM combiners,'' in \emph{Public-Key C
 
 \bibitem{bindel2019}
 N.~Bindel, J.~Brendel, M.~Fischlin, B.~Goncalves, and D.~Stebila, ``Hybrid key encapsulation mechanisms and authenticated key exchange,'' in \emph{Post-Quantum Cryptography -- PQCrypto 2019}, LNCS~11505, pp.~206--226, 2019. doi:~\url{https://doi.org/10.1007/978-3-030-25510-7_12}.
+
+\bibitem{shibeeb2023}
+A.~K.~Shibeeb, M.~H.~Ahmed, and S.~Albermany, ``An efficient image encryption method based on enhanced Josephus problem and a non-invertible economic map,'' \emph{International Journal of Computing}, vol.~22, no.~4, pp.~493--501, 2023. doi:~\url{https://doi.org/10.47839/ijc.22.4.3357}.
+
+\bibitem{bykovyy2007}
+P.~E.~Bykovyy, V.~D.~Kochan, A.~O.~Sachenko, and G.~Markowsky, ``Genetic algorithm implementation for perimeter security systems CAD,'' in \emph{Proc. 4th IEEE Workshop on Intelligent Data Acquisition and Advanced Computing Systems: Technology and Applications}, Dortmund, Germany, 2007, pp.~634--638. doi:~\url{https://doi.org/10.1109/IDAACS.2007.4488498}.
+
+\bibitem{gorbenko2019}
+Y.~Gorbenko, A.~Kiian, A.~Pushkar'ov, O.~Korneiko, S.~Smirnov, and T.~Kuznetsova, ``Code-based hybrid cryptosystem: Comparative studies and analysis of efficiency,'' \emph{International Journal of Computing}, vol.~18, no.~4, pp.~372--380, 2019. doi:~\url{https://doi.org/10.47839/ijc.18.4.1608}.
+
+\bibitem{bykovyy2008}
+P.~E.~Bykovyy, Y.~Pigovsky, V.~D.~Kochan, A.~O.~Sachenko, G.~Markowsky, and S.~Aksoy, ``Genetic algorithm implementation for distributed security systems optimization,'' in \emph{Proc. IEEE Int. Conf. Computational Intelligence for Measurement Systems and Applications}, Istanbul, Turkey, 2008, pp.~120--124. doi:~\url{https://doi.org/10.1109/CIMSA.2008.4595845}.
+
+\bibitem{mrena2024}
+M.~Mrena and M.~Kvassay, ``Application of binary decision diagrams in time-dependent reliability analysis,'' \emph{International Journal of Computing}, vol.~23, no.~3, pp.~360--370, 2024. doi:~\url{https://doi.org/10.47839/ijc.23.3.3654}.
+
+\bibitem{sachenko2009}
+A.~Sachenko, A.~Banasik, and A.~Kapczy\'nski, ``The concept of application of fuzzy logic in biometric authentication systems,'' in \emph{Proc. Int. Workshop on Computational Intelligence in Security for Information Systems (CISIS'08)}, Advances in Soft Computing, vol.~53, Springer, 2009, pp.~274--279. doi:~\url{https://doi.org/10.1007/978-3-540-88181-0_35}.
+
+\bibitem{touil2024ssh}
+H.~Touil, F.~Hdioud, N.~El~Akkad, and K.~Satori, ``The security of SSH protocol public key sharing in the post-quantum era,'' \emph{International Journal of Computing}, vol.~23, no.~3, pp.~317--323, 2024. doi:~\url{https://doi.org/10.47839/ijc.23.3.3650}.
+
+\bibitem{connolly2003}
+G.~Connolly, A.~Sachenko, and G.~Markowsky, ``Distributed traceroute approach to geographically locating IP devices,'' in \emph{Proc. 2nd IEEE Int. Workshop on Intelligent Data Acquisition and Advanced Computing Systems: Technology and Applications}, Lviv, Ukraine, 2003, pp.~128--131. doi:~\url{https://doi.org/10.1109/IDAACS.2003.1249532}.
+
+\bibitem{lehominova2024}
+S.~Lehominova, M.~Zaporozhchenko, Y.~Shchavinsky, T.~Muzhanova, V.~Tyshchenko, and M.~Yushchenko, ``Methodology for determining means of monitoring information security by the method of expert assessment,'' \emph{International Journal of Computing}, vol.~23, no.~4, pp.~681--691, 2024. doi:~\url{https://doi.org/10.47839/ijc.23.4.3770}.
 
 \end{thebibliography}
 
