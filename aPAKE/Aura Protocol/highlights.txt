@@ -1,5 +1,5 @@
-Aura rotates ML-KEM-768 keys at directed ratchet transitions.
-Local compromise permits one-step classical post-compromise recovery.
-Two-endpoint compromise requires a later post-compromise KEM key.
+A direction-triggered hybrid ratchet renews X25519 and ML-KEM state.
+Each advertised KEM key is HKDF-bound to the derived ratchet state.
+PCS separates one-step local recovery from delayed two-endpoint recovery.
 The hybrid ratchet adds 2,304 bytes and 259 microseconds per transition.
 Tamarin, ProVerif, and 556 non-VoIP tests support scoped claims.
