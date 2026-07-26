@@ -1,0 +1,164 @@
+\section{Threat-Campaign Scenarios}\label{sec:threat-campaigns}
+
+Threat campaigns combine delivery, user interaction, carrier structure,
+execution, and payload behavior. A file-defense component observes only a
+bounded segment of that chain. The scenarios below are therefore analytical
+compositions for corpus construction and reason-family reporting. They are not
+claims that \AFD{} attributes an attachment to a named actor or infers a malware
+family. ATT\&CK techniques provide a vocabulary for initial access,
+masquerading, and user execution~\cite{mitreT1566001,mitreT1036002,
+mitreT1036007,mitreT1036008,mitreT1204002}. The enforceable predicates come
+from the local attachment.
+
+\subsection{Masqueraded active attachment}
+
+In the first scenario, an operator sends an executable, script, shortcut, or
+active document under a media-themed display name. The name may use a double
+extension or a right-to-left override so that the rendered suffix appears
+benign. The supplied media type may claim an image while byte evidence identifies
+an executable or unsupported grammar. The campaign may seek user execution of a
+Trojan, downloader, dropper, stager, ransomware program, or spyware implant.
+Those downstream labels and roles do not change the local decision.
+
+The observable defense is deterministic name validation and concrete-profile
+convergence. Path separators, control and bidirectional override characters,
+dangerous nonfinal suffixes, and forbidden final suffixes violate the evaluated
+name policy. A conflict among normalized name, supplied media type, and bytes
+is assigned a blocking decision before publication. If evaluation records that
+decision with no published bytes, the permitted conclusion is that the
+masqueraded or unsupported carrier did not become a deliverable artifact at
+this boundary. If the same payload arrives through a channel outside \AFD, or
+if the endpoint is already compromised, this conclusion does not apply.
+
+\subsection{Staged delivery roles}
+
+Staged campaigns require three separate operational labels. A downloader
+obtains follow-on material from another source after execution. A dropper
+carries follow-on material inside itself and places that embedded payload after
+execution. A stager prepares an execution context or transfers control to a
+follow-on stage. A stager may download or drop its next stage, but downloader,
+dropper, and stager are not interchangeable labels.
+
+Archives, scripts, shortcut files, installers, and active office documents can
+carry any of these roles because they can encode commands or package multiple
+objects. The media-only release profile does not attempt to sanitize these
+classes. It rejects them as unsupported. This is a deliberate scope choice
+because preserving their intended semantics would preserve the active behavior
+that makes them useful to the campaign.
+
+The permitted claim is containment at one attachment boundary, not observation
+of a staged role. \AFD{} does not observe network retrieval, extraction of an
+embedded payload, command execution, or transfer to a later stage. A benign
+unsupported archive is blocked by the same rule. The evaluation must therefore
+measure policy enforcement and false blocking relative to the frozen media-only
+policy rather than infer downloader, dropper, or stager intent from rejection.
+
+\subsection{Exploit-bearing media}
+
+An exploit-bearing media scenario uses a nominally supported image, animation,
+audio stream, or video container to reach a vulnerable parser or decoder.
+Mutated dimensions, lengths, offsets, checksums, sample tables, lacing, frame
+counts, and nested elements can test structural paths. Validly encoded codec
+content can also exercise a decoder vulnerability without violating the outer
+grammar. This distinction determines the claim.
+
+Bounded input parsing, checked arithmetic, reconstruction, independent output
+parsing, process timeouts, output-size limits, and clean-only publication reduce
+specific opportunities for malformed-container delivery and unbounded work.
+A semantic image or GIF path can emit new encoded content from bounded decoded
+state. Structural audio and video paths retain codec payloads and support only
+container and metadata claims unless policy requires semantic reconstruction.
+If the required semantic path is unavailable or fails, semantic-or-block policy
+rejects the artifact. A sample-specific success or rejection does not prove
+that arbitrary accepted bytes are harmless, and a decoder invocation remains
+inside the trusted computing and fault-containment assumptions.
+
+\subsection{True-polyglot and boundary-smuggling delivery}
+
+A true-polyglot campaign exploits a whole octet string that is completely
+accepted by at least two incompatible parsers. This differs from boundary
+smuggling. A valid media object with an executable, archive, or inert foreign
+object after its terminal boundary is an appended or trailing-object carrier,
+not a true dual-format polyglot, unless both parsers accept the whole string
+completely. An executable prefix before a later media signature is prefix
+camouflage under the same rule. Prior work shows both detector-side parsing
+differences and semantic gaps among implementations~\cite{jana2012,koch2025,
+you2025}.
+
+\AFD{} requires parsing from offset zero and complete consumption through the
+exact terminal boundary for prefix and suffix constructions. It treats at
+least two incompatible complete parses of the whole string as true-polyglot
+ambiguity. Location-aware allowlists govern nested structures. A structural
+handler cannot transform a retained ambiguous region into a neutralized claim.
+A semantic path may support the term ``neutralized'' only when no independently
+valid active grammar is authorized, no source container or compressed payload
+bytes are copied, and the new output has one canonical interpretation under the
+registered validators. Otherwise the correct action and report are
+``blocked.''
+
+\subsection{Payload-objective strata}
+
+Campaign corpora often organize samples by the final payload, including
+ransomware or spyware. This organization remains useful for coverage of threat
+provenance, but it must be crossed with carrier class. A ransomware executable
+masquerading as a PNG exercises active-class and classifier-disagreement rules.
+An image with location metadata exercises privacy-leakage metadata exclusion
+only if that field is part of the frozen profile. A spyware label attached to
+the same sample remains provenance context and does not convert passive
+metadata into spyware. A ransomware-labelled exploit inside a valid codec
+stream tests the exact semantic or structural path used by that format. The
+payload label does not alter what evidence the pipeline collects.
+
+\begingroup
+\footnotesize
+\setlength{\tabcolsep}{4pt}
+\begin{longtable}{L{0.15\textwidth}L{0.20\textwidth}L{0.31\textwidth}L{0.23\textwidth}}
+\caption{Threat-campaign compositions and attachment-level claim boundaries.}
+\label{tab:campaign-scenarios}\\
+\toprule
+Scenario & Local observables & Enforced response under the evaluated profile & Residual or excluded claim \\
+\midrule
+\endfirsthead
+\toprule
+Scenario & Local observables & Enforced response under the evaluated profile & Residual or excluded claim \\
+\midrule
+\endhead
+\midrule
+\multicolumn{4}{r}{Continued on next page}\\
+\endfoot
+\bottomrule
+\endlastfoot
+Masqueraded active file & Bidi control, dangerous suffix chain, false media type, executable or unsupported bytes & Reject name, profile disagreement, or unsupported grammar and expose no deliverable output & No attribution and no malware-label or operational-role classification \\
+Downloader carrier & Script, shortcut, archive, package, installer, active document, or executable & Reject unsupported active class & No observation that the component fetched follow-on material \\
+Dropper carrier & Script, shortcut, archive, package, installer, active document, or executable & Reject unsupported active class & No observation that the component contained and placed an embedded payload \\
+Stager carrier & Script, shortcut, archive, package, installer, active document, or executable & Reject unsupported active class & No observation that the component prepared or transferred control to a later stage \\
+Malformed media exploit & Invalid bounds, offsets, checksums, order, terminator, or over-budget structure & Block parse or reconstruction failure, or publish only independently validated reconstruction & No universal codec-vulnerability coverage \\
+Valid codec exploit & Supported outer grammar with decoder-triggering content & Require qualified semantic reconstruction for a bitstream-disarm claim, otherwise block & Structural copying does not neutralize retained codec bytes \\
+True polyglot & Whole octet string completely accepted by at least two incompatible parsers & Reject incompatible complete parses, or require qualified semantic reconstruction with one accepted output grammar & Retained pixels and samples may preserve information \\
+Boundary-smuggling carrier & Prefix camouflage, appended or trailing object, or nested active element & Enforce zero-offset parsing, exact consumption, and location-aware allowlists & The construction is not thereby a true dual-format polyglot \\
+Privacy-bearing media & Excluded EXIF, XMP, comments, application identifiers, or other named metadata & Rebuild without fields forbidden by the concrete output profile & Passive leakage is not spyware and visible or steganographic sensitive content may remain \\
+\end{longtable}
+\endgroup
+
+\subsection{Evaluation use and nonclaims}
+
+Each scenario becomes a set of manifest records with independent fields for
+delivery context, behavioral ground truth, carrier class, concrete format,
+mutation recipe, expected action, and expected reason family. Crossed cases are
+necessary. The same carrier mutation should appear with benign and malicious
+provenance where licensing and safety controls permit, and the same payload
+stratum should appear across multiple carrier forms. This design tests whether
+the verdict follows observable policy predicates rather than a convenient
+directory label.
+
+The campaign analysis yields no empirical effectiveness number in the drafting
+environment. Tests, coverage-guided fuzzing, fault injection, corpus execution,
+fidelity analysis, differential validation, and performance measurements are
+reserved for the pinned server run. Until that run is complete, the tables in
+this section specify expected mechanisms and claim boundaries only. After the
+run, reporting must preserve separate counts for unsupported-class blocking,
+classifier disagreement, malformed structure, resource rejection, polyglot
+ambiguity, prefix camouflage, trailing-object rejection, nested-object policy,
+qualified semantic neutralization, privacy-metadata exclusion, and benign false
+blocking. Combining these into one malware-blocking percentage would erase the
+causal distinction that the taxonomy is designed to preserve.

@@ -1,0 +1,117 @@
+\section{Reproducibility and Release Provenance}\label{sec:reproducibility}
+
+Reproduction is defined by a source revision, locked dependency graph, policy
+document, classifier registry, corpus manifest, external-tool set, execution
+environment, and machine-readable result directory. The Rust toolchain is
+pinned to version 1.96.1 with a minimal profile plus formatting and linting
+components. \texttt{Cargo.lock} fixes Rust dependency resolution.
+\texttt{Cargo.toml} fixes unwinding panics in development and release because
+panic containment is part of the runtime contract. Rebuilding with another
+toolchain, unlocked dependencies, altered panic behavior, or an unrecorded
+policy is a different experimental condition.
+
+The development repository is publicly available.
+{\raggedright
+\url{https://github.com/oleksandrmelnychenko/ecliptix-file-defender}\par}
+The clean implementation snapshot inspected for this manuscript revision is
+\texttt{0bffc39314bc8ee8\allowbreak 40aa6a85e69f108e\allowbreak 667fa5fd}.
+This identifier records the
+local source state but is not substituted for the commit field of a future
+controlled run. Submission still requires an immutable archive, its digest,
+and a persistent archive identifier. Until those exist, the repository is an
+inspectable development artifact rather than an exactly reproducible published
+artifact.
+
+The ordinary quality workflow checks formatting, builds and tests every
+workspace target and feature, rejects lint warnings, packages every crate, and
+runs dependency advisory and license/source policy gates. Research scripts are
+syntax checked and JSON inputs are parsed. A macOS job rebuilds the Apple
+XCFramework, compares the generated distribution, header, and Swift package
+metadata against the committed artifact, then builds and tests the Swift
+package. A benchmark smoke job checks that the harness executes. These jobs
+are release preflight. They are not substitutes for the controlled corpus,
+fuzzing, fault-injection, fidelity, and performance run.
+
+\begin{table}[t]
+\centering
+\caption{Provenance items required for a scientifically interpretable run.}
+\label{tab:reproducibility-register}
+\small
+\begin{tabularx}{\textwidth}{L{0.24\textwidth}Y L{0.25\textwidth}}
+\toprule
+Item & Required record & Integrity anchor \\
+\midrule
+Source and build & Commit, clean-tree state, toolchain, target, features, panic profile & Git identifier and lockfile hash \\
+Policy and registries & Release policy, fidelity policy, classifier aliases, canonical registry version & SHA-256 for each frozen input \\
+Corpus & Sample identifier, stratum, origin, size, expected treatment, and path & Manifest plus per-sample SHA-256 \\
+External tools & FFmpeg, FFprobe, independent parsers, metric tools, and adapters & Version output and executable hash \\
+Host state & Operating system, CPU, memory, storage, affinity, governor, and command line & Run manifest and environment record \\
+Observations & Per-sample results, accepted outputs, raw benchmark records, coverage, fuzz logs, and faults & Schema validation and checksum inventory \\
+Analysis & Deterministic scripts, thresholds, session grouping, and generated tables & Script hashes and analysis-summary schema \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+The controlled runner is restricted to a Linux validation server. It requires
+an explicit CPU affinity, records available frequency-governor state, and
+executes ten independent end-to-end benchmark sessions. Corpus
+order is deterministically permuted by session. Raw JSON Lines are retained
+before deterministic reduction. The run also records tool versions, host
+properties, commands, logs, accepted outputs, and a SHA-256 inventory. A
+development laptop may be used for compilation and narrow static inspection,
+but values obtained there do not populate manuscript result macros.
+
+The corpus evaluator validates each manifest path, size, and digest before
+calling the public pipeline. It records the concrete input evidence, handler
+level, verdict, alerts, canonical report, output digest, and release-gate
+failures for each sample. Every clean output is processed a second time under
+its canonical name and media type. Exact byte equality is required only for
+deterministic structural and lossless paths. Lossy semantic paths report
+same-profile canonical closure separately. They are not described as
+byte-idempotent without a pre-specified normalized comparator and drift bound.
+
+Three external adapters are mandatory for scientific release. The differential
+adapter evaluates every accepted output with at least two independently
+implemented parser or decoder families. The fidelity adapter applies a
+separately frozen threshold policy so usability does not silently redefine the
+security verdict. The fault-injection adapter covers pre-dispatch
+cancellation, expired deadlines, child-launch failure, child timeout, bounded
+diagnostics, output-size termination, canonical-validation failure, and
+blocked publication. Each adapter exits nonzero on incomplete coverage, tool
+failure, disagreement, or threshold failure and writes its report atomically.
+A tooling rehearsal that disables external evidence cannot pass the scientific
+release gate.
+
+Apple release artifacts follow a separate reproducible packaging path. The
+build script compiles locked static libraries for iOS device, both simulator
+architectures, Mac Catalyst, and macOS. It combines architectures with
+\texttt{lipo}, creates one XCFramework, validates its property list, verifies
+that the strict FFI symbol exists in every archive, and compares every bundled
+header with the source header.  The script sets fixed archive epochs, remaps
+workspace and package-cache paths embedded by the Rust compiler, and sorts and
+canonically serializes the XCFramework property list.  The CI comparison then
+detects byte drift in the checked-in binary target.  These controls address the
+known path, timestamp, ordering, and serialization sources of nondeterminism.
+They do not imply byte-identical output across arbitrary unpinned Rust, Xcode,
+SDK, or archive-tool versions, which remain part of the recorded build
+environment.
+
+Workspace publication is ordered because the facade depends on five internal
+crates. The leaf crates are published before \texttt{file\_defender}, with
+registry-index propagation allowed between steps. Live publication requires a
+registry token, while dry run uses workspace packaging for the first release
+where internal crates may not yet exist in the registry. Dependency advisories
+and license/source policy are checked immediately before publication. These
+controls establish release provenance and packaging consistency. They do not
+establish absence of vulnerabilities in dependencies.
+
+Numerical result macros in the master document remain \texttt{pending} until a
+run manifest exists. Every frozen run is registered and retained whether it
+passes or fails. A rerun receives a new identifier and links its predecessor and
+reason. Only release claims require every scientific release gate to pass. Tests,
+coverage-guided fuzzing, fault injection, and benchmarks are intentionally
+deferred to that controlled server run. Consequently, this appendix specifies
+commands, artifacts, and decision rules but reports no latency, throughput,
+memory, neutralization, false-blocking, or fidelity values. This boundary
+prevents local rehearsal output from being mistaken for evidence and keeps all
+claims tied to a reviewable provenance record.

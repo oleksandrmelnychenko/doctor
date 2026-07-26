@@ -1,0 +1,332 @@
+\section{Terminology, Units of Analysis, and Research Questions}
+\label{sec:terminology-questions}
+
+\subsection{Attachment and processing context}
+
+An \emph{attachment} is an application-level object submitted for transmission
+or obtained after authenticated decryption. The attachment is represented by a
+processing tuple
+\begin{equation}
+  u = (x,n,m,p,r,d),
+  \label{eq:processing-unit}
+\end{equation}
+where $x\in\{0,\ldots,255\}^{*}$ is the source octet string, $n$ is the caller-supplied
+display name, $m$ is the caller-supplied media type, $p$ is a versioned local
+policy, $r$ is a request context, and $d\in\{\mathsf{out},\mathsf{in}\}$
+identifies the outgoing or incoming boundary. The request context contains
+only information explicitly admitted by policy, including tenant selection,
+cancellation state, and trace identifiers. Neither $n$ nor $m$ is treated as a
+trusted assertion about the grammar of $x$.
+
+The \emph{source object} is the complete octet string $x$. A
+\emph{candidate output} contains bytes, a generated display name, a declared
+output type, the handler profile, the performed reconstruction level, and an
+evidence record. It exists before independent validation. A \emph{deliverable
+output} is the byte component of a candidate for which the final acceptance
+predicate is true and whose public interface is available to the caller. This
+distinction is central.
+Creation of a temporary file, allocation of an output buffer, or successful
+return from an external codec does not make an object deliverable.
+
+A \emph{carrier} is an attachment considered with respect to a named delivery
+property rather than inferred post-execution behavior. The property may be a
+misleading name, an executable signature, a second grammar, an embedded active
+object, excluded metadata, a malformed structural field, or a resource demand.
+Calling a sample a Trojan carrier means that the sample represents a
+Trojan-delivery scenario in the corpus. It does not mean that \AFD\ has inferred
+Trojan behavior from the file.
+
+\subsection{Format profiles and canonical grammars}
+
+A \emph{format family} is a broad technical grouping such as ISO base media file
+format, Ogg, or static raster image. A \emph{format profile} is narrower. It
+fixes the admissible signature, structural grammar, component locations,
+ordering constraints, codec set where relevant, resource bounds, output media
+type, and filename suffixes. For example, a constrained WebM profile and a
+general Matroska family are not interchangeable. Static PNG and APNG likewise
+require different profiles even though both begin with the PNG signature.
+Static and animated WebP similarly share RIFF and WebP identifiers but require
+different chunk grammars and reconstruction claims.
+
+For a format profile $k$ and policy $p$, let
+\begin{equation}
+  L_{p,k}\subseteq\{0,\ldots,255\}^{*}
+  \label{eq:term-canonical-language}
+\end{equation}
+denote the accepted output language. Membership is established by a complete
+parser that begins at offset zero, validates all profile constraints, and
+reports a terminal offset equal to the output length. The term
+\emph{canonical} in this manuscript therefore means \emph{closed under the
+declared profile and policy}. It does not necessarily imply that one
+mathematical byte string is the unique representation of every media object.
+Where an encoder is deterministic and a unique representation is in fact
+enforced, the stronger statement is named separately.
+
+The profile is location-aware. A component that is permitted in one parent
+element or phase of a grammar is not automatically permitted elsewhere. This
+requirement matters for chunked and nested formats. An allowlist of FourCC,
+chunk, atom, or element identifiers without parent and cardinality constraints
+does not define $L_{p,k}$. The parser must also validate sizes,
+offsets, ordering, cross-references, multiplicities, and exact termination.
+
+\begin{definition}[Complete profile acceptance]
+For registry parser $\mathsf{Parse}_{v,k}$ and output $y$, complete profile acceptance holds when
+\begin{equation}
+  \mathsf{Parse}_{v,k}(y)\Downarrow\rho_k(y),\qquad
+  \rho_k.o=0,\qquad \rho_k.t=|y|,\qquad
+  y\in L_{p,k},
+  \label{eq:complete-profile}
+\end{equation}
+where $\rho_k$ is the parser report. A successful prefix parse with
+$\rho_k.t<|y|$ is not acceptance.
+\end{definition}
+
+\subsection{Classification, routing, and acceptance}
+
+The manuscript uses \emph{classification} only for evidence extraction and
+routing. Three routing sources are distinguished. $E_p(n)$ is profile evidence
+from the normalized final suffix. $M_p(m)$ is evidence from the supplied media
+type. $B_p(x)$ is the finite candidate set returned by bounded signature and
+structural-header probes. A separate complete-parser registry observes the
+reconstructed output from offset zero through its exact end. It is an acceptance
+observer, not a fourth routing source. No source can erase a recorded
+disagreement. Unresolved disagreement prevents delivery in the strict profile.
+
+\emph{Routing} selects a candidate handler from bounded evidence. Routing may
+occur before a complete parse because the complete parser is profile-specific.
+\emph{Acceptance} occurs only after reconstruction and independent output
+validation. No extension, media type, magic value, decoder success, or handler
+declaration can authorize delivery alone. This separation prevents a familiar
+category error in file-security systems: using the mechanism that selected a
+parser as evidence that the parser consumed the same object later exposed to
+the application.
+
+\subsection{Reconstruction terminology}
+
+\begin{definition}[Structural reconstruction]
+Structural reconstruction parses a container, checks its declared structural
+relations, emits only allowed components, rewrites dependent lengths or
+offsets, excludes policy-forbidden metadata, and accounts for the complete
+source object. Encoded media payload may remain byte-identical.
+\end{definition}
+
+\begin{definition}[Semantic reconstruction]
+Semantic reconstruction decodes media into a semantic intermediate
+representation and encodes a new output from that representation. Source
+container and codec payload bytes are not copied into the output except for
+values reconstructed explicitly from validated semantic state.
+\end{definition}
+
+\begin{definition}[Semantic-or-block requirement]
+Under a semantic-or-block requirement, the absence, failure, timeout, or
+rejection of the semantic path produces no deliverable output. Structural
+reconstruction is not an admissible fallback.
+\end{definition}
+
+The reconstruction levels form the order
+\begin{equation}
+  \Unprocessed \prec \Structural \prec \Semantic.
+  \label{eq:term-reconstruction-order}
+\end{equation}
+The level is a report of work actually completed, not a property inferred from
+the selected handler. A process that intended to transcode but returned the
+source object has performed \Unprocessed. A container remultiplexer that copies
+validated compressed frames has performed \Structural. A pixel or sample
+decode followed by new encoding has performed \Semantic.
+
+The manuscript avoids using \emph{sanitization} as an unqualified synonym for
+all three outcomes. The term is used only with a named property. Structural
+reconstruction may sanitize a location-metadata field. Semantic reconstruction
+may neutralize a container-level appended payload. Neither statement proves
+that all information encoded in retained media semantics has been removed.
+
+\subsection{Verdicts and publication}
+
+The externally visible verdict set is
+\begin{equation}
+  \mathcal{V} =
+  \{\Clean,\Suspicious,\Blocked,\NotProcessed\}.
+  \label{eq:verdict-space}
+\end{equation}
+A \Clean\ verdict indicates that the configured acceptance predicate succeeded
+for the reconstructed object. \Suspicious\ records evidence that requires
+policy action but is not represented as accepted delivery.
+\Blocked\ records a policy rejection. \NotProcessed\ records that the required
+method was not completed. This verdict tag is distinct from the performed
+reconstruction level \Unprocessed. Under the evaluated release profile, only \Clean\
+can carry a deliverable output.
+
+The distinction between verdict and error is also explicit. A typed terminal
+error can describe malformed input, exhausted resources, cancellation, failed
+external processing, or internal invariant failure. A terminal error and a
+non-clean verdict share the same publication consequence: no deliverable bytes.
+This equivalence concerns the output boundary, not diagnostic meaning. Audit
+records preserve the difference without exposing attacker-controlled
+diagnostics as trusted application text.
+
+\subsection{Units of measurement}
+
+The primary security unit is one processing tuple $u$ under one pinned policy
+and software build. Paired comparisons use the same source object under
+predeclared policy variants. Corpus-level rates are computed over explicitly
+named strata and do not mix benign usability with malicious-carrier
+neutralization.
+
+Ground truth describes how a record was constructed and which carrier property
+it contains. The policy oracle is separate. It states the expected action under
+one pinned policy and cites the rule that produces that action. A behavioral
+malware label cannot substitute for either field.
+
+Primary false blocking is defined only over independently usable S0 and S1
+records whose policy oracle is expected-clean. Let this set be $\mathcal{B}_{01}$:
+\begin{equation}
+  \mathit{FBR} =
+  \frac{|\{u\in\mathcal{B}_{01}:\operatorname{verdict}(u)\neq\Clean\}|}
+       {|\mathcal{B}_{01}|}.
+  \label{eq:term-false-blocking}
+\end{equation}
+Other expected-clean strata are summarized as expected-action agreement and do
+not enlarge the primary benign denominator. Let $\mathcal{B}_{\mathrm{block}}$
+contain records whose policy oracle requires withholding. False acceptance is
+\begin{equation}
+  \mathit{FAR} =
+  \frac{|\{u\in\mathcal{B}_{\mathrm{block}}:
+    \operatorname{verdict}(u)=\Clean\}|}
+       {|\mathcal{B}_{\mathrm{block}}|}.
+  \label{eq:term-false-acceptance}
+\end{equation}
+Carrier-property retention among expected-clean reconstructions is reported as
+a different endpoint. It does not alter the expected-action denominator. A
+cell with no eligible records is represented by a null value meaning ``not
+estimable,'' never by zero.
+
+Performance is measured end to end from API entry to terminal result and by
+named internal stages. The unit includes classification, reconstruction,
+validation, signature policy, and publication bookkeeping. Isolated decoder
+time is reported separately. Latency summaries include median and upper
+quantiles with confidence intervals from the pinned server run. Throughput is
+not inferred as the reciprocal of an isolated median when concurrency,
+allocation, and process scheduling affect the system.
+
+\subsection{Research questions}
+
+The study is governed by six research questions. They are stated before the
+server evaluation so that corpus construction and measurement cannot be
+adjusted to a preferred result.
+
+\begingroup
+\small
+\setlength{\tabcolsep}{4pt}
+\begin{longtable}{L{0.08\textwidth}L{0.33\textwidth}L{0.50\textwidth}}
+\caption{Research questions, evidence, and decision criteria.}
+\label{tab:research-questions}\\
+\toprule
+ID & Question & Required evidence and interpretation \\
+\midrule
+\endfirsthead
+\toprule
+ID & Question & Required evidence and interpretation \\
+\midrule
+\endhead
+\midrule
+\multicolumn{3}{r}{Continued on next page}\\
+\endfoot
+\bottomrule
+\endlastfoot
+RQ1 &
+Can three routing sources and a separate complete-output observer be composed
+without allowing a weak source to authorize delivery? &
+Classifier-disagreement corpus, deterministic decision records, routing traces,
+and proof argument for the acceptance predicate. Any accepted unresolved
+disagreement refutes the release claim. \\
+\addlinespace
+RQ2 &
+Does the reconstruction-level order prevent structural fallback when a policy
+requires semantic reconstruction? &
+Paired policy cases for every supported family, unavailable-decoder cases,
+timeouts, cancellation, and handler-level reports. One deliverable structural
+output under semantic-or-block refutes the claim. \\
+\addlinespace
+RQ3 &
+Do accepted outputs satisfy complete consumption, profile closure, type
+convergence, and declared metadata exclusions? &
+Independent output parsing, differential validators, property tests,
+format-specific mutations, and exact terminal offsets. Results are reported per
+profile rather than as one aggregate parser-success rate. \\
+\addlinespace
+RQ4 &
+How does the method affect malware-carrier scenarios without claiming
+behavioral malware classification? &
+Safe carrier simulations mapped to explicit properties, including masquerading,
+prefix and appended grammars, embedded active objects, malformed structures,
+and excluded metadata. Conclusions remain property-specific. \\
+\addlinespace
+RQ5 &
+Does every failure path preserve clean-only publication and declared resource
+bounds? &
+Fault injection, cancellation, child-process failure, panic containment,
+oversized output, diagnostic flooding, temporary-file inspection, and
+interface-level invariant tests. No non-clean terminal state may expose a
+deliverable artifact. \\
+\addlinespace
+RQ6 &
+What latency, throughput, memory, expansion, and fidelity costs does the method
+incur under a reproducible server configuration? &
+Pinned hardware and software manifest, warm-up and repeated observations,
+stratification by format and size, paired source/output fidelity measures, raw
+data retention, and uncertainty intervals. No development-machine values enter
+the result. \\
+\end{longtable}
+\endgroup
+
+\subsection{Falsification conditions}
+
+The principal claims are intentionally vulnerable to counterexample. The
+profile-convergence claim fails if any accepted output retains an unresolved
+conflict among its output name, declared media type, byte recognition, selected
+handler, and complete parser. The complete-consumption claim fails if an
+accepted parser report terminates before the output length. Canonical component
+closure fails if an accepted output contains a component outside the
+location-aware allowlist or violates a declared cardinality or ordering rule.
+Metadata exclusion fails on the first accepted forbidden metadata component.
+
+Reconstruction-strength enforcement fails if a weaker performed level satisfies
+a stronger requirement. Clean-only publication fails if any non-clean verdict
+or terminal error exposes an output through Rust, the filesystem, a serialized
+interface, or an application wrapper. Resource-boundedness fails if the
+declared limit can be exceeded before cancellation or rejection on the
+platform for which the bound is claimed. Reproducibility fails if the reported
+tables cannot be regenerated from the pinned source, dependency lock, corpus
+manifest, policy document, and raw observations.
+
+The malware-carrier interpretation has a different falsification boundary.
+Failure to remove or reject the named carrier property is evidence against the
+corresponding scenario claim. Failure to identify a malware family is not,
+because family classification is not a system output. Likewise, successful
+reconstruction of a media object is not evidence that the visual or acoustic
+meaning is benign.
+
+\subsection{Statement of novelty}
+
+The scientific novelty lies in the composed decision method and its evidence
+discipline, not in a new image codec, malware signature, or transport protocol.
+The method joins symmetric endpoint placement around an end-to-end encrypted
+channel with a ranked but non-erasing evidence model, an explicit order of
+reconstruction strength, independently checked complete profile acceptance,
+and transactional clean-only publication. The resulting construction turns
+attachment delivery into a conjunction of separately falsifiable conditions.
+
+The contribution differs from a conventional scanner pipeline in two ways.
+First, classifier output selects work but cannot authorize publication.
+Second, the representation authorized for use is the independently validated
+reconstruction, not the source object on which a detector happened to run. It
+differs from a conventional content-reconstruction service by preserving the
+blind-relay model and by refusing to treat structural remultiplexing as
+equivalent to semantic reconstruction. It differs from a parser-only method by
+including policy order, resource enforcement, failure semantics, and
+cross-interface publication as part of the security construction.
+
+This novelty is methodological and systems-oriented. Its value must be judged
+by the precision of the model, the traceability of implementation to the
+acceptance predicate, and the pre-specified evidence contract that can refute each
+claim. The extended manuscript is structured accordingly.

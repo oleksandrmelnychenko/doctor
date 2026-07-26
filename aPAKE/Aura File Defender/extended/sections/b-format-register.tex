@@ -1,0 +1,172 @@
+\section{Canonical Format Register}\label{app:format-register}
+
+This appendix records the implemented output profiles against which the
+methods in Section~\ref{sec:format-methods} are interpreted.  A registry entry
+does not state an empirical success rate.  It states the accepted output
+language, reconstruction level, retained semantic boundary, and strongest
+claim that follows from implementation inspection.  The registry version in
+the Rust validator is \texttt{aura-canonical-registry-v1}.  MIME aliases in the
+table select one parser profile.  They do not create additional grammars.
+
+\begin{landscape}
+\scriptsize
+\def\UrlBreaks{\do\/\do\-}
+\setlength{\tabcolsep}{2.1pt}
+\begin{longtable}{L{1.8cm}L{2.4cm}L{2.0cm}L{3.6cm}L{3.6cm}L{4.0cm}}
+\caption{Implemented canonical output register and claim boundary.}
+\label{tab:format-register}\\
+\toprule
+Family and output type & Validator profile & Performed level & Canonical component closure & Retained representation & Strongest supported methodological claim \\
+\midrule
+\endfirsthead
+\toprule
+Family and output type & Validator profile & Performed level & Canonical component closure & Retained representation & Strongest supported methodological claim \\
+\midrule
+\endhead
+\midrule
+\multicolumn{6}{r}{Continued on next page}\\
+\endfoot
+\bottomrule
+\endlastfoot
+Static PNG, \texttt{image/png} & \nolinkurl{png-static-canonical-v1} & Semantic & Signature, one \texttt{IHDR}, optional compatible \texttt{PLTE} and \texttt{tRNS}, contiguous \texttt{IDAT}, one \texttt{IEND}.  Every CRC is checked. & Decoded pixel raster is re-encoded.  Source PNG chunks and source compressed data are not copied. & Metadata exclusion, complete-boundary closure, static-profile enforcement, and semantic raster reconstruction under the selected decoder and encoder. \\
+JPEG, \texttt{image/jpeg} & \nolinkurl{jpeg-canonical-v1} & Semantic & SOI, pinned JFIF APP0, explicit marker allowlist, baseline SOF0 or progressive SOF2 structure, scan tables and entropy data, EOI. Other APP and COM markers are forbidden. & Decoded pixel raster is re-encoded as a new JPEG. & Metadata exclusion, marker and scan closure, suffix rejection, and semantic raster reconstruction. Lossy fidelity remains an empirical obligation. \\
+Static WebP, \texttt{image/webp} & \nolinkurl{webp-static-canonical-v1} & Semantic & RIFF/WEBP with exact size and padding, optional consistent \texttt{VP8X}, and exactly one \texttt{VP8 } or \texttt{VP8L}.  Animation and metadata chunks are forbidden. & Decoded pixel raster is re-encoded as a new static WebP. & Metadata and animation exclusion, RIFF boundary integrity, and semantic raster reconstruction. \\
+Animated WebP, \texttt{image/webp} & \nolinkurl{webp-animated-canonical-v1} & Structural & RIFF/WEBP with exact size and padding, one animation-enabled \texttt{VP8X}, one \texttt{ANIM}, and bounded \texttt{ANMF} frames containing an optional \texttt{ALPH} and one \texttt{VP8 } or \texttt{VP8L}. Metadata and unknown chunks are forbidden. & Compressed frame payloads are retained. Every reconstructed frame is subsequently decoded under fixed bounds. & Metadata exclusion, canvas and frame-rectangle consistency, frame-count agreement, complete RIFF closure, and bounded decoder consumability. Codec-payload neutralization is not claimed. \\
+GIF, \texttt{image/gif} & \nolinkurl{gif-canonical-v1} & Semantic & Header, logical screen, generated color tables, generated frame controls and image blocks, optional generated loop extension, one trailer. & Decoded RGBA frames, geometry, disposal, transparency, and normalized delay are re-encoded. & Frame-level semantic reconstruction, extension exclusion, complete trailer consumption, and bounded frame workload. \\
+APNG, \texttt{image/apng} & \nolinkurl{apng-canonical-v1} & Structural & PNG signature, \texttt{IHDR}, optional required palette/transparency, one \texttt{acTL}, contiguous \texttt{fcTL}/\texttt{fdAT} sequence with \texttt{IDAT}, one \texttt{IEND}. & Compressed \texttt{IDAT} and \texttt{fdAT} payloads survive structural remuxing. & Chunk, CRC, frame-sequence, rectangle, metadata, and suffix claims only.  Codec-payload neutralization is semantic-or-block and is not supplied by this path. \\
+MP3, \texttt{audio/mpeg} & \nolinkurl{mp3-frame-sequence-v1} & Structural & Nonempty sequence of complete MPEG audio frames with stable supported stream parameters.  Tags, inter-frame material, and suffixes are forbidden. & MPEG frame bodies are retained. & ID3 and appended-material removal plus exact frame-boundary validation.  Compressed audio disarm is not claimed. \\
+WAV PCM, \texttt{audio/wav} and \texttt{audio/x-wav} & \nolinkurl{wav-pcm-canonical-v1} & Structural & RIFF/WAVE with exact outer size, one 16-byte PCM \texttt{fmt } before one \texttt{data}, and only generated odd-byte padding. & PCM sample bytes are retained in a new container. & Ancillary-chunk exclusion, arithmetic consistency, data alignment, and complete RIFF reconstruction for supported integer PCM. \\
+FLAC, \texttt{audio/flac} & \nolinkurl{flac-frame-crc-v1} & Structural & \texttt{fLaC}, one 34-byte final STREAMINFO block, and one or more completely parsed frames with CRC-8 and CRC-16. & STREAMINFO content and compressed frames are retained. & Metadata exclusion, constrained frame grammar, frame-CRC integrity, numbering and STREAMINFO field consistency, and EOF closure. Decoded-sample MD5 and codec neutralization are not claimed. \\
+Ogg Opus or Vorbis, \texttt{audio/ogg} and \texttt{audio/opus} & \nolinkurl{ogg-single-stream-canonical-v1} & Structural & One logical stream with valid pages, CRCs, serial and sequence continuity, coherent BOS/continuation/EOS, generated minimal comment, and media packets. & Identification and media packets are retained.  The comment packet is replaced. & Single-stream closure, comment replacement, page and packet boundary integrity, and suffix rejection.  Retained packet semantics are outside the claim. \\
+ISO BMFF video, \texttt{video/mp4} & \nolinkurl{iso-bmff-constrained-v1} & Structural, or semantic candidate followed by structural normalization & One profile-allowed \texttt{ftyp}, complete nonfragmented \texttt{moov}, one \texttt{mdat}, parent-specific allowlists, mandatory hierarchy, coherent sample tables, and exact sample-extent coverage of \texttt{mdat}. & Native mode retains encoded samples in \texttt{mdat}. A semantic tool path may replace them before normalization. & Container metadata removal, nonfragmented hierarchy closure, sample-table consistency, and exact media-data accounting. Native codec-payload neutralization is not claimed. \\
+ISO BMFF audio, \texttt{audio/mp4}, \texttt{audio/x-m4a}, and \texttt{audio/m4a} input aliases & \nolinkurl{iso-bmff-constrained-v1} & Structural, or semantic candidate followed by structural normalization & Same constrained ISO BMFF hierarchy, selected for an audio track and supported audio sample entry. & Native mode retains encoded audio samples in \texttt{mdat}. & Same container and offset claims as video MP4.  M4A naming and media-type aliases do not create a separate parser grammar. \\
+WebM, \texttt{video/webm} & \nolinkurl{webm-constrained-v2} & Structural & Complete EBML header and Segment, canonical Info, one or two constrained tracks, and SimpleBlock-only Clusters with parsed lacing and monotone timestamps. & VP8, VP9, AV1, and Opus frame payloads are retained. & WebM-only container closure, metadata and stale-index exclusion, track-description checks, frame extent parsing, timing bounds, and EOF closure.  Codec-frame neutralization is not claimed. \\
+\end{longtable}
+\end{landscape}
+
+\subsection{Static raster register notes}
+
+BMP and TIFF are decodeable input classes in the semantic image path but are
+not canonical output profiles.  Their accepted outputs are newly encoded PNG,
+JPEG, or static WebP according to policy.  Static PNG explicitly forbids APNG
+chunks.  Static WebP explicitly forbids animation chunks.  These distinctions
+matter because a broad label such as ``image'' is not a release grammar.
+Raster validation combines a structural parser with a second bounded decode.
+The current validation decode permits at most 30 million pixels.  This fixed
+validator bound applies in addition to the handler's policy-bound probe and
+post-decode checks.
+
+The metadata policy for semantic rasters is exclusion by reconstruction.  The
+intermediate image object carries decoded pixels rather than source EXIF, XMP,
+ICC, comments, thumbnails, or application records.  The output parser then
+verifies that the emitted grammar contains no component through which those
+classes could remain.  This is a structural absence claim.  It is not a claim
+that no pixel pattern can encode private or executable information under some
+external interpretation.
+
+\subsection{Animated image register notes}
+
+GIF, APNG, and animated WebP occupy different reconstruction levels despite all
+representing animation.  GIF frames are decoded and re-encoded.  The GIF method also
+normalizes delays below two centiseconds and enforces an aggregate decoded
+pixel budget. The fixed duration threshold of 6000 centiseconds applies to one
+animation cycle. It does not bound total viewing time for an indefinite loop.
+The registered semantic state therefore includes documented timing
+normalization, and exact second-pass byte equality is not expected.
+
+APNG is a constrained PNG chunk language.  The current path validates and
+remuxes complete chunks but retains compressed frame data.  Required palette
+and transparency chunks are preserved only when compatible with IHDR.  All
+other ancillary chunks are outside the output allowlist.  A successful
+\texttt{apng-canonical-v1} report does not upgrade the performed level from
+$\Structural$ to $\Semantic$.  Under a semantic-or-block policy, the correct
+outcome remains blocking even when the candidate APNG is structurally
+canonical.
+
+Animated WebP is a constrained RIFF chunk language.  The handler removes
+\texttt{ICCP}, \texttt{EXIF}, and \texttt{XMP }, rewrites the outer length and
+feature bits, and retains bounded \texttt{ANMF} frame payloads.  The independent
+validator reparses the entire chunk hierarchy and decodes every frame to check
+canvas, dimensions, alpha state, frame count, and pixel budgets.  Decoder
+success is an additional postcondition, not evidence that source frame payloads
+were regenerated.  The reported reconstruction level therefore remains
+$\Structural$, and a semantic-or-block policy does not release this candidate.
+
+\subsection{Audio register notes}
+
+The MP3 profile starts at the first retained MPEG frame and ends at the exact
+end of the last frame.  ID3v2 and ID3v1 can be removed by the handler, but the
+canonical output grammar admits neither.  Frame length is calculated from
+version, layer, bitrate, sample rate, and padding rather than by searching for
+the next sync pattern.  This prevents an incidental sync-like byte sequence
+inside a frame from defining the structural boundary.
+
+The WAV profile is limited to integer PCM with a 16-byte \texttt{fmt } body.
+Compressed WAV variants, extensible format records, and arbitrary ancillary
+chunks are not part of this entry.  Odd payload length is represented by one
+generated zero byte.  The pad is included in the outer RIFF size but excluded
+from the \texttt{data} chunk's declared sample length.
+
+FLAC receives a structural claim despite deep frame parsing.  Parsing a
+predictor and residual grammar to a checksum-valid frame boundary is not the
+same operation as decoding samples and creating new frames.  The validator
+does not recompute STREAMINFO MD5 from uncompressed samples.  This distinction
+prevents checksum verification from being misreported as semantic
+reconstruction.
+
+The Ogg entry covers Opus and Vorbis only.  It does not cover chained logical
+streams, multiplexed serial numbers, foreign codecs, or arbitrary comment
+repagination.  The handler's current safe replacement case is a complete
+single-page comment packet that shares no page with another packet.  More
+general layouts fail closed.  The independent validator can reconstruct packet
+boundaries across pages, but that broader validation ability does not imply a
+broader rewriting implementation.
+
+\subsection{Container register notes}
+
+The ISO BMFF entry is intentionally nonfragmented and uses one permitted
+\texttt{mdat} extent.  Fragment tables and general multi-extent relocation are
+not registered.  A box name is not globally safe.  Acceptance depends on the
+box's parent, order, multiplicity, version, and relationship with other tables.
+The validator therefore combines parent-specific closure with cross-table
+sample accounting. Derived sample extents from all tracks must cover the single
+\texttt{mdat} payload exactly without a gap or overlap. MOV and M4A are input naming or branding contexts. The
+registered outputs are selected as \texttt{video/mp4} or \texttt{audio/mp4}
+after track proof.  Apple-originated \texttt{audio/m4a} and
+\texttt{audio/x-m4a} values are routing aliases for the latter.  The structural
+profile removes nonessential advisory and legacy atoms, including sample-group,
+sample-dependency, partial-sync, composition-shift, object-descriptor,
+extended-language, and track-reference records.  Canonical visual sample
+entries may retain \texttt{fiel} and \texttt{chrm} only when their values and
+lengths satisfy the constrained validator.
+
+The EBML implementation registers WebM, not unrestricted Matroska.  A
+\texttt{DocType=matroska} input bypasses the native WebM rewriter and can enter
+the supervised semantic transcoder when policy requires and permits that path.
+It never inherits the WebM structural claim merely because both formats use
+EBML.  The WebM
+profile permits one video track using VP8, VP9, or AV1 and at most one Opus
+track.  Subtitle, metadata, and attachment tracks are excluded.  Unknown-size
+encoding is accepted only for the root Segment, where EOF supplies the bound.
+SimpleBlock lacing is parsed to complete frame extents, while video lacing is
+excluded.  SeekHead, Cues, Position, PrevSize, and related stale-location
+structures are removed rather than copied after layout changes.
+
+\subsection{Unsupported classes and release interpretation}
+
+No canonical output entry exists for PDF, Office documents, archives,
+executables, scripts, vector markup, packages, shortcuts, or unknown binary
+formats.  Detection of a familiar prefix, extension, or MIME string does not
+promote one of these classes to support.  Adding support would require a new
+output grammar, reconstruction-level decision, metadata policy, complete
+parser, post-reconstruction validator, resource model, and evidence plan.
+
+The register also does not list AAC as an assigned format method, although the
+codebase contains an ADTS output validator.  This appendix is scoped to the
+families specified for the present manuscript contribution and does not infer
+a complete reconstruction claim from validator registration alone.  In all
+entries, a canonical report remains necessary but insufficient for
+publication.  The performed level must satisfy policy, post-reconstruction
+checks must pass, and the release result must contain no blocking condition.
+Measured robustness, compatibility, fidelity, and performance remain deferred
+to the controlled server run.

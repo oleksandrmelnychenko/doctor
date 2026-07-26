@@ -1,0 +1,161 @@
+\section{Threat Surface and System Context}
+\label{sec:system-context}
+
+The method is placed wherever externally influenced media becomes eligible for
+local use. The upstream source may be an authenticated message, mail attachment,
+cloud-synchronized object, browser download, removable medium, or direct import.
+The downstream consumer may be durable storage, a preview generator, a media
+decoder, an export interface, or another application. Upstream provenance does
+not substitute for validation of the exact octet string crossing this local
+trust boundary.
+
+\begin{figure}[t]
+\centering
+\resizebox{0.98\textwidth}{!}{%
+\begin{tikzpicture}[
+  box/.style={draw,rounded corners=2pt,align=center,font=\small,inner sep=3pt},
+  source/.style={box,fill=blue!7,minimum width=42mm,minimum height=9mm},
+  boundary/.style={box,fill=gray!12,minimum width=72mm,minimum height=10mm},
+  threat/.style={box,fill=red!7,minimum width=43mm,minimum height=9mm},
+  control/.style={box,fill=green!8,minimum width=43mm,minimum height=9mm},
+  surface/.style={draw,rounded corners=2pt,dashed,inner sep=4pt},
+  arrow/.style={-{Latex[length=2mm]},thick},
+  enter/.style={-{Latex[length=2mm]},thick,dashed}
+]
+\node[source] (s1) at (0,2.5) {messaging after local\\decryption};
+\node[source] (s2) at (5.0,2.5) {email, web, and\\cloud synchronization};
+\node[source] (s3) at (10.0,2.5) {local or removable\\media import};
+\node[boundary] (input) at (5.0,1.2) {untrusted evidence: bytes, portable name,
+declared type\\trusted context: policy, deadline, cancellation};
+\draw[arrow] (s1) -- (input);
+\draw[arrow] (s2) -- (input);
+\draw[arrow] (s3) -- (input);
+
+\node[threat] (t1) at (0,-0.2) {evidence conflict\\or type confusion};
+\node[threat] (t2) at (5.0,-0.2) {malformed boundary,\\suffix, or polyglot};
+\node[threat] (t3) at (10.0,-0.2) {forbidden metadata\\or nested object};
+\node[control] (c1) at (0,-1.35) {one admissible profile\\or reject};
+\node[control] (c2) at (5.0,-1.35) {authorizing parse and\\output evidence convergence};
+\node[control] (c3) at (10.0,-1.35) {allowlisted structural\\reconstruction};
+
+\node[threat] (t4) at (0,-2.9) {retained codec payload\\or decoder trigger};
+\node[threat] (t5) at (5.0,-2.9) {size, count, duration,\\or expansion abuse};
+\node[threat] (t6) at (10.0,-2.9) {fault, race, overwrite,\\or partial output};
+\node[control] (c4) at (0,-4.05) {semantic rebuild\\or block};
+\node[control] (c5) at (5.0,-4.05) {checked bounds, deadline,\\and cancellation};
+\node[control] (c6) at (10.0,-4.05) {empty failure result and\\non-overwriting commit};
+
+\foreach \i in {1,2,3,4,5,6} {\draw[arrow] (t\i) -- (c\i);}
+\node[surface,fit=(t1)(t2)(t3)(c1)(c2)(c3)(t4)(t5)(t6)(c4)(c5)(c6)]
+  (surface) {};
+\draw[enter] (input.south) -- (surface.north);
+\end{tikzpicture}%
+}
+\caption{Source-independent threat-control map. Upstream channel properties do
+not authorize media bytes. Each measurable carrier or publication threat is
+assigned a distinct fail-closed control.}
+\label{fig:component-architecture}
+\end{figure}
+
+In an end-to-end encrypted application, this boundary lies after authenticated
+decryption and before local storage or rendering. The relay can remain blind to
+plaintext and the local verdict. In other deployments the same method begins
+after download or import. It neither establishes transport confidentiality nor
+changes the authentication model of the source channel.
+
+The protected assets are parser and client availability, privacy-sensitive
+metadata, integrity of reconstructed content, policy consistency, and integrity
+of the final publication transition. Endpoint execution integrity is an asset
+of the enclosing deployment but is not guaranteed against a compromised
+external decoder by this component alone. The adversary controls the full input
+byte string, display name, supplied media
+type, internal sizes and offsets, metadata, compressed payload, dimensions,
+counts, duration fields, and submission timing. The adversary may construct
+malformed files, prefix and suffix camouflage, whole-file polyglots, nested
+objects, decompression amplification, decoder regressions, and cancellation
+races. Repeated submissions and adaptive selection based on visible success or
+failure are permitted. The policy snapshot is trusted. Caller cancellation and
+earlier deadlines may shorten work but cannot enlarge the authorized policy or
+the host processing budget.
+
+The in-scope threat classes are covered by
+\begin{equation}
+  \mathcal{T}_{\mathrm{in}}=
+  \mathcal{T}_{\mathrm{id}}\cup
+  \mathcal{T}_{\mathrm{grammar}}\cup
+  \mathcal{T}_{\mathrm{payload}}\cup
+  \mathcal{T}_{\mathrm{resource}}\cup
+  \mathcal{T}_{\mathrm{publication}},
+  \label{eq:threat-cover}
+\end{equation}
+where the classes denote evidence and type confusion, malformed or ambiguous
+whole-file structure, retained or forbidden payload structure, computational
+amplification, and fault-driven publication effects. The classes may overlap.
+A test record may carry secondary tags, while its prespecified primary class
+determines the aggregate denominator and primary falsification oracle.
+Arbitrary decoder compromise is a conditional deployment threat because process
+supervision alone does not isolate same-user host effects. Harmful decoded
+meaning and steganography are content-analysis problems outside
+\(\mathcal{T}_{\mathrm{in}}\).
+
+\begin{table}[t]
+\centering
+\caption{Adversary capabilities and the corresponding enforced boundary.}
+\label{tab:adversary-capabilities}
+\small
+\begin{tabularx}{\textwidth}{L{0.23\textwidth}YY}
+\toprule
+Control & Security-relevant effect & Required response \\
+\midrule
+Name and supplied type & Misrouting, hidden suffix, or type confusion & Portable-name grammar and evidence convergence before dispatch \\
+Arbitrary byte layout & Prefix success, trailing object, overlap, or malformed boundary & Offset-zero complete parsing and exact terminal offset \\
+Metadata and container structure & Privacy leakage, nested active object, or stale reference & Location-aware allowlist and reconstruction \\
+Compressed payload & Exploitation during source decoding or retention of a source representation in the result & Isolate or trust the decoder for transformation-time risk. Use semantic reconstruction when source-payload retention is prohibited \\
+Counts, dimensions, and timing & Allocation, expansion, or execution exhaustion & Checked arithmetic, limits, deadline, and cancellation \\
+Fault timing and destination state & Partial publication or overwrite & Temporary output, validation before commit, and non-overwriting persistence with deployment-verified atomic visibility \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Malware labels organize scenario provenance but do not enter the output verdict.
+The behavioral distinctions defined in \cref{sec:background} prevent a carrier
+property from being reported as evidence of replication, delivery role, or
+payload objective. The empirical corpus can therefore contain inert carriers
+shaped around those mechanisms without implying a malware-family detection rate.
+
+The trusted computing base includes the authenticated application binary, the
+loaded immutable policy snapshot, the registered authorizing parsers, trusted
+provenance records, and the operating-system enforcement of process and
+filesystem primitives. Collision-resistant digests identify and integrity-check
+recorded artifacts but do not authenticate their provenance by themselves. The
+endpoint is assumed uncompromised before processing begins. Memory-safety
+guarantees reduce one class of implementation defects but do not prove parser
+correctness. Foreign code and external media tools remain potentially faulty.
+Their output is not deliverable until an authorizing parser accepts the complete
+object. Process supervision bounds selected liveness, output, and publication
+effects. It does not confine arbitrary same-user filesystem or host effects
+after decoder code execution. Deployments that include decoder compromise in
+scope must add a platform sandbox such as a dedicated account, namespace and
+system-call policy, container or mandatory-access-control profile, or
+application sandbox.
+
+The method assigns five responsibilities to distinct stages: evidence
+convergence and routing, profile-specific reconstruction, complete validation
+and rebuilt-output scanning, process supervision, and final result construction
+with publication. Candidate-producing stages do not receive authority to
+publish their own output. The concrete module and interface realization is
+described in \cref{sec:implementation}.
+
+The method assumes an uncompromised endpoint and does not verify the external codec,
+operating system, filesystem, or hardware. Its media-only policy excludes active
+documents, archives, executables, scripts, PDF, and vector markup. Accepted
+visual or auditory content may still be harmful, misleading, age-inappropriate,
+or steganographic. Per-request limits also do not replace system-wide admission
+control and scheduling.
+
+The eight assurance obligations are complete output consumption (F1), component
+closure (F2), output evidence convergence (F3), semantic source-independence
+(F4), second-pass stability (F5), bounded execution (F6), validation separate
+from construction (F7), and clean-result publication with fault containment
+(F8). Each has a separate falsification condition in the evaluation protocol,
+and failure in one obligation cannot be offset by success in another.

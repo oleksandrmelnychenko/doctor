@@ -1,0 +1,144 @@
+\section{System Context and Trust Placement}\label{sec:system-context}
+
+\AFD{} is an endpoint-local attachment transformation and release gate. Its
+placement follows from the confidentiality objective of end-to-end encrypted
+messaging. On the sending endpoint, an attachment is reconstructed and
+validated before the messaging application encrypts it. On the receiving
+endpoint, ciphertext is authenticated and decrypted before the resulting
+attachment bytes enter the same defense pipeline. The encrypted relay carries
+the protocol object but does not receive attachment plaintext, choose a media
+handler, or issue the final delivery verdict. This arrangement preserves the
+blind-relay property expected of secure messaging systems~\cite{unger2015}.
+It also avoids treating transport encryption as an answer to risks that arise
+only when an endpoint parser consumes decrypted bytes.
+
+The outgoing and incoming placements have complementary purposes. Outgoing
+processing limits the representations that an honest sender injects into the
+encrypted conversation. Incoming processing remains necessary because a
+receiver cannot assume that every sender runs the same release, policy, or
+implementation. It also covers imported ciphertext, compromised senders, and
+protocol peers outside the local administrative domain. The two placements do
+not require the relay to inspect content. They require each endpoint to bind
+publication to its own authenticated policy snapshot and to run the gate on
+the exact bytes that would otherwise reach storage, preview, or rendering.
+
+\begin{figure}[t]
+\centering
+\resizebox{0.98\textwidth}{!}{%
+\begin{tikzpicture}[
+  node distance=7mm and 9mm,
+  endpoint/.style={draw,rounded corners=2pt,minimum width=47mm,minimum height=31mm,fill=gray!6},
+  proc/.style={draw,rounded corners=2pt,align=center,minimum width=28mm,minimum height=8mm,font=\small},
+  relay/.style={draw,align=center,minimum width=32mm,minimum height=17mm,fill=blue!7,font=\small},
+  arrow/.style={-{Latex[length=2mm]},thick},
+  cipher/.style={-{Latex[length=2mm]},thick,dashed}
+]
+\node[endpoint] (sender) {};
+\node[font=\small\bfseries,anchor=north] at ([yshift=-2mm]sender.north) {Sending endpoint};
+\node[proc,anchor=south] (spre) at ([yshift=3mm]sender.south) {reconstruct, validate,\\clean-only release};
+\node[proc,above=4mm of spre] (senc) {authenticated\\encryption};
+
+\node[relay,right=18mm of sender] (relay) {blind relay\\ciphertext routing};
+
+\node[endpoint,right=18mm of relay] (receiver) {};
+\node[font=\small\bfseries,anchor=north] at ([yshift=-2mm]receiver.north) {Receiving endpoint};
+\node[proc,anchor=south] (rpost) at ([yshift=3mm]receiver.south) {reconstruct, validate,\\clean-only publication};
+\node[proc,above=4mm of rpost] (rdec) {authenticated\\decryption};
+
+\draw[arrow] (spre) -- node[right,font=\scriptsize]{accepted bytes} (senc);
+\draw[cipher] (senc.east) -- node[above,font=\scriptsize]{ciphertext} (relay.west);
+\draw[cipher] (relay.east) -- node[above,font=\scriptsize]{ciphertext} (rdec.west);
+\draw[arrow] (rdec) -- node[right,font=\scriptsize]{plaintext candidate} (rpost);
+\end{tikzpicture}%
+}
+\caption{Endpoint placement around end-to-end encryption. The relay preserves
+ciphertext routing and learns neither the reconstructed attachment nor the
+local verdict. The receiving endpoint repeats the gate after decryption.}
+\label{fig:system-endpoint-placement}
+\end{figure}
+
+The principal protected assets are endpoint execution integrity, client
+availability, privacy-sensitive metadata, reconstructed-content integrity,
+policy consistency, and attachment confidentiality in transit. Input bytes,
+names, caller-supplied media types, dimensions, offsets, codec payloads, and
+container metadata are adversary controlled. The authenticated application
+binary, the selected local policy, the cryptographic transport implementation,
+and the operating-system enforcement mechanisms are trusted. External
+decoders and encoders are not treated as validators. Their output must pass a
+separate canonical parser, although semantic reconstruction still depends on
+their correct decoding and encoding behavior.
+
+The architecture is intentionally conjunctive. The facade derives concrete
+format evidence from the portable name, caller-supplied media type, and byte
+recognizer. It checks compatibility before selecting a handler. The selected
+policy fixes the minimum reconstruction level before dispatch. A handler then
+returns candidate bytes, a declared output media type, the reconstruction
+level actually performed, and stage evidence. The root pipeline independently
+parses the candidate, checks output-type agreement and policy allowlists, scans
+the rebuilt bytes for configured signatures, applies output-size and expansion
+bounds, and derives a verdict. Only a clean verdict retains candidate bytes in
+the public result.
+
+\begin{figure}[t]
+\centering
+\resizebox{0.99\textwidth}{!}{%
+\begin{tikzpicture}[
+  node distance=6mm and 6mm,
+  box/.style={draw,rounded corners=2pt,align=center,minimum width=24mm,minimum height=10mm,font=\small},
+  control/.style={box,fill=blue!7},
+  transform/.style={box,fill=green!8},
+  gate/.style={box,fill=yellow!10},
+  terminal/.style={box,fill=gray!12},
+  arrow/.style={-{Latex[length=2mm]},thick}
+]
+\node[control] (policy) {immutable policy\\snapshot};
+\node[control,right=of policy] (evidence) {name, media type,\\byte profile};
+\node[transform,right=of evidence] (handler) {format handler\\candidate output};
+\node[gate,right=of handler] (validate) {independent parse,\\type and limits};
+\node[gate,right=of validate] (scan) {post-rebuild\\signature scan};
+\node[terminal,right=of scan] (release) {clean bytes or\\empty output};
+\draw[arrow] (policy) -- (evidence);
+\draw[arrow] (evidence) -- (handler);
+\draw[arrow] (handler) -- (validate);
+\draw[arrow] (validate) -- (scan);
+\draw[arrow] (scan) -- (release);
+\end{tikzpicture}%
+}
+\caption{Reference component path. A handler creates a candidate but cannot
+authorize delivery. Validation, signature policy, and final verdict derivation
+remain in the facade.}
+\label{fig:component-architecture}
+\end{figure}
+
+The current workspace divides these responsibilities across a root facade and
+five supporting crates. \texttt{defender-core} contains the versioned policy
+document and migration boundary. The media-handler support crate defines the
+handler contract. The signature crate compiles baseline and
+administrator rules into a multi-pattern scanner. \texttt{defender-ffi}
+defines the versioned protobuf model used across the native boundary.
+The observability crate defines audit-event and sink contracts. The root
+\texttt{file\_defender} crate owns orchestration, concrete handlers,
+canonical validation, tenant resolution, filesystem publication, and the C
+ABI. This decomposition reduces accidental authority. In particular, neither
+the signature crate nor a handler can write a deliverable file.
+
+The threat vocabulary does not alter this boundary. Viruses, worms, Trojans,
+ransomware, spyware, and downloaders identify threat and corpus strata. Their
+carrier properties motivate measurements such as executable-header rejection,
+metadata exclusion, polyglot closure, bounded parsing, and nonpublication of
+unsupported objects. \AFD{} does not behaviorally classify those malware
+families. It also does not prove that arbitrary accepted bytes are harmless.
+An accepted artifact belongs to a constrained output grammar under the active
+policy and has passed the implemented gates. Harmful visual meaning, steganic
+information retained in semantic media, and vulnerabilities in downstream
+renderers remain outside that statement.
+
+Deployment therefore assumes that callers preserve gate ordering and honor
+the returned deliverability condition. They must not encrypt an outgoing
+candidate before a clean verdict, publish decrypted input while processing is
+pending, or recover candidate bytes from diagnostics after a non-clean result.
+The Rust, C, and Swift interfaces erase deliverable bytes for suspicious,
+blocked, and error outcomes. This API property narrows common integration
+mistakes, but it cannot prevent a separate application path from retaining or
+opening the original input. The embedding application and its filesystem
+permissions remain part of the trusted computing base.

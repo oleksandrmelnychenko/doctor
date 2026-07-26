@@ -1,0 +1,169 @@
+\section{Corpus Design and Ground Truth}
+\label{sec:corpus}
+
+Following \cref{sec:background,sec:polyglots}, the corpus stratifies observable
+carrier properties rather than malware families. Behavioral and operational
+labels enter only as independently supported provenance for executable prefixes,
+disguise, trailing objects, true polyglots, malformed structures, or decoder
+regressions \cite{nist80083}. Passive metadata is annotated as a privacy-leakage
+property.
+
+\subsection{Unit of analysis and manifest discipline}
+\label{subsec:corpus-unit}
+
+The unit of analysis is one manifest record under one frozen policy. Each record
+binds its identifier, relative path, SHA-256 digest, byte length, provenance,
+license, portable name, supplied type, expected action and reason family,
+carrier class, format profiles, and mutation recipe. Path escape, duplicate or
+aliased identities, and digest or size disagreement invalidate the run before
+processing. Raw malicious or exploit-bearing inputs remain in the isolated
+corpus and are cited by digest and provenance record.
+
+Ground truth may come from a reproducible generator, complete reference-parser
+reports, or two-reviewer adjudication. Parser evidence records tool version,
+configuration, offsets, and profile. The schema checks reviewer or evidence
+references but not every metadata field, so controlled eligibility also
+requires review-packet audit. The bounded experiment did not meet that
+condition. Suffix labels, uploader descriptions, antivirus names, and one
+media-type guess are insufficient. Disagreement is resolved before freezing or
+the record is excluded.
+
+Each record has one expected action and reason family. The action oracle compares
+deliver or block, while the reason oracle compares normalized alert-family
+prefixes and checks pipeline state separately. Prefix agreement does not prove
+the first causal stage. An internal I/O failure or caught panic fails the run
+even when no bytes are published.
+
+The frozen fields, ground-truth sources, denominators, and gates form the
+evidence contract. A post-outcome change requires a new manifest and run.
+
+\subsection{Stratified corpus}
+\label{subsec:corpus-strata}
+
+Each record contains one explicitly frozen primary stratum from
+\cref{tab:corpus-strata} for aggregate denominators. Secondary tags retain
+overlapping properties for stratified sensitivity summaries. The primary
+assignment is reviewed before execution and is not inferred from the order of
+words in the generation or acquisition record.
+
+\begin{table}[tb]
+\centering
+\caption{Prespecified corpus strata and their primary inferential roles.}
+\label{tab:corpus-strata}
+\footnotesize
+\begin{tabularx}{\textwidth}{L{0.08\textwidth}L{0.24\textwidth}Y L{0.23\textwidth}}
+\toprule
+ID & Population & Required coverage & Primary outcome \\
+\midrule
+S0 & Canonical benign media & Output profiles selected in the frozen study, boundary sizes, color and channel models, frame and duration classes & False blocking and usability \\
+S1 & Benign noncanonical media & Excluded metadata, optional elements, unusual legal orderings, padding, alternate brands, comments, and vendor extensions & Reconstruction coverage and false blocking \\
+S2 & Malformed or truncated structures & Lengths, offsets, counts, checksums, sequences, terminators, duplicate mandatory elements, overlap, and budget exhaustion & Fail-closed rejection \\
+S3 & Classifier disagreement & Byte format crossed with names, suffix chains, media types, aliases, missing evidence, and malformed display names & Type-convergence enforcement \\
+S4 & Multi-grammar and boundary carriers & True polyglots, prefix camouflage, appended or trailing objects, and nested active-object constructions & Whole-string ambiguity, complete consumption, and canonical closure \\
+S5 & Resource exhaustion & Size, expansion, dimensions, aggregate pixels, frames, duration, bitrate, channels, nesting, element counts, and lacing & Boundary enforcement \\
+S6 & Unsupported or active classes & Executables, scripts, archives, active documents, PDF, vector markup, shortcuts, packages, and unknown bytes & Media-only policy enforcement \\
+S7 & Parser and decoder regressions & Legally distributable minimized panic, arithmetic, differential, and decoder cases & Regression resistance \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+S0 and S1 estimate benign false blocking. S2 mutates one obligation before
+selected interactions. S3 holds bytes fixed while crossing names and types. S4
+reserves true polyglot for one octet string completely accepted by two
+incompatible parsers and records other ambiguous carriers separately. S5 tests
+$L-1$, $L$, and $L+1$ where representable. S6 expects blocking. S7 contains
+minimized, versioned regressions and does not represent a vulnerability class.
+
+\subsection{Safe carrier scenarios}
+\label{subsec:safe-carriers}
+
+Synthetic scenarios preserve the carrier property without operational malware
+behavior. Executable-shaped regions contain inert magic, length, and padding but
+no instructions, commands, network locations, credentials, or shellcode.
+Nested-object cases use a structurally recognizable sentinel. Metadata cases
+use synthetic location, author, comment, thumbnail, or application fields.
+Decoder regressions must be minimized, legally distributable, and confined to
+the isolated procedure. The versioned research package retains the full
+scenario catalogue.
+
+Safe synthesis is suitable for type, boundary, metadata, and resource claims.
+It is not exploit evidence when a claim depends on decoder control flow. Such
+cases belong to S7. No synthetic sample is described as live malware.
+
+\subsection{Mutation matrix and pairing}
+\label{subsec:mutation-matrix}
+
+The matrix in \cref{tab:mutation-matrix} lists format-aware mutation families.
+The protocol records each operator, parsed field or offset, value, interaction,
+and seed. Generators reparse before mutation and confirm the postcondition.
+Coverage of a table row does not imply that every listed operator ran.
+
+\begin{table}[tbp]
+\centering
+\caption{Format-aware mutation families from which a frozen protocol selects
+and records concrete operators and interactions.}
+\label{tab:mutation-matrix}
+\small
+\begin{tabularx}{\textwidth}{L{0.17\textwidth}Y}
+\toprule
+Family & Mandatory fields and structures \\
+\midrule
+PNG and APNG & CRC, chunk length, type and order, duplicate IHDR, IEND, or acTL, animation sequence, frame bounds, and suffix after IEND \\
+JPEG & Segment length, nested SOI, premature EOI, APP or COM insertion, entropy-scan truncation, and suffix after EOI \\
+Static and animated WebP & RIFF size and form, chunk size and padding, VP8X flags, duplicate payload, ANIM/ANMF order, frame rectangles and payload dimensions, alpha-state agreement, metadata insertion, and trailing bytes \\
+GIF & Dimensions, color tables, sub-block length, extension type, frame rectangle, delay, missing trailer, and suffix \\
+MP3 & Sync, version, layer, bitrate, sample rate, padding, frame length, ID3 size, inter-frame bytes, and trailing bytes \\
+WAV & RIFF size, chunk size and padding, chunk order, duplicate format or data chunks, format arithmetic, and suffix \\
+FLAC & Metadata last flag, type and length, STREAMINFO position, duplication and ranges, blocking strategy, sample-rate and bit-depth codes, frame header, subframe, residual, CRC-8, CRC-16, and suffix \\
+Ogg and Vorbis~\cite{rfc3533,vorbisI} & Capture pattern, version, lacing, page CRC, serial, sequence, flags, comment continuation, EOS, and suffix \\
+ISO BMFF & Standard, extended, and zero sizes, parent location, duplicate mandatory boxes, offsets, sample and fragment tables, M4A media-type aliases, sample-group, dependency, composition, language, and track-reference boxes, and suffix \\
+EBML and WebM~\cite{rfc8794,rfc9559,webmContainer} & VINT identifier and size, noncanonical encoding, unknown size, DocType, stale positions, application and date fields, codec configuration, duplicate tracks, undeclared block track, timestamp order, duration coverage, lacing, frame bounds, and budget exhaustion \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Pairwise interactions cross boundary, size, metadata, classification, limit,
+and cancellation conditions. Higher orders require a named mechanism or prior
+regression. Base and mutation remain paired even when outcomes match.
+
+\subsection{Sampling, partitions, and denominator integrity}
+\label{subsec:corpus-denominators}
+
+A base artifact is the original acquired or generated object from which one or
+more mutation records descend. Partitions keep every descendant of the same
+base artifact together. The current schema records source digests and base
+relationships but does not enforce decoded-semantic fingerprints or automatic
+deduplication across identifiers. Record-level summaries are therefore
+record-weighted, and unique source and output digests are reported separately.
+
+Let \(B_{\mathrm{ben}}=\{i\in S0\cup S1:\text{$i$ is expected to be
+accepted}\}\) be the benign acceptance set, and let $D$ contain every record
+whose expected action is blocking. Expected accepts outside S0 and S1 contribute
+to action agreement but not to benign false blocking. Let $A_i$ indicate
+observed delivery of a clean output for record $i$. The false-blocking rate is
+\begin{equation}
+ \widehat{\mathrm{FBR}}=
+ \frac{\sum_{i\in B_{\mathrm{ben}}}(1-A_i)}{|B_{\mathrm{ben}}|},
+ \label{eq:false-blocking}
+\end{equation}
+and the false-acceptance rate is
+\begin{equation}
+ \widehat{\mathrm{FAR}}=
+ \frac{\sum_{i\in D}A_i}{|D|}.
+ \label{eq:false-acceptance}
+\end{equation}
+Both are record-weighted estimands. They are reported overall and by stratum,
+concrete format, carrier mechanism, and reconstruction requirement when the
+subgroup was prespecified. A base-artifact-weighted sensitivity summary is
+required when mutation multiplicities differ. An
+expected block that ends in a pipeline error remains a non-delivery for
+\cref{eq:false-acceptance}, but it also increments the separate pipeline-error
+gate and cannot be credited as a successful expected rejection. A benign sample
+blocked because a required external tool is missing contributes to
+\cref{eq:false-blocking}. Missing tools are not an exclusion criterion.
+
+Reason-family agreement is reported separately because action agreement can
+conceal a different blocking reason. Since prefix matching alone does not
+establish the causal stage, stage agreement is a separate endpoint. A
+post-freeze ground-truth correction creates a versioned manifest and new run
+identifier.

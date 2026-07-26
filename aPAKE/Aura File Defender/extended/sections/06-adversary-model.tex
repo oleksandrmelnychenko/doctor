@@ -1,0 +1,154 @@
+\section{Adversary Model and Claim Boundary}
+\label{sec:extended-adversary}
+
+\subsection{System instance and protected transition}
+
+We model an attachment as an untrusted tuple
+$a=(x,n,m,d)$, where $x\in\{0,\ldots,255\}^{*}$ is a finite byte string,
+$n$ is a caller-supplied display name, $m$ is an optional supplied media type,
+and $d\in\{\mathsf{outgoing},\mathsf{incoming}\}$ identifies the endpoint
+direction. Outgoing processing occurs before encryption. Incoming processing
+occurs after authenticated decryption and before an application parser or
+renderer. In both cases the protected transition is from attacker-influenced
+plaintext to a locally publishable media representation.
+
+The encrypted relay is outside the plaintext decision boundary. It may delay,
+drop, replay, reorder, or replace ciphertext subject to the guarantees of the
+messaging protocol, but it need not receive attachment plaintext and is not
+trusted to authorize publication. This placement preserves the intended
+end-to-end confidentiality architecture. It does not extend the cryptographic
+security definition of the messaging protocol. The contribution considered
+here begins when plaintext bytes are available at an authenticated endpoint and
+ends when a reconstructed artifact is either published or withheld.
+
+Let $p\in\mathcal{P}$ denote a versioned local policy and let
+$\mathcal{K}_{p}$ be its finite set of admitted format profiles. A policy binds
+name rules, media-type aliases, routing rules, canonical output languages,
+reconstruction requirements, signature rules, and resource limits. The
+authenticated application binary, the selected policy, and the canonical
+profile registry are trusted inputs to the decision. Attachment bytes and all
+descriptive fields are not trusted. This distinction follows the general
+language-theoretic requirement that recognizers define the language accepted at
+a trust boundary rather than infer safety from informal labels alone
+\cite{momot2016}.
+
+\subsection{Adversary capabilities}
+
+The adversary is adaptive and implementation-aware. It may know the source
+code, dependency versions, canonical grammars, resource limits, and the active
+policy. It may choose each byte of $x$, including length fields,
+offsets, checksums, compressed payloads, dimensions, sample tables, frame
+counts, timestamps, metadata, and terminal markers. It may choose misleading or
+malformed values for $n$ and $m$. It may submit many related inputs and use
+observable outcomes to refine a later submission. Security therefore cannot
+depend on format obscurity, unpredictable parser selection, or a secret
+signature list.
+
+The attacker may construct prefix camouflage, appended data, overlapping
+grammars, and nested active objects. It may place a valid media signature after
+an executable prefix, append a second grammar after a valid media terminator,
+or construct bytes accepted differently by two parsers. It may also place an
+attachment, script, foreign track, or executable object in a location that a
+permissive container grammar would ignore. Because arbitrary substrings can
+occur coincidentally in compressed media, the model does not equate a byte
+substring with a parsed embedded object. A nested-object claim requires a
+location-aware parser or an exact indicator whose scope is fixed by policy.
+
+Resource exhaustion is part of the core model. The adversary may declare very
+large dimensions, durations, nesting depths, component counts, or output sizes.
+It may provide inputs with high decompression ratios, malformed arithmetic, or
+codec behavior that approaches a deadline. It may also trigger decoder errors,
+child-process launch failures, timeouts, cancellations, and panics in reachable
+code. Repeated requests may amplify any per-request cost. The method therefore
+treats availability limits as acceptance conditions rather than operational
+advice.
+
+\begin{table}[t]
+\centering
+\caption{Adversary capability and the corresponding modeled defense. A row
+identifies a measurable carrier property, not a behavioral malware-family
+classifier.}
+\label{tab:adversary-capabilities}
+\small
+\begin{tabularx}{\textwidth}{L{0.24\textwidth}YY}
+\toprule
+Attacker control & Security-relevant effect & Modeled response \\
+\midrule
+Name and supplied media type & Misrouting, hidden executable suffix, or type
+confusion & Portable-name grammar and evidence convergence before dispatch \\
+Arbitrary byte layout & Prefix, suffix, malformed boundary, or overlapping
+grammar & Offset-zero parsing, exact terminal offset, and ambiguity rejection \\
+Container elements and metadata & Nested active object, stale offset, or
+privacy-bearing field & Location-aware component allowlist and reconstruction \\
+Compressed media payload & Decoder trigger or retained covert information &
+Semantic reconstruction when required, otherwise a bounded structural claim \\
+Counts, dimensions, and ratios & Excessive allocation, expansion, or execution
+time & Pre-operation limits, cancellation, deadline, and fail-closed errors \\
+Repeated submissions & Availability pressure and adaptive probing & Per-request
+bounds, deterministic policy, and auditable terminal outcomes \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{Trust assumptions}
+
+The analytical arguments assume that the endpoint begins processing in an
+uncompromised state. The policy and alias registry are authenticated and loaded
+without attacker modification. The implementation executes the intended code,
+cryptographic digests are collision resistant for provenance purposes, and the
+operating system enforces process and file-system primitives according to their
+documented semantics. When an external decoder is invoked, its output is still
+untrusted until post-reconstruction validation succeeds. Semantic
+reconstruction nonetheless depends on the decoder producing the semantic state
+that the encoder consumes. Process supervision can bound some effects of decoder failure,
+but invoking a decoder does not make that decoder correct.
+
+Resource enforcement must occur before the operation it bounds. Arithmetic for
+sizes and offsets must reject overflow before conversion. Wall-clock limits
+depend on an operating-system mechanism capable of terminating or abandoning
+the bounded operation. These obligations are deferred to the controlled fault
+and fuzz campaigns.
+
+For filesystem publication, the destination directory and its namespace are
+trusted against concurrent hostile mutation during one transaction. The file
+system is assumed to provide same-directory atomic namespace publication for
+the no-clobber persistence primitive. The current implementation synchronizes
+the temporary file before persistence. It does not synchronize the parent
+directory after the namespace operation. The formal publication claim is
+therefore atomic visibility of a newly published path, not guaranteed survival
+of that directory entry across every power-loss model. This boundary is made
+explicit in \cref{sec:publication-semantics}.
+
+\subsection{Threat strata and non-goals}
+
+Viruses, worms, Trojans, ransomware, spyware, downloaders, droppers, and stagers
+motivate threat scenarios, but their behavioral labels are not classifier
+outputs. A file-infector virus can motivate an executable prefix or appended
+host modification. A downloader retrieves another payload after execution. A
+dropper extracts or installs a payload already carried in the initial object. A
+stager prepares a later execution phase without requiring either mechanism.
+A worm scenario requires self-propagation after execution and can add repeated
+delivery context. Spyware is used only when independent evidence labels a
+behavioral payload. Passive location, author, device, or timestamp metadata is
+placed in the privacy-leakage stratum and is not relabeled as spyware. In every
+case the measured system outcome concerns a carrier property such as grammar
+disagreement, forbidden structure, metadata presence, or reconstruction level.
+It does not establish that the system recognized runtime behavior. This usage is
+consistent with using conventional malware categories for incident analysis
+while preserving a narrower file-processing claim \cite{nist80083}.
+
+Several goals are outside the model. \AFD{} does not prove that arbitrary
+accepted bytes are harmless. It does not identify phishing meaning, abusive
+imagery, deceptive text rendered into pixels, or malicious information encoded
+in legitimate samples. Structural reconstruction does not neutralize content
+inside a retained pixel, audio, or codec bitstream. Even semantic reconstruction
+does not prove the decoded meaning benign. It changes the carrier by deriving a
+new encoding from bounded semantic state. The method does not replace endpoint
+sandboxing, operating-system exploit mitigations, antimalware engines, or
+application-specific authorization.
+
+Compromise before processing, modification of the authenticated binary or
+policy, and malicious behavior in a privileged local component are outside the
+claim. Side channels beyond the terminal outcome and coarse resource behavior
+are not analyzed. The following propositions are analytical arguments, not
+machine-checked proofs or substitutes for deferred empirical evidence.

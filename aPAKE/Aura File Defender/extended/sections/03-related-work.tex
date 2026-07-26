@@ -1,0 +1,225 @@
+\section{Related Work}\label{sec:related-work}
+
+The research problem addressed by \AFD{} lies at the intersection of malware
+taxonomy, secure messaging, adversarial file parsing, and content
+reconstruction. These literatures use different units of analysis. Malware
+research commonly studies a program's propagation or effects after execution.
+Secure-messaging research studies confidentiality, authentication, and state
+evolution across communicating endpoints. Parser-security research studies
+the language recognized by software that consumes attacker-controlled bytes.
+Content reconstruction studies whether an input can be transformed into a
+narrower representation. A defensible attachment claim must not substitute the
+conclusion of one literature for evidence required by another.
+
+\subsection{Malware behavior and attachment carriers}
+
+Cohen's foundational definition makes infection of other programs the
+distinguishing operation of a computer virus~\cite{cohen1987}. Spafford's
+analysis of the Internet Worm in turn illustrates propagation through network
+services and trust relationships without requiring infection of a conventional
+host file~\cite{spafford1989}. The distinction remains important because a
+media attachment is not a virus merely because it contains suspicious bytes,
+and a worm is not identified by the extension of the file through which an
+operator first receives it. NIST's operational taxonomy separates viruses,
+worms, Trojan horses, spyware, and other malicious code by behavior and
+deployment context~\cite{nist80083}. Those categories provide threat context,
+but they do not directly define a media grammar that a file-defense component
+can recognize.
+
+Behavioral ransomware defenses make this difference especially clear. UNVEIL
+detects ransomware by observing interactions with user data and desktop state
+in an instrumented environment~\cite{kharraz2016}. CryptoLock likewise studies
+runtime indicators associated with destructive transformation of user
+files~\cite{scaife2016}. Such systems can support a ransomware conclusion
+because they observe behavior that instantiates the payload objective. \AFD{}
+does not execute an attachment to obtain comparable evidence. It may block an
+executable or scripted carrier that is labelled as ransomware in a corpus, but
+the supported result is that the carrier violated the media-only policy. It is
+not that ransomware behavior was inferred from the bytes.
+
+This separation also applies to Trojans, staged-delivery roles, and spyware. A
+Trojan is characterized by a deceptive relationship between represented and
+actual function. A downloader obtains a follow-on payload from another source.
+A dropper carries and places an embedded payload. A stager prepares or transfers
+control to a follow-on stage. Spyware is characterized by covert collection or
+disclosure. A filename, media type, or container property may contribute to
+delivery of any of these programs, yet none establishes the downstream behavior
+or role. The carrier taxonomy in \cref{sec:malware-taxonomy} therefore treats
+malware labels and operational roles as threat and corpus strata while making
+enforcement depend on observable file properties.
+
+\subsection{Secure messaging and endpoint placement}
+
+Secure-messaging analyses establish goals such as confidentiality, integrity,
+authentication, forward secrecy, and recovery after compromise. The survey by
+Unger et al. systematizes these properties and the design choices that support
+them~\cite{unger2015}. Formal analysis of the Signal protocol provides stronger
+reasoning about a particular messaging construction and its cryptographic
+state transitions~\cite{cohngordon2020}. Neither line of work purports to prove
+that plaintext obtained after successful decryption is safe for every local
+parser. This is not a deficiency in those models. It is a separate endpoint
+question.
+
+The placement of \AFD{} follows from that separation. Outgoing reconstruction
+occurs before encryption and incoming reconstruction occurs after decryption.
+The relay can remain blind to attachment plaintext. The endpoint still needs a
+local admissibility decision before publishing bytes to a renderer or another
+application. The contribution is therefore complementary to end-to-end
+encryption. It does not modify the cryptographic protocol or strengthen its
+authentication theorem. It specifies what the endpoint may release after the
+cryptographic layer has produced bytes.
+
+Endpoint execution alone does not make two security designs equivalent.
+Abelson et al. use \emph{client-side scanning} for systems that search endpoint
+cleartext for centrally designated targets and may report a match or its source
+to an outside party~\cite{abelson2024}. Their security and surveillance
+analysis applies to that targeting and reporting architecture. \AFD{} is a
+user-benefiting client-side defense. Its content-derived decision controls only
+which reconstructed bytes the local application may receive, and it creates no
+match report for the relay or a central authority. This distinction limits the
+comparison to the shared fact that plaintext is processed on an endpoint.
+
+\subsection{Parser differentials and language-oriented security}
+
+Jana and Shmatikov demonstrated that discrepancies between the file-processing
+logic of a detector and that of the protected host can enable evasion even when
+the underlying executable behavior is unchanged~\cite{jana2012}. Their result
+undermines any design that treats a leading signature, one MIME decision, or
+one successful parser as an authoritative description of the whole object.
+Language-theoretic security generalizes the problem by treating input handling
+as language recognition and by emphasizing explicit, tractable input
+languages~\cite{momot2016}.
+
+Several systems improve the construction of trustworthy parsers. Nail derives
+parsers and generators from a shared grammar and separates data description
+from semantic processing~\cite{nail2014}. EverParse generates verified parsers
+and serializers for binary message formats, with properties that include
+memory safety, inverse parsing and serialization, and unique encodings in its
+modeled domain~\cite{everparse2019}. Interval Parsing Grammars extend
+declarative format descriptions to context-sensitive patterns such as
+type--length--value fields and random-access references~\cite{ipg2023}. These
+works motivate complete parsing, checked dependencies, and controlled
+serialization. They do not by themselves choose an attachment policy, define
+which media semantics may be retained, or establish safe publication in an
+encrypted messenger.
+
+The DARPA Safe Documents program is the closest program-level precedent for
+combining format comprehension, safe subsetting, high-assurance translation,
+and verified parser construction~\cite{darpaSafeDocs}. Its scope makes clear
+that reducing ambiguous legacy languages and producing trustworthy parsers are
+established research objectives. \AFD{} does not claim the verification
+assurance pursued by SafeDocs. Its separate validator is an architectural
+check over a policy-defined media profile, and it can still share a
+specification or implementation error with the reconstruction handler.
+
+\AFD{} adopts the language-oriented premise but makes a narrower engineering
+composition. Name, supplied media type, and bounded byte evidence must converge
+on a concrete format profile before dispatch under the evaluated policy. A
+handler then performs a policy-required reconstruction level. A distinct
+validator reparses the rebuilt output from offset zero to its exact terminal
+boundary. Canonical component rules, resource bounds, output type agreement,
+and post-reconstruction signatures are additional conjuncts. This composition
+is an argument about one implementation and policy profile. It is not a proof
+that all media decoders are correct.
+
+\subsection{Content disarm and reconstruction}
+
+Content disarm and reconstruction is direct prior art for transforming an
+untrusted file into a narrower representation. Open Image CDR decodes JPEG
+content to pixel state, rebuilds the image, and applies pixel manipulation to
+address both non-image material and selected steganographic constructions while
+measuring image usability~\cite{belkind2023}. ImSan, introduced by Koch et al.,
+loads image content through Pillow and writes a new image with metadata and
+extraneous file content removed to address image-based polyglots~\cite{koch2025}.
+These systems establish semantic image reconstruction and image-polyglot
+sanitization as precedents. \AFD{} therefore makes no priority claim for image
+decode-and-reencode, metadata stripping, or image CDR.
+
+PdfCDR provides the closest format-specific comparison outside raster media. It
+defines and evaluates a PDF reconstruction process, including validation,
+visual similarity, and conversion of detection rules into disarm
+rules~\cite{dubin2023}. PDF remains an unsupported active class in the evaluated
+\AFD{} media profile. The comparison is methodological rather than a claim that
+\AFD{} supersedes PdfCDR for PDF. The residual question is how reconstruction
+is selected, strengthened, independently validated, and transactionally
+published at an encrypted-messaging endpoint under a pre-specified evidence
+contract.
+
+\subsection{Polyglots and semantic disagreement}
+
+Polyglot files expose the limits of single-parser recognition. This manuscript
+reserves \emph{true polyglot} for a whole octet string that is completely
+accepted, from offset zero through the same terminal boundary, by at least two
+incompatible parsers. A valid object followed by bytes that form or resemble
+another object is instead an appended or trailing-object carrier unless both
+parsers completely accept the whole string. Prefix camouflage and a nested
+active object are likewise separate carrier constructions unless they meet the
+complete dual-acceptance condition.
+
+Koch et al. systematize the abuse and detection of polyglot files and evaluate
+identification and sanitization techniques in that setting~\cite{koch2025}.
+You et al. provide a focused demonstration of semantic gaps across ZIP parsers,
+showing that nominal agreement on a format name does not guarantee agreement on
+represented content~\cite{you2025}. The practical lesson is stronger than a
+requirement to improve magic-byte detection. The accepted language needs exact
+boundaries, parser-specific structure, and a policy for ambiguity.
+
+The \AFD{} policy distinguishes true polyglots from prefix camouflage,
+appended or trailing objects, and nested active objects. Parsing from offset
+zero and exact terminal consumption address prefix and suffix constructions.
+Independent incompatible complete parses establish a true-polyglot case.
+Location-aware rules address nested active objects. A structural reconstruction
+that copies encoded media cannot claim to eliminate a secondary interpretation
+inside the copied region. A semantic reconstruction can support a stronger
+neutralization statement only when it decodes to bounded semantic state,
+copies no source container or compressed payload bytes, emits a new object,
+and yields exactly one accepted output grammar. Otherwise the input is blocked.
+Even then, information retained in pixels or samples remains outside the
+harmlessness claim.
+
+\begingroup
+\footnotesize
+\setlength{\tabcolsep}{3pt}
+\begin{longtable}{L{0.18\textwidth}L{0.19\textwidth}L{0.26\textwidth}L{0.27\textwidth}}
+\caption{Relationship between prior research objects and the claim made by
+\AFD. A dash denotes a property outside the cited work's primary unit of
+analysis, not a criticism of that work.}\label{tab:related-work-comparison}\\
+\toprule
+Research line & Primary observation & Result it can support & Boundary relative to \AFD{} \\
+\midrule
+\endfirsthead
+\toprule
+Research line & Primary observation & Result it can support & Boundary relative to \AFD{} \\
+\midrule
+\endhead
+\midrule
+\multicolumn{4}{r}{Continued on next page}\\
+\endfoot
+\bottomrule
+\endlastfoot
+Virus and worm theory~\cite{cohen1987,spafford1989} & Replication and propagation behavior & Behavioral distinction between infection and self-propagation after execution & Does not define canonical media acceptance \\
+Ransomware behavior~\cite{kharraz2016,scaife2016} & Runtime modification of user files or desktop state & Detection of a payload objective in an observed execution & \AFD{} does not observe this behavior \\
+Secure messaging~\cite{unger2015,cohngordon2020} & Protocol transcripts, keys, and compromise states & Communication security under stated assumptions & Decrypted attachment syntax is a separate endpoint problem \\
+Reporting-oriented client-side scanning~\cite{abelson2024} & On-device search for designated targets with an external reporting path & Analysis of surveillance, security, and abuse risks & \AFD{} acts for the local user and sends no content-derived report \\
+Detector differentials and LangSec~\cite{jana2012,momot2016} & Divergent interpretations and recognized languages & Evidence that parser agreement and explicit languages matter & Does not select a messaging publication policy \\
+Generated or verified parsers~\cite{nail2014,everparse2019,ipg2023} & Grammar, parser, serializer, and proof obligations & Strong parser properties within a formalized domain & Does not establish semantic harmlessness of accepted media \\
+DARPA SafeDocs~\cite{darpaSafeDocs} & Verified parsers, format comprehension, safe subsets, and high-assurance translators & Assurance for parsing and translation within defined languages & \AFD{} does not claim equivalent verification and adds an endpoint publication contract \\
+Open Image CDR and ImSan~\cite{belkind2023,koch2025} & Semantic image rebuilding, metadata removal, and image-polyglot sanitization & Image-specific reconstruction and usability evidence & \AFD{} does not claim first image CDR and adds policy-indexed multi-format delivery conditions \\
+PdfCDR~\cite{dubin2023} & PDF-specific validation, disarm rules, reconstruction, and visual comparison & Evidence for a PDF CDR process & PDF is blocked by the evaluated \AFD{} profile and no PDF superiority is claimed \\
+Polyglot and parser-gap analysis~\cite{koch2025,you2025} & Complete whole-string acceptance by multiple formats or divergent meanings within a nominal format & Ambiguity classes and differential evidence & \AFD{} separates true polyglots from trailing, prefix, and nested carriers \\
+\end{longtable}
+\endgroup
+
+The resulting novelty claim is deliberately compositional. \AFD{} is not a new
+codec, general antivirus engine, behavioral sandbox, CDR primitive, or
+proof-producing parser generator. Its residual novelty is endpoint-local,
+user-benefiting reconstruction in an end-to-end encrypted workflow whose relay
+remains blind. Exactly three routing sources select a profile, namely the
+normalized portable name, caller-supplied media type, and bounded byte evidence.
+An independent complete output parser then participates in delivery
+authorization rather than routing. Policy-indexed reconstruction strength
+prevents a weaker path from satisfying a stronger requirement. Independently
+validated clean-only publication controls which bytes become deliverable. A
+pre-specified evidence contract fixes the empirical obligations before results
+are admitted. Each element has precedents, while their joint use defines the
+claimed acceptance boundary.

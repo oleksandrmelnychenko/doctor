@@ -1,0 +1,142 @@
+\section{External Process Supervision and Resource Control}\label{sec:process-isolation}
+
+Media reconstruction combines in-process parsers with supervised external
+programs. Static raster images and GIF are decoded and encoded inside the Rust
+process. APNG, animated WebP, MP4, WebM, MP3, WAV, FLAC, and Ogg structural
+paths use bounded native parsers that retain selected encoded payloads.
+Semantic video and audio paths invoke FFprobe and FFmpeg through a process
+supervisor. These execution modes have different containment properties and
+support different claims.
+Structural reconstruction can support container and metadata statements. It
+cannot support neutralization of a payload retained inside copied pixel,
+sample, or codec data. A policy requiring semantic reconstruction therefore
+refuses a structural fallback when a semantic decoder is unavailable.
+
+Every handler dispatch is wrapped by \texttt{catch\_unwind}. A panic becomes a
+typed \texttt{HandlerPanic} error and candidate bytes are not returned. Panic
+text is reduced to a bounded printable summary before it reaches logs. This
+mechanism depends on the checked-in \texttt{panic = "unwind"} release profile.
+A consumer that rebuilds the crate with aborting panics loses this containment
+property. Unwinding also does not isolate memory corruption in native code,
+bound allocator growth automatically, or recover from process termination.
+The in-process image and GIF codecs therefore remain in the trusted computing
+base for availability and memory safety beyond the guarantees of Rust and
+their dependencies.
+
+The external-process supervisor creates temporary input and output files,
+passes local paths to the tools, and disables interactive standard input.
+FFmpeg receives an explicit protocol allowlist containing only
+\texttt{file} and \texttt{pipe}, together with a denylist for network and
+indirect protocols. Audio reconstruction selects the first audio stream. Video
+reconstruction selects the first video stream and, when present, the first
+audio stream. Metadata, chapters, subtitle streams, and data streams are
+excluded. The generated file remains a candidate. It is read only
+after a successful child exit and then traverses the same output-size,
+authorizing-grammar, type-convergence, and signature gates as native output.
+
+\begin{figure}[t]
+\centering
+\resizebox{0.96\textwidth}{!}{%
+\begin{tikzpicture}[
+  lifeline/.style={draw,rounded corners=2pt,minimum width=26mm,minimum height=8mm,font=\small,align=center},
+  msg/.style={-{Latex[length=2mm]},thick},
+  ret/.style={-{Latex[length=2mm]},dashed},
+  note/.style={draw,fill=yellow!9,align=left,font=\scriptsize,inner sep=3pt}
+]
+\node[lifeline] (caller) at (0,0) {facade};
+\node[lifeline] (handler) at (3.5,0) {audio/video handler};
+\node[lifeline] (supervisor) at (7.2,0) {process supervisor};
+\node[lifeline] (decoder) at (10.8,0) {FFprobe/FFmpeg};
+\node[lifeline] (validator) at (14.3,0) {authorizing parser};
+\foreach \x in {0,3.5,7.2,10.8,14.3} {\draw[densely dotted] (\x,-0.45) -- (\x,-6.7);}
+\draw[msg] (0,-1.0) -- node[above,font=\scriptsize]{dispatch with deadline and token} (3.5,-1.0);
+\draw[msg] (3.5,-1.8) -- node[above,font=\scriptsize]{local temporary paths and limits} (7.2,-1.8);
+\draw[msg] (7.2,-2.6) -- node[above,font=\scriptsize]{spawn supervised direct child} (10.8,-2.6);
+\node[note] at (7.3,-3.45) {poll exit, cancellation, deadline,\\and output-file size};
+\draw[ret] (10.8,-4.25) -- node[above,font=\scriptsize]{status and bounded diagnostics} (7.2,-4.25);
+\draw[ret] (7.2,-5.0) -- node[above,font=\scriptsize]{candidate bytes or typed error} (3.5,-5.0);
+\draw[ret] (3.5,-5.75) -- node[above,font=\scriptsize]{candidate and performed level} (0,-5.75);
+\draw[msg] (0,-6.45) -- node[above,font=\scriptsize]{separate complete-output parse} (14.3,-6.45);
+\end{tikzpicture}%
+}
+\caption{Semantic reconstruction sequence. A successful decoder exit creates
+only a candidate. Cancellation, timeout, launch failure, oversized output, or
+failed validation terminates the path without deliverable bytes.}
+\label{fig:decoder-sequence}
+\end{figure}
+
+The supervisor polls the child every 25 milliseconds. During each cycle it
+checks whether the monitored output file exceeds the configured byte limit,
+whether the shared cancellation token is set, and whether the wall-clock
+budget has expired. Standard output and standard error are drained
+concurrently to avoid pipe backpressure. Each captured stream is bounded to
+16 KiB and later sanitized to remove control characters and bidirectional text
+controls. A one-second reader-shutdown bound prevents a surviving helper from
+holding a pipe indefinitely. The \texttt{ManagedChild} guard remains armed
+until normal completion, so an early return or unwinding path still attempts
+termination and reaping.
+
+\begin{table}[t]
+\centering
+\caption{Comparison of external-decoder containment by deployment platform.}
+\label{tab:platform-containment}
+\footnotesize
+\begin{tabularx}{\textwidth}{L{0.10\textwidth}L{0.28\textwidth}L{0.28\textwidth}Y}
+\toprule
+Platform & Enforced by the component & Guarantee not supplied & Deployment condition \\
+\midrule
+Linux & Process group, \texttt{no\_new\_privs}, disabled core dumps, CPU/file/address-space limits, deadline, cancellation, group kill, and bounded diagnostics & No namespace, seccomp, chroot, container, or mandatory-access-control boundary & Add a dedicated user or stronger platform sandbox when decoder filesystem access is in scope \\
+macOS & Temporary-file lifetime, deadline polling, cancellation, output-size monitoring, bounded diagnostics, and direct child termination & No Linux process-group, \texttt{no\_new\_privs}, or resource-limit setup in the compiled branch & Embed in an application sandbox with constrained entitlements and storage access \\
+iOS & In-process checks and fail-closed policy handling & Conventional applications cannot spawn the packaged FFmpeg/FFprobe child path & Strict semantic audio/video blocks unless a separately evaluated in-process backend is supplied \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+On Linux, \texttt{SIGXFSZ} is reported as an exceeded output bound rather than
+an unspecified decoder failure. Across all platforms, the decoder retains the
+filesystem authority of its host process unless the enclosing deployment
+narrows it.
+
+The decoder boundary is a supervision boundary, not a general code-execution
+sandbox. It bounds direct-child lifetime, diagnostics, and candidate size during
+ordinary failure or hang behavior on the platforms listed in
+\cref{tab:platform-containment}. Protocol restrictions constrain media-library
+input selection. They do not constrain arbitrary system calls after code
+execution is compromised. Output authorization and publication gating still
+apply to a normally returning child. Host integrity, descendant lifetime, and
+filesystem effects after decoder compromise require an enclosing platform
+sandbox and are not guaranteed here.
+
+Cancellation is cooperative for in-process work and supervised for external
+work. \texttt{DefenseContext} carries an atomic token, an optional start time,
+and a millisecond timeout. Handlers call \texttt{check\_limits} at dispatch and
+at format-specific loop boundaries. The facade computes a handler budget that
+does not widen a caller's earlier deadline. FFmpeg and FFprobe use the
+remaining duration as an upper bound. A cancellation or timeout is a terminal
+error, not a warning, and the filesystem publication function is never called
+on that result. Cooperative checks cannot preempt a single long-running
+in-process codec call, which is another reason not to describe the in-process
+path as hard real-time containment.
+
+Temporary files have two roles. Decoder scratch files are named, guard-managed
+objects created through the \texttt{tempfile} crate and removed when their
+guards drop, subject to host-filesystem behavior. Deliverable publication uses
+a separate same-directory temporary file. \texttt{defend\_path} first rejects
+input and output paths that identify the same entry and refuses a pre-existing
+destination without modifying it. It runs the full byte pipeline, writes only
+clean bytes to the temporary file, calls \texttt{sync\_all}, and invokes
+\texttt{persist\_noclobber}. The generated suffix must agree with the validated
+output profile before staging. The supported claim is non-overwrite: a
+pre-existing or concurrently created destination is not replaced. Atomic
+visibility depends on the pinned crate version, operating system, and filesystem
+primitive and must be verified for the deployment. The parent directory is not
+synchronized, so crash durability after power loss is not claimed.
+
+At the result boundary, a blocked candidate may be summarized in an in-memory
+quarantine envelope containing its reason, digest, sizes, and stage details.
+The envelope is not deliverable, and the current implementation does not persist
+quarantined content. Every non-clean verdict returns an empty byte vector, zero
+delivered size, and the digest of the empty string. Every exposed interface
+enforces the same rule. Parser failure, panic, child launch failure, timeout,
+cancellation, policy ambiguity, and authorizing-validation failure therefore
+share one no-publication postcondition.

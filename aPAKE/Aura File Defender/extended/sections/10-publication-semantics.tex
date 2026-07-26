@@ -1,0 +1,188 @@
+\section{Transactional Clean-Only Publication}
+\label{sec:publication-semantics}
+
+\subsection{Total outcome and result construction}
+
+Acceptance becomes security-relevant only when it controls every externally
+observable artifact. A pipeline that records a block but still returns candidate
+bytes leaves the final decision to an error-prone caller. The public computation
+is therefore total over tagged outcomes:
+\begin{equation}
+  \mathsf{Outcome}=\mathsf{Result}(r)\mid\mathsf{Error}(e).
+  \label{eq:outcome-sum}
+\end{equation}
+A result $r=(v,b,h)$ contains a verdict $v\in\mathcal{V}$, an optional
+deliverable byte vector $b$, and bounded diagnostics $h$. An error $e$ is typed
+and carries no result object or output vector.
+
+For a reconstruction candidate $c$, the result-construction relation is
+\begin{equation}
+\begin{aligned}
+\mathsf{BuildResult}_{p}(a,c)&={}\\[-0.5ex]
+&\begin{cases}
+ (\Clean,\mathsf{Some}(c.y),h),
+   & \exists k\ \mathsf{Acc}_{p}(a,c,k),\\
+ (v,\mathsf{None},h),
+   & \substack{v\in\{\Suspicious,\Blocked,\\
+      \NotProcessed\}},\\
+ \mathsf{Error}(e),
+   & \text{a typed terminal failure occurs}.
+\end{cases}
+\end{aligned}
+\label{eq:build-result}
+\end{equation}
+The first branch is the only branch that can contain deliverable bytes. In
+particular,
+\begin{equation}
+\begin{aligned}
+  \mathsf{Deliverable}(r)
+  &\iff r.v=\Clean\\
+  &\iff r.b=\mathsf{Some}(c.y),
+  \qquad \text{for an accepted candidate }c.
+\end{aligned}
+  \label{eq:clean-only-delivery}
+\end{equation}
+The equality fixes the exposed bytes to the candidate that satisfied the full
+acceptance predicate. A candidate size or digest can remain in bounded
+diagnostics, but it does not identify a caller-accessible artifact.
+
+Typed errors include unsafe input size or name, type disagreement, required
+decoder failure, timeout, cancellation, panic containment, excessive output,
+and persistence failure. Non-clean results and errors retain distinct diagnostic
+meaning while sharing one publication consequence. Neither carries deliverable
+bytes.
+
+The invariant is repeated at interface boundaries. The native byte API clears
+output for every non-clean verdict. The C ABI exposes zero output length and no
+owned output allocation for non-clean results. The filesystem API proceeds only
+from a clean result whose generated suffix and output profile have already
+converged. Warning, bypass, dry-run, and unmodified fallback modes are outside
+the accepted scientific relation.
+
+\subsection{No-clobber filesystem transaction}
+
+Let $o$ be the requested output path and $D=\mathsf{parent}(o)$. Input and output
+that resolve to the same file are rejected. A pre-existing destination is never
+removed as preparation for processing. A non-clean result or processing error
+returns without touching it. A clean publication attempt reaches the
+no-clobber operation, which returns a typed conflict and preserves the existing
+bytes. This contract avoids converting a failed defense operation into data
+loss.
+
+For a clean result with bytes $y$, publication creates a uniquely named
+temporary file $\tau$ in $D$, writes all of $y$, synchronizes the temporary
+file, and performs a no-clobber persistence operation from $\tau$ to $o$.
+Same-directory staging avoids a cross-filesystem move. If another actor creates
+$o$ before persistence, the no-clobber operation fails and does not replace the
+competing entry.
+
+\begin{figure}[t]
+\centering
+\resizebox{0.98\textwidth}{!}{%
+\begin{tikzpicture}[
+  node distance=9mm and 12mm,
+  state/.style={draw,rounded corners=2pt,align=center,minimum height=9mm,minimum width=24mm,font=\small},
+  good/.style={state,fill=green!8},
+  neutral/.style={state,fill=gray!12},
+  fail/.style={state,fill=red!6},
+  arrow/.style={-{Latex[length=2mm]},thick}
+]
+\node[neutral] (initial) {$S_0$: target absent};
+\node[neutral,right=of initial] (staged) {$S_1$: temp complete};
+\node[neutral,right=of staged] (synced) {$S_2$: temp synced};
+\node[good,right=of synced] (published) {$S_3$: target visible};
+\node[fail,below=of staged] (failed) {$S_F$: target absent or pre-existing target unchanged};
+\draw[arrow] (initial) -- node[above,font=\scriptsize]{clean result only} (staged);
+\draw[arrow] (staged) -- node[above,font=\scriptsize]{file sync} (synced);
+\draw[arrow] (synced) -- node[above,font=\scriptsize]{persist no-clobber} (published);
+\draw[arrow] (initial) -- node[left,font=\scriptsize]{non-clean or error} (failed);
+\draw[arrow] (staged) -- (failed);
+\draw[arrow] (synced) -- (failed);
+\end{tikzpicture}%
+}
+\caption{Publication state machine. Only a clean validated candidate reaches
+the same-directory staging path. Failure leaves the target absent or preserves
+the pre-existing target observed outside this state sequence.}
+\label{fig:publication-state-machine}
+\end{figure}
+
+For an outcome $u$, the publication transition is
+\begin{equation}
+  \mathsf{Publish}(o,u)=
+  \begin{cases}
+    \mathsf{commit}_{\mathrm{noclobber}}(o,y),
+      & u=\mathsf{Result}(\Clean,\mathsf{Some}(y),h),\\
+    \mathsf{no\mbox{-}op}(o),
+      & u=\mathsf{Result}(v,\mathsf{None},h),\\
+    \mathsf{no\mbox{-}op}(o),
+      & u=\mathsf{Error}(e).
+  \end{cases}
+  \label{eq:publish-transition}
+\end{equation}
+The commit succeeds only after complete write, file synchronization, and the
+no-clobber namespace operation. A write, sync, or persistence failure remains
+an error. It is never converted into a clean published result.
+
+\subsection{Publication invariants}
+
+\begin{property}[No pre-commit visibility]
+\label{prop:no-precommit-visibility}
+Under the trusted-directory and atomic-namespace assumptions, an initially
+absent deliverable path remains absent in $S_0$, $S_1$, $S_2$, and $S_F$. It
+becomes visible only in $S_3$. A pre-existing target is unchanged on every
+branch because no-clobber persistence cannot replace it.
+\end{property}
+
+The property concerns the designated output path. A process with directory
+enumeration rights can observe a temporary name. Such observation is outside
+the consumer publication interface and is constrained by directory permissions
+and temporary-file creation semantics.
+
+\begin{proposition}[Clean-only filesystem publication]
+\label{prop:clean-only-filesystem}
+If an invocation creates $o$ in state $S_3$, there is a candidate $c$ and
+profile $k$ such that $c.y$ equals the target contents,
+$R_{p,k}(x)\Downarrow c$, and $\mathsf{Acc}_{p}(a,c,k)$ holds.
+\end{proposition}
+
+\begin{proof}[Analytical argument]
+The only incoming transition to $S_3$ is no-clobber persistence from $S_2$.
+Staging is reachable only from the clean branch of
+\cref{eq:build-result}, which requires an accepted candidate and exposes exactly
+$c.y$. Complete write and file synchronization preserve that vector before the
+namespace operation. The created target therefore contains the accepted
+candidate, subject to the stated filesystem assumptions.
+\end{proof}
+
+\begin{proposition}[Failure preserves the destination]
+\label{prop:failure-no-target}
+A non-clean verdict, typed processing error, staging failure, synchronization
+failure, or failed no-clobber persistence neither creates an initially absent
+target nor modifies a pre-existing target.
+\end{proposition}
+
+\begin{proof}[Analytical argument]
+Non-clean results and errors take no-op branches. Staging and synchronization
+failures occur before the only namespace operation. The final operation has
+no-clobber semantics, so conflict cannot replace an existing entry. Controlled
+fault injection must still exercise these branches before the implementation
+property is reported as empirically observed.
+\end{proof}
+
+A stale temporary file is not deliverable, although cleanup remains necessary
+for confidentiality and storage hygiene. The transaction also distinguishes
+atomic visibility from crash durability. The temporary file is synchronized
+before persistence, but the current contract does not claim parent-directory
+synchronization or survival across every power-loss and storage-controller
+model.
+
+No-clobber conflict reduces availability rather than integrity. The threat model
+excludes an attacker with arbitrary write access to $D$, because such an actor
+could create bytes at the deliverable path without invoking the defense process.
+
+Publication does not prove that accepted media is harmless. It establishes that
+the artifact exposed through the modeled interface is the same candidate that
+satisfied source resolution, reconstruction level, complete profile parsing,
+type convergence, signature policy, and resource bounds. Harmful semantic
+content, a later renderer vulnerability, and unmodeled grammars remain outside
+the claim.

@@ -1,0 +1,138 @@
+\section{Policy Algebra and Fixed-Witness Monotonicity}
+\label{sec:policy-algebra}
+
+\subsection{Extensional policy representation}
+
+A named profile such as strict or paranoid is not itself a mathematical policy.
+For comparison, decision-relevant content is represented extensionally as
+\begin{equation}
+  p=(\mathcal{K},\mathcal{N},\mathcal{T},\mathcal{G},q,
+  \mathcal{S},\mathcal{M},\mathbf{b}^{\max},\mathbf{b}^{\min},v),
+  \label{eq:policy-tuple}
+\end{equation}
+where $\mathcal{K}$ is the admitted profile set, $\mathcal{N}$ is the accepted
+name language, $\mathcal{T}$ is the admitted type and alias relation,
+$\mathcal{G}=\{L_{p,k}\}$ is the family of canonical output languages, $q$ is
+the reconstruction minimum, $\mathcal{S}$ is the signature rejection relation,
+$\mathcal{M}$ is the metadata prohibition relation, and the two typed vectors
+contain maximum and minimum resource constraints. Registry version $v$ fixes
+the complete-parser observation set $\mathcal{O}_v$.
+
+The policy tuple contains no coordinate for deliverable warning or error states.
+Clean-only publication is a method invariant. A diagnostic configuration that
+exposes warning output is outside the scientific acceptance relation rather
+than a less restrictive member of this algebra.
+
+\begin{table}[t]
+\centering
+\caption{Coordinate-wise definition of a policy restriction. Parser
+observations remain fixed so that restriction cannot hide negative evidence.}
+\label{tab:policy-coordinates}
+\small
+\begin{tabularx}{\textwidth}{L{0.22\textwidth}YY}
+\toprule
+Policy coordinate & Condition for $p_2$ to be no more permissive than $p_1$ & Effect on candidate validation \\
+\midrule
+Profiles and names & $\mathcal{K}_2\subseteq\mathcal{K}_1$ and $\mathcal{N}_2\subseteq\mathcal{N}_1$ & Removes routes or admitted names \\
+Type and alias relation & $\mathcal{T}_2\subseteq\mathcal{T}_1$ under one registry normalization & Removes declarations or compatibilities \\
+Canonical languages & $L_{p_2,k}\subseteq L_{p_1,k}$ for every common $k$ & Removes admitted output structures \\
+Reconstruction level & $q_{p_1}(k)\preceq q_{p_2}(k)$ & Requires equal or stronger work \\
+Signatures and metadata & $\mathcal{S}_1\subseteq\mathcal{S}_2$ and $\mathcal{M}_1\subseteq\mathcal{M}_2$ & Adds rejection conditions \\
+Maximum limits & $\mathbf{b}^{\max}_2\leq\mathbf{b}^{\max}_1$ coordinate-wise & Narrows upper resource bounds \\
+Minimum requirements & $\mathbf{b}^{\min}_2\geq\mathbf{b}^{\min}_1$ coordinate-wise & Raises required evidence or quality floors \\
+Parser registry & $v_2=v_1$ and hence $\mathcal{O}_{v_2}=\mathcal{O}_{v_1}$ & Preserves all complete observations \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Only bounds with the same unit and interpretation are comparable. A maximum
+duration cannot be ordered against a minimum sample rate, and heterogeneous
+limits are never collapsed into one score.
+
+\begin{definition}[Policy restriction order]
+\label{def:policy-order}
+We write $p_2\sqsubseteq p_1$ when every coordinate in
+\cref{tab:policy-coordinates} is no more permissive in $p_2$ than in $p_1$.
+Thus $p_2$ is at least as restrictive as $p_1$.
+\end{definition}
+
+Under extensional equality, $\sqsubseteq$ is a partial order. Reflexivity follows
+from coordinate equality. Antisymmetry follows from mutual inclusion and equal
+typed bounds. Transitivity follows from set inclusion, the reconstruction-level
+chain, and the ordinary orders on comparable maxima and minima. Distinct
+serialized documents can still denote the same extensional policy.
+
+\subsection{Fixed-witness validation monotonicity}
+
+Let $z=(a,c,k)$ fix the input, candidate, selected profile, parser reports, and
+all evidence in $c.\eta$. Define $\mathsf{Val}_p(z)$ as the post-route
+conjunction in \cref{eq:extended-acceptance}, omitting
+$\mathsf{Route}_p(a)=k$. It does not invoke a route, decoder, encoder, or
+reconstruction computation.
+
+\begin{proposition}[Fixed-witness validation monotonicity]
+\label{prop:validation-monotonicity}
+For a fixed witness $z$ under one registry version, if
+$p_2\sqsubseteq p_1$ and $\mathsf{Val}_{p_2}(z)$, then
+$\mathsf{Val}_{p_1}(z)$. Equivalently, a fixed post-route witness rejected by
+$p_1$ cannot pass unchanged under the more restrictive $p_2$.
+\end{proposition}
+
+\begin{proof}[Analytical argument]
+A name, profile, declaration, and canonical structure admitted by $p_2$ is also
+admitted by $p_1$. Satisfaction of the stronger reconstruction minimum implies
+satisfaction of the weaker minimum. Passing the larger signature and metadata
+rejection relations implies passing their subsets. A value below each smaller
+maximum is below the corresponding larger maximum. A value above each larger
+minimum is above the corresponding smaller minimum. Both policies inspect the
+same $\mathsf{Full}_v(c.y)$, so restriction cannot remove an incompatible
+complete parse. Every conjunct required by $p_1$ therefore holds for the fixed
+witness.
+\end{proof}
+
+The qualification ``fixed witness'' is essential. A weaker policy can admit
+additional routes and thereby make its pre-dispatch route set ambiguous. This
+case is outside the post-route proposition. A stricter policy can also choose
+a different reconstruction requirement and produce a different candidate. A
+structural candidate rejected under $p_1$ can be replaced by a semantic
+candidate accepted under $p_2$. This is not acceptance of the same witness and
+does not contradict the proposition. Consequently, this manuscript makes no
+unconditional end-to-end monotonicity claim across policies that alter routing,
+decoder, encoder, canonicalization, or output profile.
+
+Paired policy evaluation therefore separates two questions. The first asks
+whether one fixed candidate remains rejected under restriction. The second
+records whether a policy change creates a different candidate and must be
+interpreted as a reconstruction change. A generated policy diff identifies the
+changed coordinate and the candidate digests. It cannot silently classify a new
+repair path as a monotonicity success.
+
+\subsection{Restrictive meet}
+
+For policies over the same registry version, $p_1\sqcap p_2$ intersects positive
+admission sets and canonical languages, takes the stronger reconstruction
+minimum, unions signature and metadata prohibitions, takes the smaller
+applicable maximum, and takes the larger applicable minimum. Its version record
+contains both parent digests and the deterministic composition rule.
+
+\begin{proposition}[Greatest lower bound]
+\label{prop:policy-meet}
+When profile semantics and typed bound domains are compatible,
+$p_1\sqcap p_2$ is the greatest policy under $\sqsubseteq$ that is no more
+permissive than both parents.
+\end{proposition}
+
+\begin{proof}[Analytical argument]
+Every meet coordinate is a lower bound by construction. Any policy $r$ no more
+permissive than both parents admits only their shared positive sets, requires at
+least their stronger reconstruction level, enforces their combined
+prohibitions, uses maxima no greater than either parent, and uses minima no
+smaller than either parent. Hence $r\sqsubseteq p_1\sqcap p_2$. If registry
+versions or bound meanings differ, the meet is undefined until both policies
+are migrated to one frozen registry.
+\end{proof}
+
+The permissive join is not used to construct release policy. Unioning languages
+can create combinations that were never evaluated. A relaxation is a new policy
+version with new evidence. Scientific claims bind to the serialized policy,
+alias table, canonical registry, implementation commit, and their hashes.

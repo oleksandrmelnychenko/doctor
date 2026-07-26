@@ -1,0 +1,28 @@
+\section{Conclusion}
+\label{sec:conclusion}
+
+Under the registered-parser, implementation-correctness, and filesystem
+assumptions, the proposed method governs a transport-independent local
+transition from untrusted media to a deliverable reconstructed object. Delivery
+requires one source route, a registered source-to-output mapping,
+policy-sufficient reconstruction, complete authorizing validation on a code path
+separate from construction, a clean result, and non-overwriting publication.
+Reconstruction success creates only a candidate. Every other result returns no
+deliverable bytes, creates no new target through the component interface, and
+leaves any pre-existing target unchanged.
+
+The analytical model answers RQ1 and RQ2 conditionally. RQ3 remains incomplete.
+In the bounded experiment, fixture-derived actions, reason families, and
+pipeline states matched for 104 generated records. Eighty accepted record-level
+evaluations representing 40 unique output digests passed the applicable
+external format/profile checks. Eleven selected single-test fault checks found
+no publication-invariant violation. Seven fuzz targets received 210 requested
+target-seconds and 7,299,439 iterations without a recorded crash or sanitizer
+finding. Fidelity failed for all 32 audio and all 8 source-WebM evaluations.
+The absent S2--S5 and S7 strata, missing paired ablation, shortened schedules,
+shared host, and failed fidelity gate keep \(G_{\mathrm{sci}}\) false.
+A separate ten-file public-benign pilot established only finite compatibility.
+Mechanical checks covered all 316 candidates, but no independent decision was
+signed and fail-closed selection returned 0/246 sources. No audited or admitted
+corpus record was produced. The offline handoff makes review executable but
+contains no key, decision, or signature; scientific release remains pending.

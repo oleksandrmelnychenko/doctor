@@ -1,0 +1,453 @@
+\section{Format-Specific Reconstruction Methods}\label{sec:format-methods}
+
+\subsection{Common reconstruction and validation requirements}
+\label{subsec:format-common}
+
+Each source-to-output profile mapping instantiates
+\cref{eq:extended-acceptance} by specifying a constrained output language,
+minimum reconstruction level, generated name and media type, resource bounds,
+and an authorizing parser reached through a code path separate from the
+constructor. This design follows the language-theoretic principle that
+acceptance should be defined by an explicit language instead of a catalogue of
+malformed cases \cite{momot2016,nail2014}. It also addresses the practical risk
+that two file processors assign different boundaries or meanings to the same
+bytes \cite{jana2012,ipg2023}.
+
+Complete parsing is stronger than recognition of a prefix. For candidate
+\(a=(y,n_o,m_o,k_o,\ell,e)\), the authorizing parser must begin at zero, reach
+the unique terminator or declared outer boundary, consume \(|y|\) octets, and
+admit every emitted component at its exact parent and position. The output name,
+declared media type, byte recognizer, and parser report must identify \(k_o\).
+Resource checks use both \(y\) and the recorded reconstruction evidence \(e\).
+They cannot be inferred from \(y\) alone. These conditions establish conformity
+to the registered output language under the stated assumptions. They do not
+establish that arbitrary accepted media are harmless.
+
+The contract for a permitted source profile \(s\), reconstruction level
+\(\ell\), and output profile \(k\) is recorded as
+\begin{equation}
+ \Phi_{p,s,\ell,k}=
+ \bigl(\Omega_p,q_{p,s},L_{p,k},\Gamma_{p,k},
+       \Pi^{\mathrm{auth}}_{p,v,k},
+       \mathcal{N}_{p,k},\mathcal{M}_{p,k},
+       \mathcal{B}_{p,s,k}\bigr),
+ \label{eq:format-profile-tuple}
+\end{equation}
+where \(\Gamma_{p,k}\) is the location-aware component and permitted-metadata
+policy, \(\mathcal{N}_{p,k}\) and \(\mathcal{M}_{p,k}\) are the generated-name
+and output-media-type rules, and \(\mathcal{B}_{p,s,k}\) contains input,
+reconstruction, and output bounds. The remaining symbols were defined in
+\cref{sec:background,sec:formal-method}. Reconstruction strength follows
+\(\NotProcessed\prec\Structural\prec\Semantic\). The instantiated routes and
+the limits of their claims are compared in
+\cref{tab:format-profile-comparison}.
+
+\begin{table}[H]
+\centering
+\caption{Comparison of implemented reconstruction routes. ``Retained source''
+identifies content that survives a structural route and limits its claim.}
+\label{tab:format-profile-comparison}
+\scriptsize
+\setlength{\tabcolsep}{3.1pt}
+\begin{tabularx}{\textwidth}{L{0.15\textwidth}L{0.12\textwidth}L{0.19\textwidth}L{0.21\textwidth}Y}
+\toprule
+Input profile & Levels & Retained source & Complete-output evidence & Authorized claim \\
+\midrule
+PNG, JPEG, static WebP & Semantic & Decoded raster only & Grammar parse and second decode & Canonical grammar, exclusion of forbidden source metadata, and source-payload independence \\
+GIF & Semantic & Decoded frames and normalized timing & Block parse, trailer closure, and second decode & Animation closure and source-payload independence within the frame model \\
+APNG & Structural & \texttt{IDAT}/\texttt{fdAT} payloads & Chunk, CRC, sequence, and frame checks & Container closure, exclusion of forbidden source metadata, and bounded animation structure \\
+Animated WebP & Structural & \texttt{VP8}/\texttt{VP8L} frame payloads & RIFF closure, frame checks, and full decode & Container closure, exclusion of forbidden source metadata, and bounded frame consistency \\
+MP3 & Structural or semantic & MPEG frames structurally, decoded samples semantically & Exact frame walk or semantic MP3 reparse & Structural tag and suffix removal. Source-payload independence only semantically \\
+WAV PCM & Structural or semantic & PCM bytes structurally, decoded samples semantically & RIFF arithmetic or semantic MP3 reparse & Structural container closure. Source-payload independence only semantically \\
+FLAC & Structural or semantic & Encoded frames structurally, decoded samples semantically & FLAC frame checks or semantic MP3 reparse & Structural stream closure. Source-payload independence only semantically \\
+Ogg Opus/Vorbis & Structural or semantic & Packets structurally, decoded samples semantically & Ogg closure or semantic MP3 reparse & Structural stream closure. Source-payload independence only semantically \\
+ISO BMFF & Structural or semantic & Samples in \texttt{mdat} on the structural path & Box grammar, sample tables, and extent coverage & Container and offset closure. Payload independence only after semantic reconstruction \\
+WebM & Structural or semantic & Blocks structurally, decoded streams semantically & EBML closure or semantic MP4 reparse & Structural container claims. Source-payload independence only semantically \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Policy fixes \(\Phi_{p,s,\ell,k}\) before dispatch. The handler checks
+\(\mathcal{B}_{p,s,k}\), reconstructs the object, and reports the level
+performed. The authorizing parser then evaluates the complete candidate against
+\(L_{p,k}\) and \(\Gamma_{p,k}\) before rebuilt-output scanning and publication.
+Overflow, an incomplete boundary, a forbidden component, an exhausted budget,
+or \(\ell<q_{p,s}\) prevents delivery.
+
+The strict policy maps supported audio sources to an MP3 output profile and
+supported video sources to an MP4 output profile after semantic reconstruction.
+The source profile and delivered profile therefore need not be identical. The
+reference encoder, concrete codec settings, and authorizing-parser identifiers
+are implementation parameters reported in \cref{sec:implementation}. A WebM
+label in the evaluation denotes the source profile. Its semantic route emits an
+MP4 candidate.
+
+Component closure and metadata policy are related but not identical. Closure
+defines the complete set of legal structural units and their permitted
+locations. Metadata policy determines which legal but nonessential units may
+survive. The evaluated profiles use removal or replacement rather than
+source-field copying. A byte-substring scan is not used to establish removal,
+because an arbitrary byte sequence can occur inside compressed data. Absence
+is established by reparsing the output grammar and observing that no forbidden
+component is present.
+
+Size and offset integrity are also treated as parser obligations. For a
+length-delimited component $c$ at offset $o_c$ with header length $h_c$ and
+declared payload length $\ell_c$, the parser requires checked arithmetic and
+the containment relation
+\begin{equation}
+o_c+h_c+\ell_c\leq b_{\mathrm{parent}},
+\qquad
+[o_c,o_c+h_c+\ell_c)\subseteq B_{\mathrm{parent}}.
+\label{eq:component-bounds}
+\end{equation}
+For sequential grammars, the next component must begin exactly at the previous
+component's end. For offset-bearing grammars, a referenced extent must lie in
+an allowed media-data region and must agree with the relevant count and sample
+tables. Checks precede slicing, allocation, or offset conversion. These rules
+turn complete consumption into a constructive invariant rather than an
+end-of-function comparison alone.
+
+\subsection{Static raster images}\label{subsec:static-raster-method}
+
+JPEG, PNG, static WebP, BMP, and TIFF are accepted as static raster input
+classes when the image library can probe and decode them under policy limits.
+The output profiles specialize the corresponding JPEG, PNG, and WebP
+specifications rather than treating successful decoding as the grammar
+definition~\cite{ituT81,png3,webpRiff}.
+Only PNG, JPEG, and static WebP are output classes. The handler first probes
+dimensions without decoding the full pixel buffer. Zero dimensions, probe
+failure, or a probed pixel count above the policy limit block before full
+decode. After decode, dimensions and pixel count are checked again. If the
+decoded pixel count exceeds twice the probed count, the operation is rejected.
+Any other nonzero discrepancy produces a warning and therefore remains
+non-deliverable under enforcement mode, while both counts remain subject to
+their respective policy bounds. The intermediate
+state is a decoded raster, so the resulting method is semantic reconstruction.
+BMP and TIFF source syntax, embedded profiles, and application records do not
+survive because those containers are not copied into the output.
+
+The selected encoder creates a new raster object from decoded pixel state.
+The implementation's image representation does not carry source EXIF, XMP,
+ICC, comment, or thumbnail records through this path. The authorizing parser
+then performs both structural parsing and a second decode. The second probe
+and decode must agree on dimensions and remain below the validator's pixel
+bound. This post-reconstruction decode matters because structural
+correctness of marker or chunk boundaries alone does not establish that the
+generated compressed payload is consumable by the selected decoder.
+
+For PNG, the accepted grammar is
+\begin{equation}
+\mathrm{Sig}\parallel\mathrm{IHDR}\parallel[\mathrm{PLTE}]
+\parallel[\mathrm{tRNS}]\parallel\mathrm{IDAT}^{+}
+\parallel\mathrm{IEND}.
+\label{eq:png-grammar}
+\end{equation}
+The parser verifies the PNG signature, every chunk length, every CRC, the
+single 13-byte \texttt{IHDR}, color-type constraints, palette and transparency
+compatibility, contiguous nonempty image-data chunks, and an empty terminal
+\texttt{IEND}. No ancillary chunk other than the profile-permitted
+\texttt{tRNS} is admitted, and unknown chunks are rejected. Animation chunks
+are forbidden in the static profile. The terminal offset must equal file
+length. These constraints implement a narrower language than
+the full PNG specification \cite{png3}.
+
+For JPEG, the output begins with SOI and one pinned generated JFIF APP0 segment.
+Its identifier, version, density unit, nonzero density fields, and zero
+thumbnail dimensions are checked. The validator uses an explicit marker
+allowlist and admits baseline
+SOF0 and progressive SOF2 output. It checks frame dimensions and component
+table lengths, requires valid scan headers, walks entropy-coded data with JPEG
+stuffing and restart-marker rules, and ends at one EOI. Other APP segments and
+COM are forbidden. Marker lengths must remain within the file and no byte may
+follow EOI. The profile therefore excludes source
+application segments rather than attempting to distinguish benign from
+dangerous values inside them.
+
+For static WebP, the validator treats the file as a RIFF form. It requires the
+outer size to satisfy $\mathrm{RIFFSize}=\lvert y\rvert-8$, the form type
+\texttt{WEBP}, exact chunk boundaries, and the specified even-byte padding.
+Exactly one \texttt{VP8 } or \texttt{VP8L} image payload is present. When
+\texttt{VP8X} is emitted, its feature flags, dimensions, animation state, and
+alpha declaration must agree with the present chunks. Animation and metadata
+chunks, including \texttt{ANIM}, \texttt{ANMF}, \texttt{EXIF}, \texttt{XMP },
+and \texttt{ICCP}, are excluded. A second WebP decode supplies the semantic
+postcondition.
+
+\subsection{GIF, APNG, and animated WebP}\label{subsec:animated-raster-method}
+
+GIF uses semantic frame reconstruction under a constrained specialization of
+the GIF89a block grammar~\cite{gif89a}. The handler decodes frames to RGBA,
+checks the configured frame count and per-frame pixel limit, and accumulates a
+separate total-pixel budget. Frame delays below two centiseconds are
+normalized to two centiseconds. The sum of frame delays for one animation cycle
+is bounded by 60 seconds. This bound does not limit total viewer time when the
+generated loop declaration requests indefinite repetition. Re-encoding
+constructs a fresh GIF with generated color tables and that explicit loop
+declaration. Source
+comment, plaintext, and application-extension data are not copied. Frame
+offsets, dimensions, disposal operation, transparency, and normalized delay
+are represented in generated frame records.
+
+The authorizing parser accepts GIF87a and GIF89a signatures, requires one
+graphic-control block per frame, and permits only the generated
+\texttt{NETSCAPE2.0} loop extension. It checks the logical screen descriptor,
+color tables, image rectangles, Lempel--Ziv--Welch (LZW) sub-block chains, and
+one terminal trailer. Unknown extensions and trailing bytes fail validation. A
+second decoder must read at least one frame and reach end of input. The current
+parser does not couple extension use to the GIF89a signature, so that
+version-extension check remains a release condition. The semantic boundary is
+decoded frame content under the stated delay normalization. Pixel fidelity is
+evaluated separately.
+
+APNG differs because the implemented handler is a structural chunk remux. It
+walks the PNG chunk sequence, validates chunk boundaries and CRCs, retains the
+compressed \texttt{IDAT} and \texttt{fdAT} payloads, and removes ancillary
+chunks not needed by the constrained animation. The output grammar is
+\begin{equation}
+\mathrm{Sig}\parallel\mathrm{IHDR}\parallel[\mathrm{PLTE}]
+\parallel[\mathrm{tRNS}]\parallel\mathrm{acTL}
+\parallel\mathrm{Frames}\parallel\mathrm{IEND}.
+\label{eq:apng-grammar}
+\end{equation}
+There is one \texttt{acTL} before image data. The default \texttt{IDAT} image
+may be the first animation frame when preceded by its \texttt{fcTL}, or it may
+remain outside the animation when the first \texttt{fcTL} follows
+\texttt{IDAT}. Each \texttt{fcTL} describes a nonzero rectangle within the
+canvas and uses defined disposal and blend operations. The shared
+\texttt{fcTL}/\texttt{fdAT} sequence starts at zero and is gap-free and
+duplicate-free. Every controlled frame has data, and the parsed frame count
+equals the \texttt{acTL} declaration. Only \texttt{IHDR}, conditionally required
+\texttt{PLTE} and \texttt{tRNS}, \texttt{acTL}, \texttt{fcTL}, \texttt{IDAT},
+\texttt{fdAT}, and \texttt{IEND} are allowed.
+
+Because \texttt{IDAT} and \texttt{fdAT} payloads survive, APNG instantiates the
+structural claim in \cref{tab:format-profile-comparison}. A policy that requires
+semantic reconstruction blocks this route.
+
+Animated WebP has a separate structural profile rather than being admitted by
+the static WebP parser. The handler requires an exact RIFF boundary, one
+10-byte \texttt{VP8X} first with the animation feature set, one \texttt{ANIM}
+before all frames, and at least one \texttt{ANMF}. Canvas dimensions, frame
+rectangles, frame count, per-frame pixels, and aggregate pixels are bounded.
+Each frame contains either an optional \texttt{ALPH} followed by one nonempty
+\texttt{VP8 } payload, or one nonempty \texttt{VP8L} payload without a separate
+\texttt{ALPH} chunk. The frame alpha state and the \texttt{VP8X} alpha flag must
+agree. Chunk sizes and even-byte padding are consumed exactly. The handler removes \texttt{ICCP},
+\texttt{EXIF}, and \texttt{XMP } chunks, clears their \texttt{VP8X} feature
+bits, rejects every other top-level component, and regenerates the RIFF size.
+
+The \texttt{webp-animated-canonical-v1} validator, invoked separately from the
+constructor, repeats the complete structural parse and additionally checks
+encoded frame dimensions, alpha-state consistency, and agreement between
+parsed and decoded frame counts. It decodes every emitted frame under fixed
+frame and aggregate-pixel bounds and verifies the declared canvas. This
+corroborates decoder consumption but remains structural because the source
+\texttt{VP8 } or \texttt{VP8L} payloads survive. A policy requiring semantic
+reconstruction therefore rejects this route.
+
+\subsection{MP3, WAV, and FLAC}\label{subsec:native-audio-method}
+
+The MP3 structural path recognizes and removes an initial ID3v2 region and a
+terminal ID3v1 tag, then validates the remaining bytes as a nonempty sequence
+of length-accounted MPEG audio frame extents with admissible
+headers~\cite{iso11172}. The frame parser checks sync,
+MPEG version,
+layer, bitrate index, sampling-rate index, and padding. It computes each frame
+length from the header and requires the next header at exactly that boundary.
+The canonical output profile admits no ID3, APE, Lyrics3, arbitrary padding,
+inter-frame material, or suffix. Stream parameters are required to remain
+stable under the implemented profile. Retained MPEG frames limit this path to
+the structural MP3 claim in \cref{tab:format-profile-comparison}.
+
+WAV is reconstructed as a new RIFF/WAVE container around retained sample
+bytes under the RIFF interchange model~\cite{microsoftRiff}. The input walk
+checks RIFF size, chunk boundaries, and padding while
+locating one supported \texttt{fmt } chunk and one \texttt{data} chunk.
+Source ancillary chunks are omitted. The output uses a 16-byte format body for
+integer PCM, followed by the data chunk and generated zero padding when needed.
+The validator requires exactly that order and no other chunks. It checks
+nonzero channel count and sample rate, supported sample width, block
+alignment, byte rate, and data divisibility. These conditions require
+\begin{equation}
+\begin{aligned}
+\mathrm{blockAlign}&=C\frac{B}{8},\\
+\mathrm{byteRate}&=F_s\,\mathrm{blockAlign},\\
+\lvert\mathrm{data}\rvert\bmod\mathrm{blockAlign}&=0,
+\end{aligned}
+\label{eq:wav-integrity}
+\end{equation}
+where $C$ is channel count, $B$ is bits per sample, and $F_s$ is sample rate.
+The RIFF size includes any generated pad byte and equals $\lvert y\rvert-8$.
+Although PCM sample bytes are retained, there is no nested compressed codec
+bitstream in this constrained profile. The reconstruction is still reported
+as structural because sample semantics are not decoded and regenerated.
+
+FLAC structural reconstruction follows the native stream organization
+standardized in RFC~9639~\cite{rfc9639}. It retains the 34-byte STREAMINFO payload and
+encoded audio frames while removing every other metadata block. It emits the
+\texttt{fLaC} marker, exactly one STREAMINFO block marked as the final metadata
+block, and one or more retained frames. VORBIS\_COMMENT, PICTURE, APPLICATION,
+SEEKTABLE, CUESHEET, PADDING, and unknown metadata blocks are absent from the
+output grammar.
+
+The separate FLAC authorizing parser is deeper than a metadata-chain walk. It
+checks STREAMINFO block-size, frame-size, sample-rate, channel, bit-depth, and
+total-sample fields with checked arithmetic. For each frame it parses the sync
+and blocking strategy, canonical coded frame or sample number, block-size and
+sample-rate codes, channel assignment, explicit bit depth, header CRC-8, and
+frame CRC-16. It traverses constant, verbatim, fixed-predictor, and LPC
+subframes, including wasted-bit declarations, Rice and escaped residual
+partitions, and zero alignment. Frame numbering, aggregate sample count, and
+parameters are cross-checked with STREAMINFO. Streamable-subset limits are
+applied to block size, low-rate LPC order, and Rice partition order. Every
+frame end becomes the next frame start, and the final frame ends at EOF.
+
+These checks establish a constrained, frame-CRC-consistent FLAC grammar.
+Predictor output and STREAMINFO's MD5 over decoded samples are not recomputed,
+so retained frames remain outside payload-neutralization claims.
+
+\subsection{Ogg Opus and Vorbis}\label{subsec:ogg-method}
+
+The implemented Ogg method accepts one logical Opus or Vorbis stream under the
+page model defined by RFC~3533~\cite{rfc3533}. The
+handler validates page capture patterns, version, lacing boundaries, CRC,
+serial number, sequence continuity, and BOS/EOS state. It requires a
+recognized identification packet, a replaceable comment packet, subsequent
+media, and a terminal EOS page. Reconstruction replaces the comment packet
+with a minimal generated OpusTags or Vorbis comment. The current replacement
+is limited to a comment packet wholly contained in one page and
+not sharing that page with another packet. Inputs that would require a more
+general repagination are blocked rather than approximated.
+
+The authorizing parser reconstructs packets across page lacing
+tables. Continuation flags must agree with whether the prior page ended in an
+unfinished packet. Exactly one serial number is allowed, page sequence
+numbers are contiguous, every page CRC is valid, and EOS ends the stream at
+EOF. Codec header and comment order are checked against the selected Opus or
+Vorbis grammar. The Vorbis packet obligations follow the codec specification,
+while Opus follows the Ogg framing and header profile in RFC~7845
+\cite{vorbisI,rfc7845}. Encoded media packets remain structural evidence only.
+The authorized claim is stated in \cref{tab:format-profile-comparison}.
+
+\subsection{ISO BMFF}\label{subsec:isobmff-method}
+
+MP4, MOV, and M4A inputs enter a common ISO base media file format path. The
+profile is a constrained use of the ISO BMFF box model and its registered
+code points~\cite{iso1449612,mp4ra}. The
+native handler performs structural rewriting. It removes excluded metadata
+and free-space structures, recursively rebuilds permitted boxes, normalizes
+selected timestamps, language fields, handler names, and visual compressor
+strings, and retains samples in \texttt{mdat}. The implementation bounds
+nesting depth and atoms per level. Because removal changes layout, chunk
+offsets are adjusted only after the transformed top-level arrangement is
+known. The current native fix-up uses a checked displacement for collected
+\texttt{stco} and \texttt{co64} tables. For audio routing, the media-type
+aliases \texttt{audio/mp4}, \texttt{audio/x-m4a}, and \texttt{audio/m4a}
+converge on the same M4A input profile. This alias convergence is necessary
+for recordings produced by common mobile media APIs, but it does not define a
+new output grammar. The authorizing parser
+accepts a narrower nonfragmented, single-\texttt{mdat} grammar so that this
+offset model can be checked end to end.
+
+The canonical hierarchy contains one profile-allowed \texttt{ftyp} brand set,
+one structurally
+complete \texttt{moov}, and one \texttt{mdat}. Box sizes may use standard or
+extended forms only when their declared end lies within the enclosing parent.
+Unknown and forbidden children fail according to parent location. The
+validator excludes \texttt{udta}, metadata-bearing \texttt{meta},
+\texttt{uuid}, free space, attachments, arbitrary vendor boxes, and bytes
+outside top-level boxes. The structural rewriter also removes records excluded
+by the constrained profile, including \texttt{sgpd}, \texttt{sbgp},
+\texttt{sdtp}, \texttt{stps}, \texttt{cslg}, \texttt{iods}, \texttt{elng}, and
+\texttt{tref}. Some of these boxes can affect sample grouping, dependency,
+presentation, seeking, or inter-track relationships. Their removal therefore
+supports a narrower container-closure claim, not semantic equivalence or
+general playback compatibility. Structural delivery is confined to registered
+source profiles for which the policy permits this loss. Otherwise semantic
+transcoding is required. Compatibility remains an empirical fidelity outcome.
+Permitted
+\texttt{fiel} and \texttt{chrm} sample-entry children are accepted only with
+their constrained field values and lengths. The validator checks mandatory children of movie, track, media,
+media-information, and sample-table boxes. Data references must be
+self-contained. Handler type, sample-entry codec, dimensions, channel fields,
+timescales, durations, and edit lists are constrained.
+
+Sample-table integrity is established jointly rather than box by box.
+Time-to-sample counts, composition counts when present, sample-size counts,
+sync-sample indices, sample-to-chunk runs, and chunk-offset counts must describe
+one coherent sample sequence. For every chunk $j$, the validator derives the
+number and size of its samples and requires
+\begin{equation}
+[o_j,o_j+L_j)\subseteq B_{\mathtt{mdat}},
+\label{eq:isobmff-offset}
+\end{equation}
+where $o_j$ comes from \texttt{stco} or \texttt{co64} and $L_j$ is derived from
+\texttt{stsc} and \texttt{stsz}. Fragment boxes are outside the current output
+grammar. Across all tracks, the derived extents are sorted and must
+cover the single \texttt{mdat} payload exactly, without a gap or overlap. A
+semantic transcoding path may produce an MP4 candidate, but its output is
+normalized by the structural rewriter and must pass the same authorizing parser
+before publication.
+
+The structural path establishes container closure and offset consistency for
+the constrained nonfragmented profile. Payload independence requires the
+semantic path. Strict and paranoid policies block when it is unavailable.
+
+\subsection{WebM}\label{subsec:webm-method}
+
+The implemented EBML output profile is WebM only. Matroska is not promoted
+to support by shared EBML recognition. The profile is defined against the EBML
+and Matroska element model while admitting only the WebM subset named by the
+output grammar~\cite{rfc8794,rfc9559,webmContainer,matroskaElements}. The structural handler requires one
+bounded EBML header with \texttt{DocType=webm}, one Segment, one Info element,
+one Tracks element, and at least one Cluster. It removes SeekHead, Cues, Tags,
+Attachments, Chapters, Void, checksums that become stale, and cluster-relative
+Position and PrevSize records. Info is rebuilt in a fixed order. Source
+application names, date, title, and unsupported fields are removed, while
+MuxingApp and WritingApp are set to a fixed implementation identifier. Segment
+and child sizes are regenerated with checked EBML variable-length integers.
+
+The \texttt{webm-constrained-v2} validator reparses the full nested grammar on a
+code path separate from construction. Element identifiers must use their
+shortest valid VINT encoding.
+Declared sizes must consume their parents exactly. Nonminimal size widths are
+accepted because EBML permits them, while unknown size is allowed only for the
+root Segment whose end is fixed by EOF. The accepted Segment orders Info,
+Tracks, and Clusters and excludes unknown children.
+
+The track profile permits one VP8, VP9, or AV1 video track and at most one Opus
+audio track. Track numbers and unique identifiers are distinct. Dimensions,
+pixel count, duration, timestamp scale, sample rate, and channel count are
+bounded. The validator checks VP9 feature records, AV1 configuration-record
+shape and OBU boundaries, and the complete Opus identification header,
+including mapping, pre-skip-derived CodecDelay, and SeekPreRoll. Agreement
+between AV1 configuration fields and an optional Sequence Header OBU remains a
+codec-semantic obligation and is not claimed.
+
+Each Cluster begins with one Timestamp and contains only SimpleBlock media.
+Block track numbers must identify declared tracks. Reserved flags and all
+supported lacing modes are parsed to positive frame extents. Video lacing is
+excluded. Cluster, block, frame, aggregate frame-count, timestamp, and
+one-hour duration bounds are enforced. Absolute block timestamps are
+nondecreasing across Cluster boundaries, declared Duration cannot end before
+the final block timestamp, and each declared track must carry a frame. The
+last parsed Segment byte must be the last file byte.
+
+The native WebM validator closes the container grammar without decoding VP8,
+VP9, AV1, or Opus frames. A structural WebM candidate therefore cannot satisfy a
+policy that requires semantic reconstruction. The strict route decodes the
+source and emits validated MP4 rather than claiming semantic WebM output.
+
+\subsection{Post-reconstruction validation and deferred evidence}
+\label{subsec:post-reconstruction-validation}
+
+Every method ends at the predicate in \cref{eq:extended-acceptance}. The
+authorizing report, produced separately from construction, must identify the
+expected profile and place its terminal offset at $|y|$ before rebuilt-output
+signature policy is evaluated. Decoder exit, MIME inference, handler return,
+and signature scanning cannot substitute for complete grammar validation.
+
+The implementation and unit tests identify where these checks are enforced.
+Empirical claims are limited by the executed protocol in \cref{sec:evaluation}.
+Incomplete runs are reported only as finite observations or negative results.

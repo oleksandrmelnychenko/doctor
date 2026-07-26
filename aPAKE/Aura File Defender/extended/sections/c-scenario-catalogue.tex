@@ -1,0 +1,162 @@
+\section{Safe Scenario Catalogue}
+\label{app:scenario-catalogue}
+
+This catalogue defines non-operational carrier tests. Each identifier expands
+to format and boundary instances while retaining its S0--S7 stratum.
+
+Executable-shaped material uses an ASCII sentinel, optional format magic, an
+inert length, and deterministic padding. It contains no code, command, address,
+credential, persistence action, or exploit. Decoder-control-flow claims require
+S7 evidence instead.
+
+\subsection{Benign reconstruction and metadata scenarios}
+\label{subsec:scenario-benign}
+
+\begingroup
+\scriptsize
+\setlength{\tabcolsep}{2.5pt}
+\begin{longtable}{L{0.08\textwidth}L{0.16\textwidth}L{0.34\textwidth}L{0.11\textwidth}L{0.13\textwidth}}
+\caption{Benign and metadata scenario register.}
+\label{tab:scenario-benign}\\
+\toprule
+ID & Stratum and mechanism & Safe construction & Expected action & Primary evidence \\
+\midrule
+\endfirsthead
+\toprule
+ID & Stratum and mechanism & Safe construction & Expected action & Primary evidence \\
+\midrule
+\endhead
+SC-01 & S0 canonical minimum & Generate the smallest profile-valid object accepted by each concrete output grammar, with matching name and supplied type & Accept & T1/F1, T3/F3, T7/F7 \\
+SC-02 & S0 canonical boundaries & Generate low, central, and high policy-valid dimensions, frames, channels, durations, and sizes & Accept & T6/F6 and usability \\
+SC-03 & S1 privacy metadata & Insert synthetic author, location, device, comment, thumbnail, and application fields at valid locations & Accept if removable, otherwise block & T2/F2, T4/F4 \\
+SC-04 & S1 optional structure & Add legal but excluded ancillary chunks, boxes, tags, comments, padding, or vendor extensions & Accept if canonical reconstruction exists, otherwise block & T2/F2, T5/F5 \\
+SC-05 & S1 alternate legal ordering & Reorder only elements whose source grammar permits the alternate order, preserving reference-parser acceptance & Accept if normalizable, otherwise block & T2/F2 \\
+SC-06 & S1 semantic normalization & Generate GIF delays or output-codec inputs that trigger a documented normalization & Accept & T5/F5 and fidelity record \\
+\bottomrule
+\end{longtable}
+\endgroup
+
+SC-01 and SC-02 do not establish safety of all valid media. SC-03 uses parsed
+field absence. SC-04 and SC-05 separate broad source validity from canonical
+output. SC-06 records deliberate change under the fidelity policy.
+
+\subsection{Malformed, disagreement, and multi-grammar scenarios}
+\label{subsec:scenario-adversarial}
+
+\begingroup
+\scriptsize
+\setlength{\tabcolsep}{2.5pt}
+\begin{longtable}{L{0.08\textwidth}L{0.16\textwidth}L{0.34\textwidth}L{0.11\textwidth}L{0.13\textwidth}}
+\caption{Malformed, classifier, boundary, and polyglot scenario register.}
+\label{tab:scenario-adversarial}\\
+\toprule
+ID & Stratum and mechanism & Safe construction & Expected action & Primary evidence \\
+\midrule
+\endfirsthead
+\toprule
+ID & Stratum and mechanism & Safe construction & Expected action & Primary evidence \\
+\midrule
+\endhead
+SC-07 & S2 truncated element & Cut a base object at every parsed header, payload, checksum, and terminator boundary & Block & T1/F1, T8/F8 \\
+SC-08 & S2 inconsistent size & Change outer and inner lengths independently to below, exact, above, overflow-adjacent, and overlapping values & Block & T1/F1, T2/F2 \\
+SC-09 & S2 duplicate mandatory element & Duplicate IHDR, IEND, STREAMINFO, format, data, track identifier, or analogous required singleton & Block or reconstruct one unambiguous canonical object & T2/F2 \\
+SC-10 & S2 checksum or sequence fault & Corrupt CRC, frame checksum, page sequence, animation sequence, or timestamp ordering while retaining the outer signature & Block & T2/F2, T8/F8 \\
+SC-11 & S3 misleading final suffix & Pair valid media bytes and supplied media type with a forbidden or conflicting final extension & Block & T3/F3 \\
+SC-12 & S3 hidden dangerous suffix & Use a basename such as an inert double-suffix vector whose nonfinal suffix belongs to an active class & Block & Name policy and T3/F3 \\
+SC-13 & S3 supplied-type disagreement & Cross each byte profile with an incompatible, unknown, malformed, missing, and accepted alias media type & Block except the pre-specified equivalent alias & T3/F3 \\
+SC-14 & S3 malformed display name & Insert path separators, dot components, control characters, bidirectional controls, device names, trailing dots or spaces, and overlength names & Block & Name policy and T8/F8 \\
+SC-15 & S4 appended or trailing object & Append one inert foreign object after the canonical terminator or declared container boundary & Block or remove only through explicitly complete reconstruction & T1/F1 \\
+SC-16 & S4 prefix camouflage & Prefix valid media with an inert executable-shaped or foreign-format sentinel & Block & T1/F1, T3/F3 \\
+SC-17 & S4 true polyglot & Use a generated whole octet string independently and completely accepted from offset zero to file length by two incompatible parsers & Block & T3/F3 and differential validation \\
+SC-18 & S4 nested active object & Place an inert active-object sentinel in an attachment, metadata, or container location excluded by the canonical allowlist & Remove through canonical reconstruction or block & T2/F2 and T4/F4 for metadata locations \\
+\bottomrule
+\end{longtable}
+\endgroup
+
+SC-07 through SC-10 instantiate \cref{tab:mutation-matrix}. SC-09 accepts only
+after complete parsing and canonical singleton output. SC-11 through SC-14 use
+inert evidence. Their Trojan, downloader, dropper, or stager relevance concerns
+disguise only. SC-15 is not annotated as a true polyglot without complete
+whole-string acceptance under a second incompatible parser. SC-17 requires two
+parser reports whose terminal offsets both equal the file length. SC-18
+requires parsed location, not a byte-pattern match.
+
+\subsection{Resource and unsupported-class scenarios}
+\label{subsec:scenario-resource}
+
+\begingroup
+\scriptsize
+\setlength{\tabcolsep}{2.5pt}
+\begin{longtable}{L{0.08\textwidth}L{0.16\textwidth}L{0.34\textwidth}L{0.11\textwidth}L{0.13\textwidth}}
+\caption{Resource, active-class, and regression scenario register.}
+\label{tab:scenario-resource}\\
+\toprule
+ID & Stratum and mechanism & Safe construction & Expected action & Primary evidence \\
+\midrule
+\endfirsthead
+\toprule
+ID & Stratum and mechanism & Safe construction & Expected action & Primary evidence \\
+\midrule
+\endhead
+SC-19 & S5 scalar policy limit & Generate $L-1$, $L$, and $L+1$ inputs for bytes, dimensions, frames, duration, bitrate, channels, elements, and nesting & Accept at admissible points, block above & T6/F6 and boundary trace \\
+SC-20 & S5 output expansion & Use a compact valid input whose semantic output lies below, at, or above the frozen byte and ratio limits & Accept below or at, block above & T6/F6 and output accounting \\
+SC-21 & S5 parser work budget & Generate long chains of zero-semantic-value chunks, atoms, pages, lacing segments, or nested elements within and beyond count budgets & Accept within if canonical, block beyond & T6/F6 and bounded parser trace \\
+SC-22 & S5 deadline and cancellation & Apply pre-cancelled, expired, near-deadline, and mid-process cancellation contexts to deterministic generated media & No deliverable after cancellation or expiry & T6/F6, T8/F8 \\
+SC-23 & S6 active or unsupported class & Use non-executing fixtures with executable, script, archive, document, PDF, vector, shortcut, package, and unknown signatures and matching names & Block & T8/F8 and media-only policy \\
+SC-24 & S6 disguised active class & Cross an unsupported inert fixture with an allowed media suffix and media type & Block & T3/F3 \\
+SC-25 & S7 parser regression & Use a legally distributable minimized case with affected-version evidence and a fixed expected result & Block or safely reconstruct as pre-specified & Regression and differential record \\
+SC-26 & S7 decoder regression & Run a minimized decoder-triggering case through the pinned isolated semantic path with process limits & No crash propagation and no invalid deliverable & T6/F6, T8/F8, and tool trace \\
+\bottomrule
+\end{longtable}
+\endgroup
+
+At-limit SC-19 cases pass only if grammar and all other bounds hold. SC-20 keeps
+blocked candidates out of clean-output expansion. SC-22 holds the base digest
+constant. SC-23 and SC-24 establish unsupported-carrier blocking, not virus,
+worm, Trojan, ransomware, or spyware classification, and not downloader,
+dropper, or stager attribution. SC-25 and SC-26 remain specific to pinned cases
+and versions.
+
+\subsection{Fault and publication scenarios}
+\label{subsec:scenario-fault}
+
+\begingroup
+\scriptsize
+\setlength{\tabcolsep}{2.5pt}
+\begin{longtable}{L{0.08\textwidth}L{0.16\textwidth}L{0.34\textwidth}L{0.11\textwidth}L{0.13\textwidth}}
+\caption{Fault-injection and publication scenario register.}
+\label{tab:scenario-fault}\\
+\toprule
+ID & Injection & Observation & Expected action & Primary evidence \\
+\midrule
+\endfirsthead
+\toprule
+ID & Injection & Observation & Expected action & Primary evidence \\
+\midrule
+\endhead
+SC-27 & Child launch failure & Replace the configured external executable with a controlled nonexistent path & Typed failure, no deliverable & T8/F8 \\
+SC-28 & Child timeout & Use a controlled adapter that exceeds the frozen timeout and responds to process-group termination & Typed timeout, no deliverable & T6/F6, T8/F8 \\
+SC-29 & Diagnostic flood & Emit standard output and error beyond the capture bound with controls and bidirectional markers & Bounded sanitized diagnostic, no deliverable & T6/F6 and fault report \\
+SC-30 & Output growth & Make the controlled child grow its monitored temporary output beyond the byte bound & Child terminated, no deliverable & T6/F6, T8/F8 \\
+SC-31 & Canonical validation failure & Substitute a deterministic noncanonical candidate after reconstruction in the instrumented runner & Block, candidate never published & T7/F7, T8/F8 \\
+SC-32 & Handler panic & Trigger a checked regression hook that panics with a bounded attacker-shaped message & Typed pipeline error, bounded summary, no deliverable & T8/F8 \\
+SC-33 & Non-clean publication request & Invoke the publication boundary with blocked or suspicious status in the fault adapter & Destination absent or unchanged & T8/F8 and publication invariant \\
+SC-34 & Pre-existing destination & Place a hashed benign sentinel at the final path before each failing operation & Original digest preserved & T8/F8 and atomicity trace \\
+\bottomrule
+\end{longtable}
+\endgroup
+
+Fault scenarios use controlled hooks. SC-31 and SC-32 stay outside effectiveness
+denominators. Success requires no new deliverable and preservation of existing
+content. Allocator, creation, and persistence faults remain uncounted until
+explicit hooks exist.
+
+\subsection{Scenario expansion and audit trail}
+\label{subsec:scenario-expansion}
+
+Each record names its scenario and records generator commit, base digest,
+profile, element path, changed values, seed, and expected reason. The artifact
+is hashed and not regenerated during measurement.
+
+Coverage counts scenario-format pairs. An uninstantiated row is a gap, not a
+passing zero-event test.

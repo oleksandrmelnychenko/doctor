@@ -1,0 +1,84 @@
+\section{Introduction}
+\label{sec:introduction}
+
+Digital media cross local trust boundaries through email, web download, cloud
+synchronization, direct import, and messaging. Upstream controls can establish
+channel authenticity, access rights, or transport confidentiality without
+establishing that the received octet string is an admissible input for a local
+parser, decoder, preview generator, or file-opening application. A file can
+arrive through an authenticated channel and still exploit a decoder, preserve
+privacy-bearing metadata, conceal an active object, amplify resource demand, or
+present different meanings to different parsers. End-to-end encrypted
+messaging is one relevant instance because a blind relay cannot inspect
+plaintext without changing the confidentiality model
+\cite{unger2015,cohngordon2020,abelson2024}. The underlying file-admission
+problem is not specific to that transport.
+
+Conventional file controls do not fully settle the problem. A filename
+suffix and a caller-supplied media type are declarations rather than proof of a
+complete file grammar. A magic-byte recognizer can identify a plausible prefix
+while leaving a trailing object unaccounted for. A malware signature can match
+a known byte pattern but cannot establish that every accepted output belongs to
+one intended format or that all excluded metadata and structures were removed.
+A successful external transcoder exit establishes only that one tool produced
+bytes. It does not establish that the bytes satisfy the local canonical
+output policy. These mechanisms remain useful evidence, but none of them alone
+authorizes publication to the endpoint filesystem or renderer.
+
+Content disarm and reconstruction methods address part of this problem by
+replacing an input with a reduced representation. Existing work has established the
+importance of parser agreement, complete input consumption, generated parsers,
+and canonical output languages \cite{samuel2012,jana2012,momot2016,nail2014,
+everparse2019,ipg2023,darpaSafeDocs}. This paper addresses their composition at
+a local publication boundary. Classification, transformation, authorization,
+and filesystem publication remain separate decisions, and the claimed
+reconstruction strength records whether compressed source payloads were retained
+or replaced from decoded pixels, frames, or samples.
+
+This study develops a transport-agnostic method for policy-indexed canonical
+media reconstruction and fail-closed publication. The protected transition is
+from an untrusted media tuple to either a policy-admissible reconstructed object
+or no deliverable bytes. The method first converges evidence from the portable
+name, supplied media type, and bounded byte recognizer. It then selects one
+source profile, performs the reconstruction level required by policy, subjects
+the candidate to an authorizing parser on a code path separate from
+reconstruction, applies post-rebuild signature and resource policy, and invokes
+publication only after a clean verdict. Delivery therefore depends jointly on
+one source route, a registered source-to-output mapping, policy-indexed
+canonicality, reconstruction-level sufficiency, output scanning, resource
+bounds, and non-overwriting publication. Every other result exposes no
+deliverable bytes, creates no new target through the component interface, and
+leaves any pre-existing target unchanged.
+
+The claim has separate analytical and empirical falsifiers. Analytically,
+under the registered-parser and filesystem assumptions, every delivered byte
+string must belong to one policy-indexed canonical language, and every
+non-clean terminal state must expose no deliverable bytes. Empirical conformance
+requires each accepted manifest record to satisfy its prespecified action,
+reason-family, pipeline-state, reconstruction, closure, and resource oracles,
+together with the executed fault schedule. One violated obligation falsifies
+conformance for that run. Fidelity is evaluated independently and cannot
+authorize a structurally invalid output. The contribution evaluated here is the
+policy-indexed authorization relation that makes route selection,
+source-to-output conversion, reconstruction strength, output validation, and
+publication jointly auditable.
+
+Research question 1 (RQ1) asks when heterogeneous endpoint evidence selects
+exactly one admissible route. RQ2 asks which conditions are sufficient to
+restrict canonical delivery to clean verdicts at each reconstruction level.
+RQ3 asks whether the
+implementation preserves those conditions on a frozen corpus under malformed
+and ambiguous carriers, decoder and publication faults, cancellation, and fixed
+resource limits, and what fidelity and latency costs accompany the observed
+paths. The first two questions receive analytical answers. RQ3 is only
+partially exercised by the bounded finite-corpus experiment and remains
+unanswered at its declared controlled and population scope.
+
+The scope is limited to measurable media-carrier properties. Malware family and
+operational role require behavioral evidence that media bytes alone do not
+provide, as detailed in \cref{sec:background}. The method also does not remove
+harmful visual or auditory meaning, prove the absence of steganography,
+compensate for a compromised endpoint, or make an unsafe decoder trustworthy.
+For a frozen set of supported profiles and explicit assumptions, it restricts
+publication to canonical outputs validated separately from their construction
+and produced at or above the policy-required reconstruction level.

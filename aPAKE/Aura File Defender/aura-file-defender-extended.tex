@@ -1,0 +1,143 @@
+% !TEX program = tectonic
+\documentclass[preprint,12pt,a4paper]{elsarticle}
+\biboptions{numbers}
+
+\usepackage{iftex}
+\usepackage[T1]{fontenc}
+\ifPDFTeX
+  \usepackage[utf8]{inputenc}
+\fi
+\usepackage{lmodern}
+\usepackage[english]{babel}
+\usepackage{microtype}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{booktabs,tabularx,longtable,multirow,array}
+\usepackage{xcolor,graphicx,float,placeins,pdflscape}
+\usepackage{enumitem}
+\usepackage{listings}
+\usepackage{setspace}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning,fit,calc,shapes.geometric,matrix}
+\usepackage{hyperref}
+\hypersetup{colorlinks=true,linkcolor=black,citecolor=black,urlcolor=blue}
+\urlstyle{same}
+\usepackage[capitalise,noabbrev]{cleveref}
+\usepackage{orcidlink}
+
+\newcolumntype{Y}{>{\raggedright\arraybackslash}X}
+\newcolumntype{L}[1]{>{\raggedright\arraybackslash}p{#1}}
+\setlength{\emergencystretch}{3em}
+\hfuzz=3pt
+\hbadness=2500
+\setlength{\textfloatsep}{9pt plus 2pt minus 2pt}
+\setlength{\floatsep}{8pt plus 2pt minus 2pt}
+\setlength{\intextsep}{9pt plus 2pt minus 2pt}
+\setcounter{topnumber}{5}
+\setcounter{bottomnumber}{4}
+\setcounter{totalnumber}{8}
+\renewcommand{\topfraction}{0.95}
+\renewcommand{\bottomfraction}{0.85}
+\renewcommand{\textfraction}{0.05}
+\renewcommand{\floatpagefraction}{0.75}
+\setstretch{1.00}
+\raggedbottom
+
+\newtheorem{definition}{Definition}[section]
+\newtheorem{property}[definition]{Property}
+\newtheorem{proposition}[definition]{Proposition}
+\newtheorem{theorem}[definition]{Theorem}
+\newtheorem{lemma}[definition]{Lemma}
+\newtheorem{assumption}[definition]{Assumption}
+\newtheorem{remark}[definition]{Remark}
+\crefname{assumption}{assumption}{assumptions}
+\Crefname{assumption}{Assumption}{Assumptions}
+
+\makeatletter
+\def\ps@pprintTitle{%
+  \let\@oddhead\@empty
+  \let\@evenhead\@empty
+  \let\@oddfoot\@empty
+  \let\@evenfoot\@empty}
+\makeatother
+
+\newcommand{\AFD}{\textsc{Aura File Defender}}
+\newcommand{\Clean}{\ensuremath{\mathsf{Clean}}}
+\newcommand{\Suspicious}{\ensuremath{\mathsf{Suspicious}}}
+\newcommand{\Blocked}{\ensuremath{\mathsf{Blocked}}}
+\newcommand{\NotProcessed}{\ensuremath{\mathsf{NotProcessed}}}
+\newcommand{\Unprocessed}{\ensuremath{\mathsf{Unprocessed}}}
+\newcommand{\Structural}{\ensuremath{\mathsf{Structural}}}
+\newcommand{\Semantic}{\ensuremath{\mathsf{Semantic}}}
+\newcommand{\Accept}{\ensuremath{\mathsf{Accept}}}
+\newcommand{\Parse}{\ensuremath{\mathsf{Parse}}}
+\newcommand{\Profile}{\ensuremath{\mathsf{Profile}}}
+\newcommand{\Rebuild}{\ensuremath{\mathsf{Rebuild}}}
+\newcommand{\Deliver}{\ensuremath{\mathsf{Deliver}}}
+\newcommand{\Reject}{\ensuremath{\mathsf{Reject}}}
+\newcommand{\Evidence}{\ensuremath{\mathsf{Evidence}}}
+\newcommand{\Policy}{\ensuremath{\mathsf{Policy}}}
+\newcommand{\Gate}{\ensuremath{\mathsf{Gate}}}
+
+\input{results/server-experiment-results}
+
+\begin{document}
+\begin{frontmatter}
+
+\title{A Policy-Indexed Method for Canonical Reconstruction and Fail-Closed
+Delivery of Untrusted Media}
+
+\author{Oleksandr Melnychenko\texorpdfstring{\,\orcidlink{0000-0001-8565-7092}}{}\texorpdfstring{\corref{cor1}}{}}
+\ead{melnychenko@khmnu.edu.ua}
+\cortext[cor1]{Corresponding author.}
+\address{Khmelnytskyi National University, Khmelnytskyi, Ukraine}
+
+\begin{abstract}
+Authenticated channels may deliver ambiguous media unsuitable for local use.
+We define a transport-independent method that reconciles filename, declared
+type, and bounded byte evidence; applies policy-required reconstruction;
+validates the candidate independently; and publishes only clean,
+non-overwriting output. The method
+addresses type confusion, ambiguous structures, retained codec payloads,
+resource amplification, and publication faults across image, audio, ISO base
+media, and WebM profiles. The analysis gives conditional canonical-delivery and
+fixed-witness post-reconstruction monotonicity theorems under
+authorizing-parser soundness. A bounded experiment used 104
+generated benign or inert-unsupported records. All
+fixture-derived action oracles matched, measuring fixture-policy consistency
+rather than independent ground truth. Eighty accepted evaluations produced 40
+unique outputs that passed at least two applicable external checks; 11 selected
+fault checks recorded no publication-invariant violation, and 7,299,439
+shortened-schedule fuzz executions produced no recorded crash. Fidelity passed
+for 40/80 accepted records; all audio and source-WebM evaluations failed. A
+release-ineligible pilot accepted 10 public benign files (four exact-idempotent
+and six lossy closures), while discovery retained 316 distinct candidates.
+Mechanical identity checks passed, but unsigned review forced fail-closed
+selection of 0/246 sources. Missing adversarial strata, independent audit,
+admission, and controlled schedules authorize no release, population,
+malware-detection, or capacity claims.
+\end{abstract}
+
+\begin{keyword}
+content disarm and reconstruction \sep canonical parsing \sep fail-closed
+publication \sep untrusted media \sep polyglot files \sep media security
+\end{keyword}
+
+\end{frontmatter}
+
+\input{extended/compact/01-introduction}
+\input{extended/compact/02-background}
+\input{extended/compact/03-system-threat}
+\input{extended/compact/04-method}
+\input{extended/sections/11-format-methods}
+\input{extended/sections/12-polyglots}
+\input{extended/sections/13-process-isolation}
+\input{extended/sections/14-implementation}
+\input{extended/sections/15-corpus}
+\input{extended/sections/16-evaluation}
+\input{extended/compact/06-server-experiment-results}
+\input{extended/compact/07-discussion}
+\input{extended/compact/08-conclusion}
+\FloatBarrier
+\input{extended/references}
+
+\end{document}

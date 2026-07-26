@@ -1,0 +1,375 @@
+\section{Reproducible Evaluation Protocol}
+\label{sec:evaluation}
+
+The prespecified evaluation tests canonical-profile compliance, required
+reconstruction strength, and fail-closed handling of unsupported, ambiguous,
+malformed, over-budget, and incomplete artifacts.
+
+\subsection{Frozen inputs and execution order}
+\label{subsec:frozen-run}
+
+A run identifier binds source state, dependencies, target features, policy and
+registries, corpus and format digests, external codecs, and server environment.
+Any change creates a new append-only record. Failed runs are retained, reruns
+cite their predecessors, and pooling requires a prior comparison protocol.
+
+The server follows the gated sequence in
+\cref{fig:evaluation-pipeline}. Commands, environment, status, times, and
+digests enter the run record. Schema-invalid, incomplete, or hash-inconsistent
+reports fail their phase.
+
+\begin{figure}[H]
+\centering
+\resizebox{0.94\textwidth}{!}{%
+\begin{tikzpicture}[
+  phase/.style={draw,rounded corners=2pt,align=center,text width=38mm,
+    minimum height=15mm,font=\small,inner sep=3pt},
+  freeze/.style={phase,fill=blue!7},
+  functional/.style={phase,fill=green!8},
+  adversarial/.style={phase,fill=yellow!10},
+  terminal/.style={phase,fill=gray!12},
+  failbox/.style={draw,rounded corners=2pt,align=center,text width=27mm,
+    minimum height=13mm,font=\small,inner sep=3pt,fill=gray!12},
+  arrow/.style={-{Latex[length=2mm]},thick},
+  fail/.style={-{Latex[length=2mm]},dashed,thick}
+]
+\node[freeze] (p1) at (0,0) {\textbf{1. Freeze}\\run ID and all input hashes};
+\node[freeze] (p2) at (5.2,0) {\textbf{2. Build}\\release build, tests, lint, audit};
+\node[functional] (p3) at (10.4,0) {\textbf{3. Functional evidence}\\corpus, ablation, differential, fidelity};
+\node[adversarial] (p4) at (10.4,-2.2) {\textbf{4. Adversarial evidence}\\fuzz budgets and injected faults};
+\node[adversarial] (p5) at (5.2,-2.2) {\textbf{5. Measurement}\\pinned performance sessions};
+\node[terminal] (p6) at (0,-2.2) {\textbf{6. Reduction}\\regenerate artifacts and evaluate $G_{\mathrm{sci}}$};
+\node[failbox] (failed) at (15.1,-1.1) {retain failed run\\no controlled\\measurement or release};
+\draw[arrow] (p1) -- (p2);
+\draw[arrow] (p2) -- (p3);
+\draw[arrow] (p3) -- (p4);
+\draw[arrow] (p4) -- (p5);
+\draw[arrow] (p5) -- (p6);
+\draw[fail] (p2.east) -- node[above,sloped,font=\scriptsize]{$G_j=0$} (failed.north west);
+\draw[fail] (p3.east) -- (failed.north west);
+\draw[fail] (p4.east) -- (failed.south west);
+\draw[fail] (p5.east) -- (failed.south west);
+\end{tikzpicture}%
+}
+\caption{Controlled evaluation sequence. Functional or adversarial failure
+retains reportable evidence but prevents entry into controlled performance
+measurement and release-candidate eligibility.}
+\label{fig:evaluation-pipeline}
+\end{figure}
+
+For binary phase-entry and gate variables $E_j,G_j\in\{0,1\}$, the stopping
+rule is
+\begin{equation}
+ E_1=1,\qquad E_{j+1}=E_jG_j,\quad j=1,\ldots,5.
+ \label{eq:evaluation-stopping}
+\end{equation}
+Thus no later measurement compensates for an earlier failed gate. The run
+record identifies hardware, operating system, toolchains, CPU affinity,
+observed governor and turbo state, background load, and external-tool
+identities. A controlled performance run must additionally pin the controls
+that the platform permits. Missing required evidence makes
+\(G_{\mathrm{sci}}\) false.
+
+\subsection{Property suite}
+\label{subsec:property-suite}
+
+The eight invariants in \cref{tab:method-invariants} map one to one to the
+distinct tests in \cref{tab:property-suite}. Because the global gate is a
+conjunction, aggregate success cannot hide one invalid accepted output or one
+fault case that publishes bytes.
+
+\begingroup
+\footnotesize
+\setlength{\tabcolsep}{4pt}
+\begin{longtable}{L{0.07\textwidth}L{0.19\textwidth}L{0.39\textwidth}L{0.24\textwidth}}
+\caption{Property suite, test oracle, and admissible evidence.}
+\label{tab:property-suite}\\
+\toprule
+ID & Formal invariant and empirical oracle & Oracle & Evidence unit \\
+\midrule
+\endfirsthead
+\toprule
+ID & Formal invariant and empirical oracle & Oracle & Evidence unit \\
+\midrule
+\endhead
+\midrule
+\multicolumn{4}{r}{Continued on next page}\\
+\endfoot
+\bottomrule
+\endlastfoot
+F1 & Complete consumption & Accepted output parses from offset zero and consumed octets equal output length. An unconsumed suffix prevents acceptance & Accepted output and suffix-mutated pair \\
+F2 & Component closure & Every parsed component is permitted at its exact grammar location. Unknown or forbidden components are removed through valid reconstruction or blocked & Parsed component path \\
+F3 & Output evidence convergence & Generated name, declared output type, byte recognition, and authorizing report resolve to one output profile & Accepted candidate record \\
+F4 & Semantic source-independence & A strict semantic path serializes output from decoded media rather than retained source payload & Source-to-candidate provenance trace \\
+F5 & Second-pass stability & Under the same policy and profile, a second pass is exact or satisfies the registered semantic closure & First- and second-pass pair \\
+F6 & Resource boundedness & Each declared counter, cancellation condition, and deadline returns a typed failure when its bound is exceeded & Boundary and injected-failure case \\
+F7 & Validation separate from construction & Every clean candidate is reparsed by a registered authorizing parser distinct from the constructing handler & Accepted candidate and internal authorizing report \\
+F8 & Fail-closed result construction and publication & Every failed conjunct, non-clean verdict, error, race, and persistence failure exposes no deliverable candidate and preserves a pre-existing target & Interface and filesystem trace \\
+\end{longtable}
+\endgroup
+
+F1 appends zero, foreign-object, and malformed suffixes after the terminal
+extent. F2 checks parsed component paths, F3 compares normalized profiles, and
+F4 verifies that strict semantic output is serialized from decoded media.
+Unlike F1--F3, F4 is established by the construction path rather than by an
+artifact-observable predicate: byte-level source independence across a
+decode--re-encode step cannot be read off the candidate \(y\) alone, so F4 rests
+on \cref{asm:semantic-construction} and the code path that serializes only from
+the decoded intermediate representation.
+
+Second-pass stability operationalizes F5 but is not itself an acceptance
+condition. Let \(\mathsf{Out}_{p,v}(u)\) be defined as \(y\) only when the
+pipeline returns a clean accepted candidate
+\(a=(y,n_o,m_o,k_o,\ell,e)\). Let
+\(u[a]=((y,n_o,m_o),(p,d'))\) be a second request under the same policy and a
+fresh, equivalent deadline context \(d'\). For profiles registered as exact,
+\begin{equation}
+ \mathsf{Out}_{p,v}(u)=y
+ \Longrightarrow
+ \mathsf{Out}_{p,v}(u[a])=y.
+ \label{eq:idempotence}
+\end{equation}
+For lossy profiles, registered semantic closure instead requires a clean second
+verdict, the same output profile and reconstruction requirement, and a
+prespecified fidelity comparator. It does not imply perceptual equivalence or
+bounded accumulated drift. The policy comparison in
+\cref{eq:validation-monotonicity} holds the candidate and parser reports fixed.
+End-to-end comparisons remain descriptive when route selection or
+reconstruction changes.
+
+\subsection{Paired mechanism ablation}
+\label{subsec:mechanism-ablation}
+
+The paired study measures decision sensitivity within the frozen corpus, not
+antivirus accuracy or a deployment-population effect. Let \(P_0\) be the full
+strict policy and \(\mathcal{C}\) the conditions in
+\cref{tab:mechanism-ablation}. Before ablation, every input is replayed under
+\(P_0\). Any mismatch in action, verdict, reason, output digest,
+reconstruction, or profile aborts the study.
+
+\begin{table}[H]
+\centering
+\scriptsize
+\setlength{\tabcolsep}{4pt}
+\begin{tabularx}{\textwidth}{L{0.21\textwidth}L{0.28\textwidth}L{0.19\textwidth}Y}
+\toprule
+Condition & Single registered change from \(P_0\) & Applicable records &
+Interpretive endpoint \\
+\midrule
+\shortstack[l]{\texttt{without-input-}\\\texttt{signature-}\\
+\texttt{prescan}} &
+Replace input-and-output signature scanning with output-only scanning &
+All records &
+Observed paired transition after removing pre-reconstruction signature evidence \\
+\shortstack[l]{\texttt{without-}\\\texttt{supplied-type-}\\
+\texttt{evidence}} &
+For records with a supplied type, omit that value and disable its prerequisite.
+For records without one, change only the prerequisite &
+Two prespecified groups analyzed separately. No pooled intervention estimate &
+Observed paired transition within each distinct intervention group \\
+\shortstack[l]{\texttt{lowered-}\\\texttt{reconstruction-}\\
+\texttt{requirement-}\\\texttt{where-}\\\texttt{configurable}} &
+Lower the animated-image, video, and audio requirement from required semantic
+reconstruction to structural reconstruction &
+Manifest profiles eligible for one of these configurable requirements &
+Decision transition under a lower registered reconstruction floor \\
+\bottomrule
+\end{tabularx}
+\caption{Prespecified paired mechanism-ablation conditions. Condition
+identifiers match the machine-readable protocol.}
+\label{tab:mechanism-ablation}
+\end{table}
+
+Let \(\mathcal I\) be the full corpus and \(I_c\subseteq\mathcal I\) the
+preregistered applicable set for condition \(c\). The evidence stream retains
+one auditable row for every pair in \(\mathcal C\times\mathcal I\), including an
+explicit inapplicable row when \(i\notin I_c\). Estimands use only \(I_c\).
+\(E_i^{(c)}\in\{0,1\}\) indicates completion without a pipeline error, and
+\(Y_i^{(c)}\in\{0,1\}\) is the observed decision for record \(i\), where one
+denotes acceptance and zero denotes blocking. The superscript zero denotes the
+eligible full-policy record. The paired transition counts and full-policy
+denominators are
+\begin{equation}
+ \begin{aligned}
+ N_{ab}^{(c)}
+ &=\sum_{i\in I_c}
+   \mathbb{1}\!\left[E_i^{(c)}=1
+   \land Y_i^{(0)}=a\land Y_i^{(c)}=b\right],\\
+ B_a^{(c)}
+ &=\sum_{i\in I_c}\mathbb{1}\!\left[Y_i^{(0)}=a\right],
+ \qquad a,b\in\{0,1\}.
+ \end{aligned}
+ \label{eq:ablation-transitions}
+\end{equation}
+The two directional summaries are
+\begin{equation}
+ q_{1\rightarrow0}^{(c)}
+ =\frac{N_{10}^{(c)}}{B_1^{(c)}},
+ \qquad
+ q_{0\rightarrow1}^{(c)}
+ =\frac{N_{01}^{(c)}}{B_0^{(c)}}.
+ \label{eq:ablation-proportions}
+\end{equation}
+These are the proportions of full-policy accepts becoming blocks and blocks
+becoming accepts. Empty denominators are not estimable. Pipeline errors remain
+outside the \(2\times2\) matrix and fail the execution gate.
+
+Let \(m_{ci}\) be the multiplicity of pair \((c,i)\) in the emitted stream.
+For condition \(c\), let \(H_c\) contain its prespecified intervention groups:
+one group for signature removal, supplied-type-present and supplied-type-absent
+groups for type ablation, and animated-image, audio, and video groups for the
+reconstruction-floor ablation. Let \(n_{c,h}\) be the applicable count in group
+\(h\in H_c\), and let \(N_{\mathrm{err}}\) be the pipeline-error count. The predicates
+\(G_{\mathrm{strict}}\), \(G_{\mathrm{context}}\),
+\(G_{\mathrm{replay}}\), and \(G_{\Delta P}\) verify, respectively, the strict
+starting settings, preservation of the frozen input and context except for the
+registered evidence removal, equality of the full-policy replay, and isolation
+of the condition-specific policy change. Ablation completeness is
+\begin{equation}
+ \begin{aligned}
+ G_{\mathrm{abl}}={}&G_{\mathrm{strict}}\land G_{\mathrm{context}}
+ \land G_{\mathrm{replay}}\land G_{\Delta P}\\
+ &{}\land
+ \bigwedge_{(c,i)\in\mathcal{C}\times\mathcal{I}}[m_{ci}=1]
+ \land \bigwedge_{c\in\mathcal{C}}\bigwedge_{h\in H_c}[n_{c,h}\geq1]
+ \land [N_{\mathrm{err}}=0].
+ \end{aligned}
+ \label{eq:ablation-gate}
+\end{equation}
+The exact-pair term requires a complete \(3|\mathcal{I}|\) audit matrix without
+duplicates or omissions. Inapplicable rows do not enter
+\cref{eq:ablation-transitions}. The proportions are descriptive frozen-corpus
+properties without a population interval, significance test, causal
+interpretation, malware-detection rate, or prevalence claim.
+
+\subsection{Differential output validation}
+\label{subsec:differential-validation}
+
+Every accepted output is checked by the authorizing parser and at least two
+applicable external format or profile validators. Distinct families use
+different executable or library lineages. Separate process boundaries alone do
+not establish diversity. Reports bind output digests to executable identities,
+detected profiles, and outcomes. Any missing, rejecting, or disagreeing result
+fails the gate. These external checks corroborate decodability or profile
+recognition only. They do not independently establish complete consumption,
+component closure, the expected action, or the fixture-derived decision oracle,
+and they cannot exclude common-mode errors.
+
+\subsection{Coverage-guided fuzzing and bounded checks}
+\label{subsec:fuzzing}
+
+Fuzzing records fixed budgets, seeds, repetitions, sanitizers, corpora, and
+failure handling, following established evaluation guidance~\cite{klees2018}.
+Targets cover top-level dispatch, complete output validation, and native
+animated-image, MP4, WebM, Ogg, and audio paths. Structured seeds preserve outer
+headers while mutation reaches lengths, offsets, checksums, lacing, and
+sequences. Unique failures are minimized, hashed, reproduced, and added to S7
+when appropriate.
+
+Budget exhaustion with no discovered failure means only ``no failure observed''
+under that campaign. Native-interface and policy-deserialization properties
+receive separate regression and static review, not dedicated fuzz-coverage claims.
+Bounded checks cover named finite arithmetic and parser domains. Neither
+fuzzing nor static review verifies an external codec.
+
+\subsection{Crash, cancellation, and publication campaigns}
+\label{subsec:fault-campaigns}
+
+The fault schedule exercises cancellation, deadlines, child launch and timeout,
+bounded diagnostics, output-size termination, validation failure, caught panic,
+and attempted non-clean publication. The executed cases record the injection point, terminal
+state, paths, child status, and cleanup against
+\begin{equation}
+ \mathrm{FailureBeforePublication} \Longrightarrow
+ \mathrm{DeliverableBytes}=0.
+ \label{eq:no-publication}
+\end{equation}
+The destination is monitored and any pre-existing object is hashed. Allocator,
+temporary-file, and persistence failures require explicit injection evidence
+before \(G_{\mathrm{fault}}\) can pass. Code review can motivate the expected
+behavior but cannot substitute for an executed fault case.
+
+\subsection{Performance protocol}
+\label{subsec:performance-protocol}
+
+After functional gates pass, ten sessions invoke the public byte-defense API
+over corpus permutations generated from a recorded seed for each session. The matrix stratifies
+format, reconstruction level, input and decoded size, media structure, carrier,
+and outcome. Cold and warm records retain order, time, profile,
+reconstruction, outcome, and errors. Blocked and timed-out calls remain in
+their path denominator. Here, ``cold'' denotes the first timed invocation after
+an already constructed defender. Policy normalization and signature-engine
+construction are outside the timed interval.
+
+Latency summaries report the median, 95th percentile (p95), and 99th percentile
+(p99). Sequential single-worker service rate is not concurrent throughput.
+Hashed resource logs provide peak resident set size (RSS). Output expansion for
+clean deliverable \(i\) is
+\begin{equation}
+ e_i=\frac{|y_i|}{|x_i|},
+ \label{eq:expansion}
+\end{equation}
+with zero-length input retained as a separate invalid or blocked group.
+
+\subsection{Fidelity and usability}
+\label{subsec:fidelity-protocol}
+
+Security acceptance and fidelity remain separate. Every accepted output is
+evaluated under a frozen fidelity policy. Lossless profiles compare the
+prespecified decoded dimensions, channels, frames, samples, and timing fields.
+Structural profiles test the exact properties named by their profile. Lossy
+paths use prespecified metrics and drift bounds. Tool error, missing or nonfinite
+metrics, threshold failure, or an unevaluated output fails the fidelity gate.
+Passing fidelity never enlarges the security claim.
+
+\subsection{Statistical analysis}
+\label{subsec:statistical-analysis}
+
+Corpus endpoints report \(x/n\) under the denominators in
+\cref{subsec:corpus-denominators}. Because purposive mutations are clustered by
+base artifact, no binomial population interval is attached to decision,
+differential, fidelity, or invariant outcomes. Zero denominators are not
+estimable. The first release has no confirmatory policy or version hypothesis.
+Its paired discordances are descriptive.
+
+Median latency uses 10,000 hierarchical bootstrap replicates over sessions,
+dependence clusters, and base artifacts~\cite{efron1979}. The resulting
+percentile 95\% interval quantifies variation within the controlled design, not
+deployment-population uncertainty. Expansion is reported as an arithmetic mean
+without a bootstrap interval. Cold and warm paths remain separate. Exploratory
+subgroups are labeled, missing observations are not imputed, and every output
+table traces to its frozen source digests.
+
+\subsection{Release gates and claim authorization}
+\label{subsec:release-gates}
+
+Controlled-run and release-candidate eligibility require the conjunction
+\begin{equation}
+ \begin{aligned}
+ G_{\mathrm{sci}}={}&G_{\mathrm{prov}} \land G_{\mathrm{schema}}
+ \land \bigwedge_{r\in\mathrm{corpus}}G_r
+ \land \bigwedge_{j=1}^{8}G_{\mathrm{F}j} \\
+ &{}\land G_{\mathrm{abl}} \land G_{\mathrm{diff}}
+ \land G_{\mathrm{fidelity}}
+ \land G_{\mathrm{fuzz}} \land G_{\mathrm{fault}}
+ \land G_{\mathrm{perf}} \land G_{\mathrm{regen}}.
+ \end{aligned}
+ \label{eq:scientific-gate}
+\end{equation}
+\(G_{\mathrm{prov}}\) requires frozen source, dependency, policy, corpus, tool,
+and environment identities. \(G_{\mathrm{schema}}\) requires every report to
+pass its versioned schema and cross-file consistency checks. Each \(G_r\)
+requires the expected action, reason family, pipeline state, digest, profile,
+and per-record evidence for manifest record \(r\). The predicates
+\(G_{\mathrm{F}1},\ldots,G_{\mathrm{F}8}\) correspond to the eight rows of
+\cref{tab:property-suite}. \(G_{\mathrm{diff}}\) and
+\(G_{\mathrm{fidelity}}\) require complete external-validation and fidelity
+records for every accepted evaluation. \(G_{\mathrm{fuzz}}\),
+\(G_{\mathrm{fault}}\), and \(G_{\mathrm{perf}}\) require their full
+prespecified budgets and cases. \(G_{\mathrm{regen}}\) requires every table and
+summary to regenerate from the retained raw records. Together with the ablation
+gate, these predicates define controlled-run eligibility. A failed conjunct
+precludes controlled, population, capacity, or release-candidate claims but
+does not suppress finite observations or negative results. Failed runs remain
+append-only, and a release candidate additionally requires
+\texttt{release\_eligibility.eligible=true}.

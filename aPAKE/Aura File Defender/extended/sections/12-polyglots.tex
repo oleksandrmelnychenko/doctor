@@ -1,0 +1,153 @@
+\section{Polyglot and Ambiguous-Carrier Handling}
+\label{sec:polyglots}
+
+\subsection{Classification is not acceptance}
+
+A file-type label selects work under policy. It is not an authorization
+decision. Name evidence, caller-supplied media type, and bounded byte
+recognition can disagree.
+A separate authorizing parser can then expose a different whole-object
+interpretation. Polyglot research shows that several file interpretations can
+be combined and that detector behavior depends on the chosen grammar and
+boundary~\cite{albertini2022,koch2025}. Parser differentials have the same
+general consequence even when the carrier was not intentionally constructed as
+a polyglot~\cite{jana2012,you2025}.
+
+Let $R_p(x,n,m)$ be the eligible route set defined in
+\cref{eq:eligible-routes}. Selection is admissible only when this set is a
+one-element set:
+\begin{equation}
+  \mathsf{Route}_p(x,n,m)=k
+  \quad\Longleftrightarrow\quad
+  R_p(x,n,m)=\{k\}.
+  \label{eq:type-convergence}
+\end{equation}
+Compatibility follows the versioned alias relation, not a textual MIME prefix.
+For example, \texttt{audio/wav} and \texttt{audio/x-wav} can select one WAV
+profile. A media suffix paired with an executable grammar is not such an alias.
+
+A complete parser accounts for the whole object presented to that parser, but
+source and output evidence have different domains. A selected source parser
+accounts for ranges retained by structural reconstruction. Semantic
+reconstruction may discard source bytes after bounded decoding.
+The authorizing parser accounts for the reconstructed candidate \(y\). Its
+success does not prove that every byte of source \(x\) had one interpretation.
+Context can expose disguise but cannot override incompatible bytes. A handler's
+declared output media type is a claim to test, not proof of the candidate format.
+
+\subsection{Distinct ambiguous-carrier constructions}
+
+The four carrier constructions differ in byte topology and therefore in the
+observation most likely to falsify acceptance. Their comparison is shown in
+\cref{fig:carrier-control-map}. Every route still passes the full predicate in
+\cref{eq:extended-acceptance}. The rightmost column names the decisive
+construction-specific control.
+
+\begin{figure}[H]
+\centering
+\resizebox{0.96\textwidth}{!}{%
+\begin{tikzpicture}[
+  cell/.style={draw,rounded corners=2pt,align=center,minimum height=9mm,font=\small,inner sep=3pt},
+  kind/.style={cell,fill=blue!7,minimum width=33mm},
+  bytes/.style={cell,fill=gray!8,minimum width=53mm,font=\small\ttfamily},
+  control/.style={cell,fill=green!8,minimum width=58mm},
+  arrow/.style={-{Latex[length=2mm]},thick}
+]
+\node[kind] (k1) at (0,0) {prefix camouflage};
+\node[bytes] (b1) at (5.0,0) {[foreign prefix][media body]};
+\node[control] (c1) at (11.5,0) {source evidence convergence;\\complete parse of candidate};
+\node[kind] (k2) at (0,-1.3) {trailing object};
+\node[bytes] (b2) at (5.0,-1.3) {[media terminal][suffix $z$]};
+\node[control] (c2) at (11.5,-1.3) {source boundary accounted for or\\discarded by semantic reconstruction};
+\node[kind] (k3) at (0,-2.6) {dual-format polyglot};
+\node[bytes] (b3) at (5.0,-2.6) {[one byte string]\\$G_1,G_2:\mathsf{complete}$};
+\node[control] (c3) at (11.5,-2.6) {conflicting source routes block;\\candidate is authorized separately};
+\node[kind] (k4) at (0,-3.9) {nested active object};
+\node[bytes] (b4) at (5.0,-3.9) {[container]\\$\supset$ [foreign component]};
+\node[control] (c4) at (11.5,-3.9) {source component closure or\\bounded semantic reconstruction};
+\foreach \i in {1,2,3,4} {
+  \draw[arrow] (k\i) -- (b\i);
+  \draw[arrow] (b\i) -- (c\i);
+}
+\end{tikzpicture}%
+}
+\caption{Carrier construction and decisive acceptance control. Prefix
+camouflage, a suffix, a dual-format interpretation, and a nested component are
+distinct test strata rather than interchangeable uses of ``polyglot.''}
+\label{fig:carrier-control-map}
+\end{figure}
+
+Complete consumption directly addresses trailing material in the candidate.
+For every nonempty suffix \(z\) that an authorizing parser leaves after the
+original terminal point,
+\begin{equation}
+  \mathsf{Parse}_{p,v,k}(y\parallel z)=\rho
+  \land \rho.t=|y|<|y\parallel z|
+  \Longrightarrow
+  \neg\mathsf{CompleteOK}_{p}(\rho,k,y\parallel z).
+  \label{eq:suffix-rejection}
+\end{equation}
+This implication states non-acceptance by the authorizing parser. It does not infer
+language nonmembership from parser failure. If the parser instead accepts
+\(y\parallel z\) as a new complete object, all profile and component predicates
+are evaluated on that entire object. Concatenation alone cannot establish
+rejection. Declared-size containers apply the same accounting rule to RIFF, ISO
+BMFF, and EBML parent boundaries.
+
+Component closure rejects a nested foreign object only when it occupies a
+forbidden structural position. It does not identify hidden meaning inside
+retained pixels, samples, or codec frames. Prefix camouflage and true polyglots
+add a source-evidence obligation: detected incompatible routes block. Semantic
+reconstruction may emit a new object after one selected decoder consumes the
+source under stated bounds, but acceptance of that output does not establish
+that the source lacked another unrecognized interpretation. Transformation-time
+decoder compromise remains governed by \cref{sec:process-isolation}.
+
+\subsection{Reconstruction strength under ambiguity}
+
+Semantic reconstruction can map several source representations into one output
+language. A static image carrier is accepted only when the selected decoder
+produces a bounded raster and the encoder creates a fresh PNG, JPEG, or WebP
+candidate that passes the authorizing parser and a separate output decoder. GIF follows
+the same principle at frame level. This supports the claim that source prefixes,
+trailing objects, excluded container components, and excluded metadata were not
+copied into the output. It does not prove that decoded pixels contain no
+concealed information or that the selected decoder is universally correct.
+
+Structural reconstruction has a narrower effect. APNG can preserve compressed
+frame payloads. MP3 and FLAC can preserve encoded audio frames. WAV can preserve
+PCM samples. Ogg can preserve media packets. ISO BMFF can preserve samples in
+\texttt{mdat}, and WebM can preserve block frame payloads. Foreign structure in
+discarded metadata or beyond an established boundary can be removed or rejected.
+An alternate interpretation inside retained payload cannot be claimed
+neutralized. A policy aimed at codec exploitation or payload-level overlap
+therefore requires semantic reconstruction.
+
+Even when authorizing parsing succeeds, publication still requires
+\(\ell\geq q_{p,s}\) as defined in \cref{eq:level-satisfaction}. An APNG or
+WebM structural candidate can therefore be well formed and remain
+non-deliverable when policy requires semantic reconstruction. Canonical form
+cannot silently weaken the requested reconstruction strength.
+
+\subsection{Threat terminology and evidentiary boundary}
+
+Malware labels are used only to organize scenario provenance, following the
+behavioral distinctions in \cref{sec:background}. Method verdicts remain tied to
+measurable carrier properties such as type disagreement, unsupported grammar,
+complete-boundary failure, component closure, and reconstruction-level
+insufficiency. Privacy-bearing metadata belongs to a separate leakage stratum
+and is not evidence of spyware \cite{nist80083}.
+
+Steganographic content and arbitrary data encoded in legitimate pixel or sample
+values remain outside the structural polyglot claim. Semantic re-encoding can
+preserve such information because media fidelity is part of the reconstruction
+objective. Detecting covert meaning requires a separate content-analysis model,
+corpus, and error specification.
+
+The controlled evaluation therefore treats prefix camouflage, trailing objects,
+true dual-format polyglots, and nested active objects as separate mutation
+families. Structural and semantic policies are evaluated independently, with
+the triggering carrier property recorded for each decision. Until the deferred
+campaigns run, the justified contribution is the explicit decision rule and the
+format-specific mechanism by which ambiguity is removed, rejected, or left
+outside the claim.

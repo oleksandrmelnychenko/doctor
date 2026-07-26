@@ -1,0 +1,134 @@
+\section{Evaluation Policy Register}
+\label{app:policy-register}
+
+This appendix records the frozen policy dimensions. The versioned release
+document names a base profile and may override only schema-authorized top-level
+bounds and blocked extensions. Any other edit changes the implementation commit
+and creates a new run.
+
+\subsection{Registered profiles and evaluation selection}
+\label{subsec:registered-profiles}
+
+The implementation defines staging, strict, and paranoid profiles, with public,
+enterprise, and high-risk aliases. Staging can warn or quarantine and is only a
+rehearsal profile. Strict is the primary release base. It requires supplied
+type evidence, blocks unknown kinds and decoder failures, enforces output
+convergence, scans input and output, and requires semantic reconstruction for
+static images, GIF, audio, and video. Paranoid narrows budgets and selected
+output sets. A paranoid comparison is paired and not pooled with strict. Dry
+run, warning, bypass, and unmodified fallback paths never count as accepted.
+
+\subsection{Security-policy fields}
+\label{subsec:security-policy-fields}
+
+\Cref{tab:policy-register} identifies whether each field is source-defined or a
+schema-authorized release-document value and states its evidence obligation.
+
+\begingroup
+\footnotesize
+\setlength{\tabcolsep}{5pt}
+\begin{longtable}{L{0.20\textwidth}L{0.14\textwidth}L{0.23\textwidth}L{0.24\textwidth}}
+\caption{Security-policy register and required evidence.}
+\label{tab:policy-register}\\
+\toprule
+Field & Owner & Release rule & Required evidence \\
+\midrule
+\endfirsthead
+\toprule
+Field & Owner & Release rule & Required evidence \\
+\midrule
+\endhead
+Profile and version & Release document & Known version and strict base & Parsed document, schema validation, SHA-256 \\
+Input bytes & Release document & Reject above bound before handler work & Cases below, at, and above $L$, with stage record \\
+Output bytes & Release document & Terminate or reject above bound & Child-output and in-process boundary cases \\
+Expansion ratio & Release document & Reject candidate ratio above bound & Constructible below, at, and above cases \\
+Handler duration & Source & Earliest of policy and caller deadline & Expired, near-bound, timeout, and cancellation cases \\
+Required MIME & Source & Present and recognized in strict profile & Missing, alias, unsupported, and conflicting cases \\
+Type agreement & Source & Name, supplied type, bytes, output type, and parser converge & S3 crossing matrix and T3 report \\
+Unknown kind & Source & Block & Unknown and unsupported S6 records \\
+Decoder or probe failure & Source & Block in strict profile & Missing tool, invalid decode, timeout, and nonzero exit \\
+Reconstruction level & Source by kind & Structural or semantic-or-block as registered & Per-record performed and required fields \\
+Signature policy & Source and rule input & Input and output scan, blocking pre-scan in strict & Rule digest, location, severity, and stage result \\
+Blocked extensions & Source plus release document & Normalized union, no silent deletion & Name vectors and serialized normalized policy \\
+Output MIME allowlist & Source & Enforce per file kind & Allowed, denied, unknown, and cross-kind outputs \\
+Image pixels & Source & Check before and after decode & Dimension and aggregate-pixel boundaries \\
+Animation frames and pixels & Source & Bound frames, frame area, aggregate work, and duration & S5 generated boundary records \\
+Audio duration, bitrate, channels & Source & Probe then enforce before semantic processing & Independent probe record and boundary cases \\
+Video duration and bitrate & Source & Probe then enforce before semantic processing & Independent probe record and boundary cases \\
+Container elements and nesting & Source validator & Exact grammar-specific budgets & S2 and S5 mutation records \\
+External process protocols & Source & Local file and pipe protocols only & Command capture and prohibited-protocol regression \\
+External process diagnostics & Source & Bounded and sanitized & Oversized output and control-character injection \\
+Publication & Source & Atomic publication for Clean only & Fault campaign directory trace and hashes \\
+\bottomrule
+\end{longtable}
+\endgroup
+
+Bounds use implementation units. Ratios derive from exact integer sizes. The
+serialized value, not a manuscript approximation, is authoritative.
+
+\subsection{Reconstruction register}
+\label{subsec:reconstruction-register}
+
+The required level is checked against the handler report. Structural processing
+supports container and metadata claims but not neutralization inside retained
+compressed payloads. Semantic processing creates output from bounded decoded
+state and remains conditional on codec assumptions. Semantic-or-block forbids
+structural fallback.
+
+\begin{table}[tb]
+\centering
+\caption{Evaluation reconstruction requirements and admissible claims.}
+\label{tab:reconstruction-register}
+\small
+\begin{tabularx}{\textwidth}{L{0.19\textwidth}L{0.20\textwidth}Y L{0.25\textwidth}}
+\toprule
+Family & Strict requirement & Admissible accepted-output claim & Explicit exclusion \\
+\midrule
+Static raster images & Semantic or block & New canonical image from bounded decoded pixels & Harmful visual meaning and steganographic content \\
+GIF & Semantic or block & New bounded frame sequence with documented timing normalization & Arbitrary meaning encoded in frames \\
+APNG & Semantic or block for high-risk claim & New semantic animation when available & Structural remux is insufficient for bitstream disarm \\
+Animated WebP & Semantic or block for high-risk claim & New semantic animation when available & Structural RIFF reconstruction and complete frame decoding do not replace retained compressed frame payloads \\
+MP3, WAV, FLAC, Ogg & Semantic or block in strict audio profile & New output from decoded audio representation & Structural copy cannot neutralize retained codec payload \\
+MP4, MOV, M4A & Semantic or block in strict audio or video profile & Constrained semantic output after external decoding & Structural atom remux supports only container claims \\
+WebM & Semantic or block in strict video profile & Constrained semantic output after external decoding & Structural EBML remux supports only container claims \\
+Unsupported classes & Not applicable & No deliverable under media-only policy & No behavioral family classification \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{Policy ordering for fixed-witness regression}
+\label{subsec:policy-ordering}
+
+The relation $p_2\sqsubseteq p_1$ means that $p_2$ is at least as restrictive
+as $p_1$ under one implementation and parser-registry version. It requires no
+larger maximum bounds, no smaller minimum requirements, no weaker
+reconstruction, no broader output language, no smaller rejection relation, and
+no bypass in $p_2$. The regression holds candidate bytes and parser reports
+fixed. A policy that produces another candidate is reported as a reconstruction
+change rather than a monotonicity result.
+
+Paranoid $\sqsubseteq$ strict applies only after a generated policy diff. Staging is
+unordered because warnings and quarantine change terminal semantics.
+
+\subsection{Independent fidelity policy}
+\label{subsec:fidelity-policy-register}
+
+Fidelity thresholds are held in a separate schema-valid document. That document
+maps each output profile to a metric profile, required tools, required structural
+comparisons, objective quality metrics, and pass thresholds. It also identifies
+documented transformations such as metadata removal, codec conversion, fixed
+application identifiers, or animation delay normalization. The document is
+frozen before corpus execution and its SHA-256 is included in the fidelity
+report.
+
+Missing metrics, nonfinite values, decoder errors, and unevaluated accepted
+outputs fail fidelity. Thresholds are justified and frozen before results. No
+observed metric is asserted here.
+
+\subsection{Change control}
+\label{subsec:policy-change-control}
+
+Digests cover release, alias, fidelity, format, and tool configuration. Any
+post-run change invalidates the old interpretation and requires a new identifier
+and complete rerun of the controlled sequence in
+\cref{fig:evaluation-pipeline}.

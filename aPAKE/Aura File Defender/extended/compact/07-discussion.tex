@@ -1,0 +1,145 @@
+\section{Discussion}
+\label{sec:discussion}
+
+\subsection{Answers to the research questions}
+
+By definition of the frozen routing relation, RQ1 permits routing exactly when
+the eligible source-profile set in \cref{eq:eligible-routes} has cardinality
+one. Missing or conflicting evidence is not overridden by precedence, and
+routing success does not authorize a candidate. This is a design-level
+analytical condition, not an empirical effect.
+
+RQ2 receives a conditional analytical answer within the formal model.
+Deliverability requires the conjunction in \cref{eq:extended-acceptance},
+followed by the rule that only a clean result may carry bytes and by the
+non-overwriting publication transition. The
+reconstruction order prevents a structural candidate from satisfying a policy
+that requires semantic reconstruction. Under parser soundness and the stated
+filesystem assumptions, the conjunction is sufficient for canonical-language
+membership and non-publication of a new target for every non-clean outcome.
+Whether the implementation preserves each conjunct is an RQ3 question and is
+not established by the analytical result.
+
+RQ3 remains unanswered at its full declared scope. The bounded experiment in
+\cref{sec:server-experiment} covered 50 S0, 30 S1, and 24 inert S6 generated
+records plus 11 selected fault checks. Fixture-derived actions, reason families,
+and pipeline states matched for these records. Forty unique emitted-byte
+digests passed the applicable external format/profile checks. The experiment did
+not test the malformed, classifier-disagreement, multi-grammar,
+resource-exhaustion, or regression strata required by RQ3. All 32 audio and all
+8 source-WebM evaluations failed their fidelity profiles. Median latency was
+below 2 ms for the represented in-process paths and approximately 229--357 ms
+for the external-codec paths. These finite observations do not meet
+\cref{eq:scientific-gate}, and the absent paired ablation precludes attribution
+of a decision to one mechanism.
+
+\subsection{Scientific novelty and relation to prior work}
+
+Canonical and complete parsing, language-oriented security, content disarm and
+reconstruction, parser differential analysis, supervised media conversion, and
+non-overwriting file operations all have established antecedents
+\cite{samuel2012,jana2012,nail2014,everparse2019,darpaSafeDocs,belkind2023,
+koch2025}. Against the selected lines compared in
+\cref{tab:research-position}, the method studied here combines the eight
+obligations F1--F8 in one authorization relation. Source evidence must select
+one route. Policy registers the permitted source-to-output conversion and
+minimum reconstruction level before dispatch. An authorizing parser evaluates
+the complete candidate on a code path separate from construction. Scanning and
+resource checks apply to the emitted object, and only a clean result may reach
+the non-overwriting publication operation. This composition makes structural
+container closure distinguishable from semantic source-payload independence and
+prevents failed reconstruction from becoming pass-through delivery. It does not
+claim that the constituent parser, codec, scanner, or filesystem primitives are
+individually new.
+
+The resulting security statement is narrower than ``malware-free media.''
+Complete parsing excludes unaccounted candidate prefixes and suffixes under the
+named grammar. Output evidence convergence makes the generated name, declared
+type, byte recognition, and authorizing report agree. On semantic routes, no
+source payload is copied or referenced as an output component. Under the stated
+filesystem assumptions, a non-clean result returns no deliverable bytes, creates
+no new target through the component API, and leaves any pre-existing target
+unchanged. These properties neither establish universal harmlessness nor rule
+out unknown decoder flaws.
+
+\subsection{Security interpretation}
+
+The distinction between structural and semantic reconstruction determines how
+format coverage may be interpreted. As
+\cref{tab:format-profile-comparison} records, structural routes may retain
+frames, packets, samples, or pixel data while still enforcing container,
+metadata, and boundary properties. A threat model that includes codec payloads
+must require semantic reconstruction or block the profile. A single
+``sanitized'' label would conceal this distinction.
+
+The taxonomy in \cref{sec:background} supports scenario interpretation but does
+not determine verdicts. The method measures carrier structure, ambiguity,
+metadata, resource behavior, reconstruction, and publication. Threat-campaign
+scenarios connect those observations to realistic delivery chains without
+inferring malware family or operational role.
+
+\subsection{Deployment implications and validity}
+
+Deployment begins at the local transition where externally influenced media
+would otherwise become eligible for storage, decoding, preview, export, or
+opening by another application. The upstream system may authenticate a server
+or sender, preserve transport integrity, or record provenance, but those
+properties do not replace local output authorization. In end-to-end encrypted
+messaging, this placement also keeps plaintext and verdicts away from a blind
+relay \cite{unger2015,cohngordon2020,abelson2024}. In web, mail, cloud, and
+direct-import settings, the same method applies under different provenance
+assumptions. Reproducible deployment requires identified parser, policy, and
+external-tool versions. Different policies may legitimately reject different
+objects.
+
+The primary internal-validity risk is oracle dependence. Expected actions in
+the bounded run were generated with the fixtures, so 104/104 agreement measures
+fixture-policy consistency rather than independent ground truth. A canonical
+parser can share a misunderstanding with a handler. External tools can also
+share a codec library. The external checks corroborate emitted format or profile
+recognition but do not independently validate expected actions or expected
+blocks. Common-mode faults therefore remain possible. The generated corpus can
+also overrepresent regular fixtures and underrepresent unusual benign media from
+specific devices. Grouping descendants by base artifact prevents direct
+mutation leakage across partitions, while held-out device and application
+strata are still needed for external validity.
+
+Fidelity creates another trade-off. Stronger semantic reconstruction reduces
+source dependence but can change compression artifacts, frame timing, color,
+audio characteristics, and container features. The security policy and fidelity
+policy must remain separate so that perceptual similarity does not authorize
+unsafe output. A profile can be secure under its structural claim and still be
+operationally unacceptable, or it can satisfy a perceptual metric while failing
+canonical closure. The \(G_{\mathrm{sci}}\) gate rejects both cases for
+different reasons.
+
+Availability claims remain local. The formal model and implementation are
+designed to bound bytes, dimensions, expansion, elements, deadlines, and
+supervised child processes for one invocation. The bounded experiment omitted
+S5 and the complete fault schedule, so it did not empirically establish these
+bounds. The method also does not provide queue-level fairness, tenant isolation,
+or network admission control. Memory-safety guarantees narrow the
+implementation defect surface but do not prove arithmetic, grammar, or semantic
+correctness.
+
+External-codec supervision likewise does not sandbox arbitrary decoder code.
+Where decoder compromise is in scope, the semantic routes require the additional
+platform isolation stated in \cref{tab:platform-containment}. Without it, the
+article makes no endpoint execution-integrity claim against decoder compromise.
+
+\subsection{Evidence state and research directions}
+
+Current evidence comprises implementation traceability, a release-ineligible
+server experiment over 104 generated records, a ten-file public-benign
+compatibility pilot, and a 316-object candidate inventory. A mechanical packet
+verified all byte identities and retained 948 inspection outputs. Without an
+independent registry or signatures, selection returned 0/246 sources across 22
+cells. The offline handoff makes review executable but does not create an
+audited corpus record or support efficacy or release claims.
+
+Next, the write-disabled handoff archive must be delivered outside the audit
+host to reviewers with distinct key lineages and independence clusters. Matching
+signed decisions must precede selection, S0/S1 assignment, full-file admission,
+and a complete S0--S7 manifest. The controlled run must then close the recorded
+fidelity and format-method gaps and execute the full fuzz, fault, performance,
+and paired-ablation schedules.

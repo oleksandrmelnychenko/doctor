@@ -1,0 +1,245 @@
+\section{Formal Reconstruction and Acceptance Method}
+\label{sec:formal-method}
+
+\subsection{Typed partial reconstruction}
+
+All byte objects in the model are finite octet strings in
+$\mathbb{B}^{*}$, where $\mathbb{B}=\{0,\ldots,255\}$. Length $|x|$ is measured
+in octets. For each admitted profile $k\in\mathcal{K}_p$, reconstruction is a
+partial, resource-bounded computation
+\begin{equation}
+  R_{p,k}(x)\Downarrow c
+  \quad\text{or}\quad
+  R_{p,k}(x)\Uparrow e,
+  \label{eq:reconstruction-relation}
+\end{equation}
+where $c$ is the typed candidate from \cref{eq:candidate-artifact} and $e$ is a
+typed terminal error. The computation can reject, time out, be cancelled, or
+fail during bounded external processing. It is not a total function from
+arbitrary bytes to valid media.
+
+The performed reconstruction level is ordered by
+\begin{equation}
+  \Unprocessed \prec \Structural \prec \Semantic.
+  \label{eq:reconstruction-order}
+\end{equation}
+At the structural level, a handler parses the source container, accounts for
+the ranges relevant to its transformation, emits only admitted components,
+rewrites dependent lengths or offsets, and excludes policy-forbidden metadata.
+Encoded media payload can remain byte-identical. At the semantic level, a
+bounded decoder produces an intermediate media state $s$, and a pinned encoder
+constructs a new artifact from $s$ and policy constants. The model makes no
+claim that either level establishes benign media meaning.
+
+The policy requirement is
+$q_p(k)\in\{\Structural,\Semantic\}$. The second value represents
+semantic-or-block behavior. For the level $c.\ell$ reported by a candidate,
+\begin{equation}
+  \mathsf{LevelOK}_p(k,c.\ell)
+  \iff q_p(k)\preceq c.\ell.
+  \label{eq:level-satisfaction}
+\end{equation}
+Thus semantic work satisfies a structural minimum, but structural work never
+satisfies a semantic requirement. Failure or absence of the semantic path
+cannot silently select a structural fallback.
+
+\subsection{Policy-indexed canonical output language}
+
+The complete parser $\mathsf{Parse}_{v,k}$ belongs to the fixed registry version
+$v$ and yields the report in \cref{eq:parse-report}. Policy $p$ is then applied
+to that stable report. The canonical output language is
+\begin{align}
+  L_{p,k}=\{y\in\mathbb{B}^{*}:{}&
+  \mathsf{Parse}_{v,k}(y)\Downarrow\rho_k(y),\notag\\
+  &\rho_k.o=0,\ \rho_k.t=|y|,\notag\\
+  &\mathsf{Allowed}_{p,k}(\rho_k.C),\notag\\
+  &\mathsf{MetadataOK}_{p,k}(\rho_k.C),\notag\\
+  &\mathsf{ParseBounds}_{p,k}(\rho_k.q)\}.
+  \label{eq:canonical-language}
+\end{align}
+The language is defined by admitted structure, not by subtracting a short list
+of known malicious features. Unknown components, invalid locations, duplicate
+mandatory elements, stale references, arithmetic overflow, unconsumed ranges,
+and exhausted parser budgets are excluded unless reconstruction removes them
+before the final parse.
+
+Metadata exclusion is structural. For each profile and component location,
+policy defines $\mathcal{M}^{\mathrm{forbid}}_{p,k}$.
+$\mathsf{MetadataOK}_{p,k}$ requires the parsed component tree to contain none
+of these members. It does not assert that the byte spelling of a tag cannot
+appear accidentally inside compressed media. Signature rules likewise have an
+explicit scope such as start of file, end of file, parsed component location,
+or an exact administrative indicator.
+
+\begin{figure}[t]
+\centering
+\resizebox{0.96\textwidth}{!}{%
+\begin{tikzpicture}[
+  node distance=6mm and 7mm,
+  box/.style={draw,rounded corners=2pt,align=center,minimum height=9mm,minimum width=25mm,font=\small},
+  guard/.style={box,fill=blue!7},
+  transform/.style={box,fill=green!8},
+  terminal/.style={box,fill=gray!12},
+  arrow/.style={-{Latex[length=2mm]},thick}
+]
+\node[guard] (route) {three-source\\route};
+\node[transform,right=of route] (rebuild) {required-level\\reconstruction};
+\node[guard,right=of rebuild] (parse) {independent\\complete parse};
+\node[guard,right=of parse] (gates) {type, signature,\\and resource gates};
+\node[terminal,right=of gates] (publish) {clean-only\\result and publication};
+\draw[arrow] (route) -- (rebuild);
+\draw[arrow] (rebuild) -- (parse);
+\draw[arrow] (parse) -- (gates);
+\draw[arrow] (gates) -- (publish);
+\node[terminal,below=8mm of parse] (reject) {non-clean result or typed error\\no deliverable bytes};
+\draw[arrow] (route) -- (reject);
+\draw[arrow] (rebuild) -- (reject);
+\draw[arrow] (parse) -- (reject);
+\draw[arrow] (gates) -- (reject);
+\end{tikzpicture}%
+}
+\caption{Conjunctive acceptance method. Each downward edge represents failure
+or indeterminacy. No stage can authorize publication independently.}
+\label{fig:formal-acceptance-path}
+\end{figure}
+
+\subsection{Acceptance predicate}
+
+Let $c=(y,n_{\mathrm{out}},m_{\mathrm{out}},k_h,\ell,\eta)$. For the unique
+route $k$, candidate acceptance is
+\begin{align}
+\mathsf{Acc}_{p}(a,c,k)\iff{}&
+ \mathsf{Route}_{p}(a)=k \notag\\
+&\land \mathsf{SourceResolved}_{p}(a,k,\eta) \notag\\
+&\land \mathsf{LevelOK}_{p}(k,\ell) \notag\\
+&\land \mathsf{Full}_{v}(y)=\{k\} \notag\\
+&\land y\in L_{p,k} \notag\\
+&\land \mathsf{TypeOK}_{p}(n_{\mathrm{out}},m_{\mathrm{out}},k_h,k,y) \notag\\
+&\land \mathsf{SignatureOK}_{p}(y) \notag\\
+&\land \mathsf{BoundsOK}_{p}(x,y,\eta) \notag\\
+&\land \mathsf{TerminalOK}_{p}(\eta).
+\label{eq:extended-acceptance}
+\end{align}
+$\mathsf{TypeOK}_p$ requires the generated suffix, declared output type,
+handler profile, byte recognition, and complete parser profile to converge.
+$\mathsf{BoundsOK}_p$ contains both pre-reconstruction and output limits.
+$\mathsf{TerminalOK}_p$ excludes timeout, cancellation, panic, parser
+exhaustion, child-process failure, warning-only behavior, and dry-run behavior.
+
+The scientific accepted set is
+\begin{equation}
+  \mathcal{A}_{p}=
+  \{(a,c):\exists k\ .\
+  \mathsf{Route}_{p}(a)=k\land
+  R_{p,k}(x)\Downarrow c\land
+  \mathsf{Acc}_{p}(a,c,k)\}.
+  \label{eq:accepted-set}
+\end{equation}
+The implementation must not try handlers until one happens to accept. A route
+exists only for a singleton eligible set, and output acceptance is evaluated
+again on the candidate produced by that route.
+
+\subsection{Formal invariants F1--F8}
+
+The acceptance relation is organized around eight design invariants. These
+invariants state the obligations of a clean result. They do not claim that the
+deferred empirical campaigns have passed.
+
+\begin{table}[t]
+\centering
+\caption{Formal invariant register and corresponding evidence obligation.}
+\label{tab:properties-p1-p8}
+\small
+\begin{tabularx}{\textwidth}{L{0.07\textwidth}L{0.25\textwidth}YL{0.22\textwidth}}
+\toprule
+ID & Invariant & Formal obligation & Principal evidence \\
+\midrule
+F1 & Complete consumption & $\rho_k.o=0\land\rho_k.t=|y|$ & Parser report and suffix mutation \\
+F2 & Canonical component closure & $\mathsf{Allowed}_{p,k}(\rho_k.C)$ & Location-aware parser and component mutation \\
+F3 & Type convergence & $\mathsf{Full}_{v}(y)=\{k\}$ and $\mathsf{TypeOK}_{p}$ & Alias parity and complete output parsing \\
+F4 & Metadata exclusion & $\rho_k.C\cap\mathcal{M}^{\mathrm{forbid}}_{p,k}=\varnothing$ & Parsed tree and field mutation \\
+F5 & Source resolution and provenance & $\mathsf{SourceResolved}_{p}(a,k,\eta)$ and $R_{p,k}(x)\Downarrow c$ & Source accounting and reconstruction trace \\
+F6 & Resource boundedness & Every applicable counter satisfies its pre-operation bound & Static review, fault injection, and measurement \\
+F7 & Independent candidate validation & Complete parser, type, and signature gates evaluate the produced $y$ & Direct validation, fuzzing, and differential tools \\
+F8 & Fail-closed result construction & Acceptance is the only route to a clean result with deliverable bytes & Interface invariants and publication fault campaign \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+F1 rules out accepting a valid prefix while leaving an unclassified suffix. F2
+requires each emitted component to be admitted at its parsed location and each
+cross-reference to resolve within an allowed extent. F3 prevents one recognizer
+from overruling incompatible output evidence. F4 applies to parsed metadata
+classes rather than incidental substrings in compressed payload.
+
+F5 makes the source-side obligation explicit. Structural copying requires a
+complete account of copied and discarded ranges. Semantic reconstruction
+requires a bounded decode of the selected interpretation and records that no
+source container range is intentionally copied. F6 covers input and output
+size, dimensions, aggregate pixels, component and frame counts, nesting,
+duration, channels, sample tables, expansion, cancellation, and deadline where
+applicable. Exhaustion is terminal. It cannot be reinterpreted as end of input.
+
+F7 requires a post-reconstruction path that does not trust handler success or a
+handler-provided media type. Independence in the formal model means a separate
+validator over the produced candidate. Empirical corroboration uses separately
+implemented parser or decoder families. F8 connects acceptance to the result
+and publication interfaces defined in \cref{sec:publication-semantics}.
+
+Second-pass reconstruction stability is deliberately not an acceptance
+conjunct. For deterministic structural and lossless profiles, byte equality
+under a second pass is an empirical obligation. For lossy semantic profiles,
+the separately frozen comparator evaluates canonical closure and bounded
+quality drift. These outcomes have different meanings and are never pooled as
+``idempotence.''
+
+\subsection{Conditional analytical consequences}
+
+\begin{property}[Canonical membership of clean candidates]
+\label{prop:accepted-canonical}
+If $(a,c)\in\mathcal{A}_{p}$, then $c.y\in L_{p,k}$ for one observed profile
+$k\in\mathcal{K}_p$. This follows directly from the acceptance conjunction and
+is therefore a design invariant, not an independently proved security theorem.
+Its force depends on parser soundness and on the completeness of the modeled
+observation registry.
+\end{property}
+
+\begin{proposition}[Syntactic-source independence under deterministic semantic reconstruction]
+\label{prop:semantic-source-independence}
+Assume a deterministic bounded decoder $\delta_{p,k}$ and encoder
+$\gamma_{p,k}$ with
+$R_{p,k}(x)=\gamma_{p,k}(\delta_{p,k}(x),p)$. If
+$\delta_{p,k}(x_1)=\delta_{p,k}(x_2)=s$, then the produced byte component of the
+two candidates is equal.
+\end{proposition}
+
+\begin{proof}[Analytical argument]
+Substitution gives
+$\gamma_{p,k}(\delta_{p,k}(x_1),p)=\gamma_{p,k}(s,p)=
+\gamma_{p,k}(\delta_{p,k}(x_2),p)$. Source-container differences that do not
+alter decoded state therefore cannot influence a deterministic output encoder.
+The argument does not establish harmlessness of $s$, decoder correctness, or
+absence of coincidental byte patterns.
+\end{proof}
+
+\begin{proposition}[Bounded rejection under covered counters]
+\label{prop:bounded-rejection}
+Suppose every loop and allocation reachable before acceptance is governed by a
+finite policy counter or enforced deadline, checked before the bounded
+operation, and exhaustion is terminal. An input cannot be accepted by causing a
+covered counter to exceed its limit.
+\end{proposition}
+
+\begin{proof}[Analytical argument]
+The first operation that would exceed a covered counter is not executed.
+Deadline or cancellation expiration likewise produces a terminal error at the
+next enforced boundary. At least one of $\mathsf{BoundsOK}_p$ and
+$\mathsf{TerminalOK}_p$ is false, so $\mathsf{Acc}_p$ is false. The proposition
+does not establish coverage of every implementation operation. Coverage remains
+a static, fuzzing, fault-injection, and measurement obligation.
+\end{proof}
+
+The formal consequences delimit the contribution. They do not estimate false
+blocking, carrier-property retention, parser defect probability, latency,
+memory demand, or implementation exploitability. Those questions belong to the
+pre-specified empirical protocol.

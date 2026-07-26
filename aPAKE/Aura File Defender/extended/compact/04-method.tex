@@ -1,0 +1,391 @@
+\section{Canonical Reconstruction and Publication Method}
+\label{sec:formal-method}
+
+The method separates source routing from output authorization. For source
+profile \(s\), let \(E_s(n)\) denote evidence derived from the normalized final
+suffix, \(M_s(m)\) evidence derived from the supplied media type, and \(B_s(x)\)
+the result of a bounded signature and structural-header probe. These functions
+may narrow the eligible source profiles but do not establish that the whole
+input belongs to any profile. Their conjunction defines
+\begin{equation}
+  R_p(x,n,m)=
+  \{s\in K^{\mathrm{in}}_p:
+    E_s(n)\land M_s(m)\land B_s(x)\land C_{p,s}(n,m)\},
+  \label{eq:eligible-routes}
+\end{equation}
+where \(K^{\mathrm{in}}_p\) is the finite enabled source-profile set and
+\(C_{p,s}\) contains explicit alias and compatibility rules. Routing proceeds
+only when
+$|R_p(x,n,m)|=1$. An empty set denotes unsupported or conflicting input, whereas
+a set with more than one member denotes ambiguity. Neither case is resolved
+through precedence, extension override, or best-effort fallback.
+
+Normalization accepts one portable basename and one syntactically valid media
+type. It rejects path separators, dot components, control or bidirectional
+characters, forbidden device names, trailing dots or spaces, wildcard types,
+malformed types, and dangerous suffix chains. Alias equivalence is registered
+by profile. For example, \texttt{audio/mp4},
+\texttt{audio/x-m4a}, and \texttt{audio/m4a} can converge on the same M4A
+profile. An alias does not broaden byte acceptance or authorize another ISO
+base media profile. HTTP content-type semantics likewise do not turn a supplied
+declaration into whole-file evidence \cite{rfc9110}.
+
+For the unique source route \(s\), reconstruction is a total typed operation
+\begin{equation}
+  \mathsf{Rec}_{p,s}(u)\in
+  \mathsf{Result}(\mathcal A,\mathsf{PipelineError}),\qquad
+  a=(y,n_o,m_o,k_o,\ell,e)\in\mathcal A,
+  \label{eq:reconstruction-relation}
+\end{equation}
+where \(y\) is the candidate byte string, \(n_o\) is its generated portable
+name, \(m_o\) is its declared output media type, \(k_o\) is its output profile,
+\(\ell\) is the performed reconstruction level, and \(e\) is bounded stage
+evidence. Failure returns a typed non-deliverable error. A successful operation
+returns \(\mathsf{Ok}(a)\), not a final verdict, so transformation success is
+not confused with authorization.
+
+The performed level records how the output was obtained. Structural output is
+serialized from a complete parsed source using an allowlisted component grammar
+and may retain selected compressed payload. Semantic output is serialized from
+a decoded intermediate representation under policy bounds. Let
+\(\Omega_p\subseteq
+K^{\mathrm{in}}_p\times
+\{\NotProcessed,\Structural,\Semantic\}\times K^{\mathrm{out}}_p\)
+be the registered source-level-output relation. It permits format-preserving
+routes and explicit conversions such as WAV to MP3 or WebM to MP4. The required
+level \(q_{p,s}\) is fixed before dispatch. Acceptance requires
+\begin{equation}
+  \ell\geq q_{p,s}
+  \quad\land\quad
+  (s,\ell,k_o)\in\Omega_p.
+  \label{eq:level-satisfaction}
+\end{equation}
+A handler cannot lower this requirement based on input convenience. If a
+semantic path is unavailable or fails, a strict semantic profile blocks instead
+of returning a structural candidate.
+
+The versioned registry \(\Pi_v\) contains authorizing parsers whose code paths
+are separate from the constructing handlers. Each output profile \(k\) names a
+nonempty configured set
+\(\Pi^{\mathrm{auth}}_{p,v,k}\subseteq\Pi_v\). A parser report \(\rho\) records
+the initial offset \(\rho.o\), terminal offset \(\rho.t\), observed profile,
+component count, canonicality checks, and bounded observations. Define
+\begin{equation}
+\begin{split}
+  \mathsf{CompleteOK}_{p}(\rho,k,y)\equiv{}&
+  \rho.\mathsf{ok}\land \rho.o=0\land\rho.t=|y|\\
+  &{}\land \rho.\mathsf{profile}=k
+  \land \rho.\mathsf{canonical}_{p,k},
+\end{split}
+\label{eq:complete-output-report}
+\end{equation}
+where \(\rho.\mathsf{canonical}_{p,k}\) denotes satisfaction of the
+policy-indexed component, ordering, cardinality, integrity, cross-reference,
+and resource predicates for \(L_{p,k}\). The configured authorizing condition is
+\begin{equation}
+  \mathsf{Valid}_{p,v,k}(y)\equiv
+  \Pi^{\mathrm{auth}}_{p,v,k}\neq\varnothing
+  \land
+  \bigwedge_{j\in\Pi^{\mathrm{auth}}_{p,v,k}}
+  \mathsf{CompleteOK}_{p}(\rho_j(y),k,y).
+  \label{eq:authorizing-validation}
+\end{equation}
+The reference implementation normally selects one registered authorizing
+grammar from the declared output type and then checks that its report agrees
+with the generated name and byte recognizer. It does not run every parser in
+the registry. External validators from different tool lineages are used only
+in the empirical protocol and do not enter the analytical acceptance predicate.
+
+The candidate acceptance predicate is
+\begin{align}
+  \Accept_{p,v}(u,a) \equiv {}&
+  R_p(x,n,m)=\{s\}
+  \land \mathsf{Rec}_{p,s}(u)=\mathsf{Ok}(a) \nonumber\\
+  &\land \mathsf{InputOK}_p(n,m,s)
+  \land (s,\ell,k_o)\in\Omega_p \nonumber\\
+  &\land \mathsf{NameOutOK}_p(n_o,k_o)
+  \land \mathsf{TypeOutOK}_p(m_o,k_o) \nonumber\\
+  &\land \mathsf{ByteTypeOK}_p(y,k_o)
+  \land \mathsf{LevelOK}_p(s,\ell) \nonumber\\
+  &\land \mathsf{BoundsOK}_p(x,y,e) \nonumber\\
+  &\land \mathsf{ScanOK}_p(y)
+  \land \mathsf{Valid}_{p,v,k_o}(y).
+  \label{eq:extended-acceptance}
+\end{align}
+Every conjunct is necessary. Signature policy is evaluated on the reconstructed
+bytes because scanning only the source would not authorize the emitted object.
+An optional pre-scan can reject early but cannot replace the rebuilt-output
+scan. Output bytes, expansion ratio, dimensions, frames, duration, channels,
+component counts, and nesting are checked with overflow-safe arithmetic.
+
+Reconstruction success creates only a candidate. An unavailable required level
+cannot become a weaker pass-through path, and bytes remain unauthorized until
+complete output validation. \Cref{fig:reconstruct-or-reject} summarizes this
+decision.
+
+\begin{figure}[t]
+\centering
+\resizebox{0.98\textwidth}{!}{%
+\begin{tikzpicture}[
+  guard/.style={diamond,draw,aspect=2.0,align=center,fill=blue!7,
+    font=\scriptsize,inner sep=2pt},
+  transform/.style={draw,rounded corners=2pt,align=center,fill=green!8,
+    font=\scriptsize,minimum width=32mm,minimum height=10mm,inner sep=2pt},
+  candidate/.style={draw,rounded corners=2pt,align=center,fill=yellow!10,
+    font=\scriptsize,minimum width=28mm,minimum height=10mm,inner sep=2pt},
+  terminal/.style={draw,rounded corners=2pt,align=center,fill=gray!14,
+    font=\scriptsize,minimum width=31mm,minimum height=10mm,inner sep=2pt},
+  reject/.style={terminal,fill=red!8,minimum width=270mm},
+  arrow/.style={-{Latex[length=2mm]},thick},
+  fail/.style={-{Latex[length=2mm]},thin,dashed}
+]
+\node[candidate] (input) at (-3.0,0) {untrusted\\media \(u\)};
+\node[guard] (route) at (0.2,0) {one eligible\\profile?};
+\node[guard] (level) at (4.2,0) {required level\\supported?};
+\node[transform] (structural) at (8.3,1.2)
+  {structural path\\parse and allowlisted reserialization};
+\node[transform] (semantic) at (8.3,-1.2)
+  {semantic path\\bounded decode and fresh encoding};
+\node[candidate] (candidate) at (12.6,0) {candidate only\\performed level recorded};
+\node[guard] (authorize) at (16.7,0)
+  {all complete-output\\gates pass?};
+\node[terminal] (publish) at (20.7,0)
+  {validated non-overwriting\\publication};
+\node[reject] (reject) at (8.8,-3.35)
+  {\(\Reject(e)\): no deliverable bytes and no new target};
+
+\draw[arrow] (input) -- (route);
+\draw[arrow] (route) -- node[above,font=\scriptsize]{yes} (level);
+\draw[arrow] (level) -- (structural);
+\draw[arrow] (level) -- (semantic);
+\draw[arrow] (structural) -- (candidate);
+\draw[arrow] (semantic) -- (candidate);
+\draw[arrow] (candidate) -- (authorize);
+\draw[arrow] (authorize) -- node[above,font=\scriptsize]{yes} (publish);
+
+\draw[fail] (route.south) -- node[left,font=\scriptsize]{no} (route.south |- reject.north);
+\draw[fail] (level.south) -- node[left,font=\scriptsize]{unsupported} (level.south |- reject.north);
+\draw[fail] (structural.south) -- (structural.south |- reject.north);
+\draw[fail] (semantic.south) -- (semantic.south |- reject.north);
+\draw[fail] (candidate.south) -- (candidate.south |- reject.north);
+\draw[fail] (authorize.south) -- node[right,font=\scriptsize]{no} (authorize.south |- reject.north);
+\draw[fail] (publish.south) -- node[right,font=\scriptsize]{commit fault} (publish.south |- reject.north);
+\end{tikzpicture}%
+}
+\caption{Fail-closed reconstruction decision. Solid edges form the only
+publication path. Dashed edges denote disagreement, unsupported reconstruction,
+transformation failure, failed or indeterminate authorization, and commit
+failure. All converge on one non-deliverable terminal state.}
+\label{fig:reconstruct-or-reject}
+\end{figure}
+
+The eight analytical invariants are summarized in
+\cref{tab:method-invariants}. Each specifies an observable condition that maps
+directly to a test or release gate.
+
+\begin{table}[t]
+\centering
+\caption{Formal invariants and their empirical interpretation.}
+\label{tab:method-invariants}
+\small
+\begin{tabularx}{\textwidth}{L{0.08\textwidth}L{0.31\textwidth}Y}
+\toprule
+ID & Invariant & Required observation \\
+\midrule
+F1 & Complete output consumption & Parser starts at zero and terminates at $|y|$ \\
+F2 & Component closure & Every emitted component is admitted at its parsed location \\
+F3 & Output evidence convergence & Generated name, declared type, byte recognition, and the authorizing report identify one output profile \\
+F4 & Semantic source-independence & No source payload is copied or referenced as an output component on a strict semantic route \\
+F5 & Second-pass stability & A second pass is exact for exact profiles or satisfies the registered semantic closure for lossy profiles \\
+F6 & Bounded execution & Bytes, structure, time, expansion, and child resources remain within policy \\
+F7 & Validation separate from construction & The authorizing parser is distinct from the constructing handler \\
+F8 & Clean-result publication & Non-clean and error outcomes expose no bytes, create no new target, and leave any pre-existing target unchanged \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Policy comparison is defined \emph{syntactically} on the components that enter
+post-reconstruction validation, so that the monotonicity result below is a
+theorem about those components rather than a restatement of an extensional
+inclusion. Let \(w=(s,a,\{\rho_j(y)\})\) be a fixed post-reconstruction witness,
+with \(a=(y,n_o,m_o,k_o,\ell,e)\), and let \(\mathsf{PostOK}_{p,v}(w)\) denote
+the conjunction of the source-level-output relation and the output-name,
+output-type, byte-type, level, bounds, scan, and authorizing-parser predicates
+in \cref{eq:extended-acceptance} (that is, \(\Accept_{p,v}\) with the routing
+conjunct \(R_p(x,n,m)=\{s\}\) removed).
+
+\begin{definition}[Syntactic policy refinement]
+\label{def:policy-refinement}
+Write \(p_2\sqsubseteq p_1\) when, for the fixed output profile \(k_o\) and
+parser-registry version \(v\), all of the following hold componentwise:
+(i) every scalar bound of \(p_2\) is no larger than the corresponding bound of
+\(p_1\), i.e.\ \(\mathcal B_{p_2}\le\mathcal B_{p_1}\) coordinatewise;
+(ii) the required reconstruction level is no weaker,
+\(q_{p_2,s}\ge q_{p_1,s}\), and \(\Omega_{p_2}\subseteq\Omega_{p_1}\);
+(iii) the output language is no broader, \(L_{p_2,k_o}\subseteq L_{p_1,k_o}\),
+together with the corresponding inclusions for the admissible name and
+media-type sets, \(\mathcal N_{p_2,k_o}\subseteq\mathcal N_{p_1,k_o}\) and
+\(\mathcal M_{p_2,k_o}\subseteq\mathcal M_{p_1,k_o}\);
+(iv) the signature set is no smaller, \(\Sigma_{p_1}\subseteq\Sigma_{p_2}\),
+so that \(p_2\) scans for at least the indicators \(p_1\) does and admits no
+scan bypass; and
+(v) the authorizing-parser set and canonicality predicate are preserved,
+\(\Pi^{\mathrm{auth}}_{p_1,v,k_o}=\Pi^{\mathrm{auth}}_{p_2,v,k_o}\) and
+\(\rho.\mathsf{canonical}_{p_1,k_o}\Leftrightarrow\rho.\mathsf{canonical}_{p_2,k_o}\),
+and the publication contract of \cref{eq:publish-transition} is unchanged.
+\end{definition}
+
+Note the deliberate direction of the signature-set inclusion in
+\cref{def:policy-refinement}(iv). The scan predicate \(\mathsf{ScanOK}_p(y)\)
+holds when no signature in \(\Sigma_p\) matches \(y\); it is therefore
+\emph{antimonotone} in the signature set, and a naive ``larger \(\Sigma\)''
+ordering would break the result. Requiring \(\Sigma_{p_1}\subseteq\Sigma_{p_2}\)
+is what makes \(\mathsf{ScanOK}\) monotone in the same direction as the other
+conjuncts.
+
+\begin{lemma}[Componentwise monotonicity]
+\label{lem:component-monotone}
+If \(p_2\sqsubseteq p_1\) then each conjunct of \(\mathsf{PostOK}\) is preserved
+from \(p_2\) to \(p_1\) on the fixed witness \(w\): for every component
+predicate \(\pi\) among the source-level-output, output-name, output-type,
+byte-type, level, bounds, scan, and authorizing-parser checks,
+\(\pi_{p_2}(w)\Rightarrow\pi_{p_1}(w)\).
+\end{lemma}
+
+\begin{proof}
+Each conjunct is checked against a set or bound that
+\cref{def:policy-refinement} relaxes from \(p_2\) to \(p_1\).
+\emph{Bounds:} \(\mathsf{BoundsOK}\) asserts that the recorded scalars of
+\((y,e)\) lie at or below the policy bounds; by (i) the \(p_1\) bounds dominate
+the \(p_2\) bounds, so satisfaction under \(p_2\) implies satisfaction under
+\(p_1\). \emph{Level:} \(\mathsf{LevelOK}\) asserts \(\ell\ge q_{p,s}\) and
+\((s,\ell,k_o)\in\Omega_p\); by (ii) \(q_{p_1,s}\le q_{p_2,s}\le\ell\) and
+\(\Omega_{p_2}\subseteq\Omega_{p_1}\). \emph{Output language, name, and type:}
+\(\mathsf{ByteTypeOK}\), \(\mathsf{NameOutOK}\), and \(\mathsf{TypeOutOK}\)
+assert membership of \(y\), \(n_o\), and \(m_o\) in the respective admissible
+sets; by (iii) each \(p_2\) set is a subset of the corresponding \(p_1\) set, so
+membership is preserved. \emph{Scan:} \(\mathsf{ScanOK}_p(y)\) holds when
+\(\Sigma_p\) has no match on \(y\); by (iv) \(\Sigma_{p_1}\subseteq\Sigma_{p_2}\),
+so the absence of a \(\Sigma_{p_2}\)-match implies the absence of a
+\(\Sigma_{p_1}\)-match. \emph{Authorizing parser:} by (v) the authorizing set
+and canonicality predicate are identical under \(p_1\) and \(p_2\), and the
+reports \(\{\rho_j(y)\}\) are fixed in \(w\), so \(\mathsf{Valid}_{p_2,v,k_o}(y)
+\Leftrightarrow\mathsf{Valid}_{p_1,v,k_o}(y)\). Each conjunct is therefore
+preserved.
+\end{proof}
+
+\begin{theorem}[Post-reconstruction validation monotonicity]
+\label{thm:validation-monotonicity}
+For a fixed post-reconstruction witness \(w\) and parser-registry version
+\(v\),
+\begin{equation}
+  p_2\sqsubseteq p_1\land\mathsf{PostOK}_{p_2,v}(w)
+  \Longrightarrow \mathsf{PostOK}_{p_1,v}(w).
+  \label{eq:validation-monotonicity}
+\end{equation}
+\end{theorem}
+
+\begin{proof}
+\(\mathsf{PostOK}_{p,v}(w)\) is the conjunction of the component predicates in
+\cref{lem:component-monotone}. Assuming \(p_2\sqsubseteq p_1\) and
+\(\mathsf{PostOK}_{p_2,v}(w)\), every \(p_2\)-conjunct holds; by
+\cref{lem:component-monotone} each corresponding \(p_1\)-conjunct holds; their
+conjunction is \(\mathsf{PostOK}_{p_1,v}(w)\).
+\end{proof}
+
+\Cref{thm:validation-monotonicity} is a post-reconstruction validation
+property, not an end-to-end routing property, and it holds only with the
+witness \(w\) (in particular the candidate \(y\) and the reports
+\(\{\rho_j(y)\}\)) held fixed. A policy change can alter the eligible route set,
+select a different reconstruction, or produce different bytes. Such cases are
+recorded as route or reconstruction changes and do not instantiate
+\cref{eq:validation-monotonicity}.
+
+The result constructor enforces the delivery boundary with an option type:
+\begin{equation}
+  \mathsf{deliverable}(o,u,a)=
+  \begin{cases}
+    \mathsf{Some}(y), &
+      o=\mathsf{Ok}(\Clean,e)\land\Accept_{p,v}(u,a),\\
+    \mathsf{None}, & \text{otherwise}.
+  \end{cases}
+  \label{eq:clean-only-delivery}
+\end{equation}
+This rule applies to in-process values, interface buffers, and path publication.
+Suspicious, blocked, cancelled, timed-out,
+malformed, unsupported, and internally failed operations are distinguishable
+in evidence while sharing the same no-deliverable postcondition.
+
+Path publication has a non-overwriting abstract contract. The system derives
+the final basename and canonical suffix, stages accepted bytes, revalidates the
+policy snapshot and destination condition, and invokes a publication primitive
+whose platform-specific guarantees are stated separately. The abstract
+transition is
+\begin{equation}
+  (D,\bot)\xrightarrow{
+    o=\mathsf{Ok}(\Clean,e)\land\Accept_{p,v}(u,a)}
+  (D\cup\{q\mapsto y\},q),
+  \label{eq:publish-transition}
+\end{equation}
+where \(D\) is the pre-state and \(q\notin\mathrm{dom}(D)\). A failed component
+publication call neither creates nor replaces \(q\). If \(q\) already exists or
+is created by another actor during the attempt, that entry remains unchanged.
+The component does not report a staging object as a final path and removes
+staging state on abort to the extent guaranteed by the host filesystem.
+
+The delivery guarantee rests on three assumptions that are stated explicitly
+because they, not the acceptance predicate, carry the security weight.
+
+\begin{assumption}[Parser soundness]
+\label{asm:parser-soundness}
+Every parser \(j\in\Pi^{\mathrm{auth}}_{p,v,k_o}\) is sound for
+\(L_{p,k_o}\) in the direction of \cref{eq:complete-profile}: whenever its
+report satisfies \(\mathsf{CompleteOK}_{p}(\rho_j(y),k_o,y)\), then
+\(y\in L_{p,k_o}\).
+\end{assumption}
+
+\begin{assumption}[Strict semantic construction]
+\label{asm:semantic-construction}
+A handler on a strict semantic route serializes its output solely from the
+decoded intermediate representation and never copies or references a byte range
+of the source \(x\) as an output component.
+\end{assumption}
+
+\begin{assumption}[Publication primitive]
+\label{asm:publication}
+Publication uses an exclusive-create primitive with the non-overwrite semantics
+in \cref{eq:publish-transition}. On failure, the primitive creates no target and
+replaces none. If \(q\) already exists or is created concurrently, \(q\)
+remains unchanged.
+\end{assumption}
+
+\begin{theorem}[Conditional canonical delivery]
+\label{thm:conditional-delivery}
+Under \cref{asm:parser-soundness}, if \(\Accept_{p,v}(u,a)\) holds then
+\(y\in L_{p,k_o}\). Under \cref{asm:semantic-construction}, a strict semantic
+route copies or references no source payload as an output component. Under
+\cref{asm:publication}, a non-clean result creates or replaces no target through
+the component API.
+\end{theorem}
+
+\begin{proof}
+\(\Accept_{p,v}(u,a)\) contains the conjunct \(\mathsf{Valid}_{p,v,k_o}(y)\)
+(\cref{eq:authorizing-validation}), which requires
+\(\Pi^{\mathrm{auth}}_{p,v,k_o}\neq\varnothing\) and
+\(\mathsf{CompleteOK}_{p}(\rho_j(y),k_o,y)\) for every configured \(j\). Taking
+any such \(j\), \cref{asm:parser-soundness} gives \(y\in L_{p,k_o}\). The
+payload-independence and publication clauses follow directly from
+\cref{asm:semantic-construction,asm:publication}, respectively, together with
+\cref{eq:clean-only-delivery}, which withholds bytes on every non-clean result.
+\end{proof}
+
+\Cref{thm:conditional-delivery} is deliberately shallow given its assumptions:
+the acceptance predicate is engineered so that soundness of the hand-written
+authorizing parsers is the sole load-bearing premise of canonical membership.
+\Cref{asm:parser-soundness} is therefore the central limitation of the
+analytical contribution. It is not discharged here; the differential and fuzzing
+protocol of \cref{sec:evaluation} reduces, but cannot prove, the risk of an
+unsound parser, and a mechanized correctness proof of the registered grammars
+remains future work. \Cref{thm:conditional-delivery} permits coincidental byte
+equality and does not exclude harmful decoded meaning, and none of its clauses
+proves codec correctness or malware absence.

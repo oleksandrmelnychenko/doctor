@@ -1,0 +1,548 @@
+% !TEX program = tectonic
+\documentclass[preprint,12pt]{elsarticle}
+\biboptions{numbers}
+
+\usepackage{iftex}
+\usepackage[T1]{fontenc}
+\ifPDFTeX
+  \usepackage[utf8]{inputenc}
+\fi
+\usepackage{lmodern}
+\usepackage[english]{babel}
+\usepackage{microtype}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{booktabs,tabularx,multirow}
+\usepackage{xcolor,graphicx,float,placeins}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning,fit,calc,shapes.geometric}
+\usepackage{hyperref}
+\hypersetup{colorlinks=true,linkcolor=black,citecolor=black,urlcolor=blue}
+\urlstyle{same}
+\usepackage[capitalise,noabbrev]{cleveref}
+\usepackage{orcidlink}
+
+\newcolumntype{Y}{>{\raggedright\arraybackslash}X}
+\newcolumntype{L}[1]{>{\raggedright\arraybackslash}p{#1}}
+\setlength{\emergencystretch}{3em}
+\hfuzz=3pt
+\setlength{\textfloatsep}{7pt plus 1pt minus 2pt}
+\setlength{\floatsep}{6pt plus 1pt minus 1pt}
+\setlength{\intextsep}{7pt plus 1pt minus 1pt}
+\setcounter{topnumber}{5}
+\setcounter{bottomnumber}{4}
+\setcounter{totalnumber}{8}
+\renewcommand{\topfraction}{0.95}
+\renewcommand{\bottomfraction}{0.85}
+\renewcommand{\textfraction}{0.05}
+\renewcommand{\floatpagefraction}{0.75}
+\raggedbottom
+
+\newtheorem{definition}{Definition}[section]
+\newtheorem{property}[definition]{Property}
+\newtheorem{remark}[definition]{Remark}
+
+\newcommand{\AFD}{\textsc{Aura File Defender}}
+\newcommand{\Clean}{\mathsf{Clean}}
+\newcommand{\Suspicious}{\mathsf{Suspicious}}
+\newcommand{\Blocked}{\mathsf{Blocked}}
+\newcommand{\Unprocessed}{\mathsf{Unprocessed}}
+\newcommand{\Structural}{\mathsf{Structural}}
+\newcommand{\Semantic}{\mathsf{Semantic}}
+\newcommand{\Accept}{\mathsf{Accept}}
+\newcommand{\Parse}{\mathsf{Parse}}
+\newcommand{\Profile}{\mathsf{Profile}}
+\newcommand{\Rebuild}{\mathsf{Rebuild}}
+\newcommand{\Deliver}{\mathsf{Deliver}}
+
+\IfFileExists{results/generated-results.tex}{%
+  \input{results/generated-results.tex}%
+}{%
+  \newcommand{\AFDRunID}{pending}%
+  \newcommand{\AFDCommit}{pending}%
+  \newcommand{\AFDCorpusSamples}{pending}%
+  \newcommand{\AFDAcceptedSamples}{pending}%
+  \newcommand{\AFDBlockedSamples}{pending}%
+  \newcommand{\AFDFalseBlockingRate}{pending}%
+  \newcommand{\AFDMedianLatency}{pending}%
+  \newcommand{\AFDPninetyfiveLatency}{pending}%
+  \newcommand{\AFDPeakMemory}{pending}%
+  \newcommand{\AFDFuzzBudget}{pending}%
+  \newcommand{\AFDFidelitySummary}{pending}%
+}
+
+\date{}
+
+\begin{document}
+\begin{frontmatter}
+
+\title{Aura File Defender: Endpoint-Local Canonical Reconstruction of Media Attachments in End-to-End Encrypted Messaging}
+
+\author{Oleksandr Melnychenko\texorpdfstring{\,\orcidlink{0000-0001-8565-7092}}{}\texorpdfstring{\corref{cor1}}{}}
+\ead{melnychenko@khmnu.edu.ua}
+\cortext[cor1]{Corresponding author.}
+\address{Khmelnytskyi National University, Khmelnytskyi, Ukraine}
+\journal{Journal of Information Security and Applications}
+
+\begin{abstract}
+End-to-end encryption protects attachment confidentiality in transit but does
+not determine whether decrypted media should be opened at an endpoint. This
+paper presents \AFD, an endpoint-local reconstruction and validation method for
+media attachments. The method places the same decision boundary before
+outgoing encryption and after incoming decryption, so the relay neither sees
+plaintext nor decides acceptance. A file is deliverable only when its portable
+name, caller-supplied media type, byte-derived format profile, required
+reconstruction level, and independently parsed canonical output converge.
+Structural and semantic reconstruction are distinguished explicitly, and a
+policy that requires semantic processing cannot fall back to copied codec
+payloads. Complete output consumption prevents trailing-object acceptance, while
+non-media, ambiguous, malformed, over-budget, and non-clean results expose no
+deliverable bytes. The evaluation protocol separates carrier-level malware
+properties from behavioral malware classification and preregisters corpus,
+differential-parser, fault-injection, fuzzing, fidelity, and performance gates.
+Empirical values are withheld from this drafting version until a pinned server
+run satisfies the complete machine-readable release gate.
+\end{abstract}
+
+\begin{keyword}
+content disarm and reconstruction \sep end-to-end encryption \sep canonical parsing \sep media security \sep polyglot files \sep malware carriers
+\end{keyword}
+
+\end{frontmatter}
+
+\section{Introduction}\label{sec:introduction}
+
+Encrypted messaging changes where attachment inspection can occur. A relay
+that is not permitted to decrypt an attachment cannot reconstruct its content,
+whereas an endpoint that opens the decrypted object inherits the parser and
+decoder attack surface. Transport confidentiality and file admissibility are
+therefore separate security decisions. The first protects bytes in transit.
+The second determines which representation, if any, may reach a renderer. This
+distinction complements established secure-messaging models, which analyze
+communication confidentiality and key evolution but do not certify the safety
+of a decrypted attachment representation~\cite{unger2015,cohngordon2020}.
+
+Conventional scanning and content reconstruction are often described as
+gateway services. That placement does not preserve the confidentiality model
+of a protected conversation. It also encourages a binary interpretation in
+which a file is either labelled malicious or passed through. Media
+reconstruction supports a narrower and testable statement: an accepted output
+belongs to a constrained grammar and was derived at the reconstruction strength
+required by policy. This statement does not imply that retained pixels or audio
+samples are semantically harmless.
+
+The research question is whether endpoint-local reconstruction can preserve a
+blind relay while establishing a reproducible, format-specific acceptance
+boundary for attachments. The contribution is a composed method rather than a
+new codec. It combines concrete input-profile convergence, an explicit
+reconstruction-strength order, independent complete output parsing, fail-closed
+publication, and a preregistered evidence protocol. These elements are evaluated
+as separate claims so that a successful parser test is not presented as malware
+detection and a successful decode is not presented as canonical validation.
+
+\section{Related Work and Claim Boundary}\label{sec:related}
+
+File-processing discrepancies are an established evasion surface. Jana and
+Shmatikov showed that disagreements between detector-side and host-side format
+interpretation can permit malware to evade analysis without changing its
+executable behavior~\cite{jana2012}. Language-theoretic security consequently
+treats accepted input as a language that should be specified explicitly and
+recognized before use~\cite{momot2016}. Nail operationalizes a related idea by
+deriving parsers and generators from one grammar~\cite{bangert2014}. EverParse
+adds machine-checked safety, inverse parsing and serialization, and unique
+representations for authenticated message formats~\cite{ramananandro2019}.
+Interval parsing grammars address random-access and type--length--value
+dependencies that arise in binary file formats~\cite{zhang2023}. These systems
+motivate grammar-centred validation, but they do not define an attachment
+publication policy for protected messaging endpoints.
+
+Polyglot research demonstrates why a leading signature or one successful
+decoder is insufficient. Albertini et al. systematize format combinations in
+the different setting of authenticated encryption without key
+commitment~\cite{albertini2022}. Koch et al. document polyglot attack chains,
+evaluate format identification, and present an image sanitization
+tool~\cite{koch2025}. You et al. show that even implementations nominally
+parsing the same ZIP format can disagree at the semantic level~\cite{you2025}.
+These findings support differential validation and complete-consumption checks.
+They do not justify treating any single detector as an oracle.
+
+The contribution here is neither a new media codec nor a universal malware
+classifier. It is an enforcement composition whose deployment point and
+acceptance rule are jointly specified. The method places reconstruction at both
+ends of a blind encrypted relay. It requires name, declared media type, and byte
+evidence to converge on a concrete profile before dispatch. It then requires
+the performed reconstruction strength and a separate complete parser to agree
+before any bytes can be published. The evaluation binds each of these claims to
+a distinct machine-readable gate rather than inferring security from aggregate
+scanner accuracy.
+
+The behavioral terms used in \cref{tab:carrier-map} follow the conventional
+malware categories summarized by NIST~\cite{nist80083}. The measured properties
+remain narrower. They concern carrier grammar, embedded active objects,
+metadata, and reconstruction outcome rather than program behavior after
+execution.
+
+\begin{table}[t]
+\centering
+\caption{Permitted interpretation of malware terminology in the evaluation.}
+\label{tab:carrier-map}
+\begin{tabularx}{\textwidth}{L{0.22\textwidth}YY}
+\toprule
+Behavioral label & Measured attachment property & Permitted conclusion \\
+\midrule
+File-infector virus & Executable prefix, modified host grammar, or appended executable body & Carrier rejected by type, grammar, or polyglot policy \\
+Worm or downloader & Script, executable, shortcut, package, or active document & Unsupported active carrier rejected \\
+Trojan & Executable or script presented with media evidence & Classifier disagreement or unsupported grammar rejected \\
+Ransomware or spyware & Executable carrier or specified privacy metadata & Carrier rejected or named metadata removed \\
+Exploit-bearing media & Reproducible malformed structure or decoder regression & Frozen path rejected or reconstructed this sample \\
+Steganographic payload & Information retained in pixels or samples & Outside the reconstruction claim \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\section{System and Adversary Model}\label{sec:model}
+
+The adversary controls attachment bytes, display name, declared media type,
+container metadata, dimensions, counts, offsets, codec payload, and request
+frequency. The policy, authenticated application binary, and local publication
+directory are trusted. External decoders are trusted only within the stated
+process-isolation assumptions. Compromise of the endpoint before processing and
+harmful semantic content visible in a legitimate raster or waveform are outside
+the attachment-reconstruction claim.
+
+\begin{figure}[t]
+\centering
+\resizebox{\textwidth}{!}{%
+\begin{tikzpicture}[
+  node distance=5mm and 7mm,
+  box/.style={draw,rounded corners=2pt,align=center,minimum height=8mm,minimum width=22mm,font=\small},
+  guard/.style={box,fill=blue!7},
+  crypto/.style={box,fill=green!8},
+  relay/.style={box,fill=gray!12},
+  arrow/.style={-{Latex[length=2mm]},thick}
+]
+\node[box] (source) {source\\attachment};
+\node[guard,right=of source] (outguard) {classify\\rebuild\\validate};
+\node[crypto,right=of outguard] (encrypt) {encrypt};
+\node[relay,right=of encrypt] (relay) {blind relay\\ciphertext only};
+\node[crypto,right=of relay] (decrypt) {decrypt};
+\node[guard,right=of decrypt] (inguard) {classify\\rebuild\\validate};
+\node[box,right=of inguard] (render) {renderer\\or block};
+\draw[arrow] (source) -- (outguard);
+\draw[arrow] (outguard) -- node[above,font=\scriptsize]{clean only} (encrypt);
+\draw[arrow] (encrypt) -- (relay);
+\draw[arrow] (relay) -- (decrypt);
+\draw[arrow] (decrypt) -- (inguard);
+\draw[arrow] (inguard) -- node[above,font=\scriptsize]{clean only} (render);
+\end{tikzpicture}
+}
+\caption{Symmetric endpoint placement of the reconstruction boundary. The
+relay transports ciphertext and does not authorize attachment delivery.}
+\label{fig:placement}
+\end{figure}
+
+\section{Canonical Reconstruction Method}\label{sec:method}
+
+Let $x$ denote input bytes, $n$ a display name, $m$ a caller-supplied media
+type, and $p$ a policy. Three independent functions derive concrete format
+profiles from the final extension, parsed media type, and bounded byte evidence.
+The media type is not treated as ground truth. HTTP semantics likewise warn
+that media-type sniffing can create security risks and that byte inspection
+cannot determine every processing model~\cite{rfc9110}:
+\begin{equation}
+  e(x,n,m)=\bigl(E(n),M(m),B(x)\bigr).
+  \label{eq:evidence}
+\end{equation}
+Aliases are represented explicitly. Compatibility does not collapse distinct
+grammars merely because they belong to the same top-level media family.
+
+\begin{definition}[Reconstruction strength]
+The performed strength belongs to
+$\{\Unprocessed,\Structural,\Semantic\}$ with
+\begin{equation}
+  \Unprocessed \prec \Structural \prec \Semantic.
+  \label{eq:strength}
+\end{equation}
+Structural reconstruction emits a newly parsed container but may retain codec
+payload. Semantic reconstruction decodes media state and encodes a new object.
+\end{definition}
+
+For candidate output $y=\Rebuild_{p,k}(x)$, an independent parser returns a
+profile, component count, and terminal offset. Delivery is authorized by the
+conjunction
+\begin{align}
+\Accept(p,x,n,m,y,k)={}&N_p(n) \land C_p(e,k) \land L_p(k) \notag\\
+ &\land \Parse_k(y) \land T_k(y)=|y| \notag\\
+ &\land K_p(k,y) \land S_p(y) \land Q_p(x,y),
+\label{eq:acceptance}
+\end{align}
+where $N_p$ is portable-name acceptance, $C_p$ is profile convergence, $L_p$
+is reconstruction-level satisfaction, $K_p$ is canonical component closure,
+$S_p$ is the post-reconstruction signature policy, and $Q_p$ contains resource
+bounds. No single classifier or decoder exit status can satisfy
+\cref{eq:acceptance}.
+
+\begin{property}[Fail-closed publication]
+For every result $r$,
+\begin{equation}
+  \Deliver(r)=1 \quad\Longleftrightarrow\quad r.\mathit{verdict}=\Clean.
+  \label{eq:delivery}
+\end{equation}
+Both $\Suspicious$ and $\Blocked$ carry zero deliverable bytes. Filesystem
+publication is separated from reconstruction and occurs only through a
+same-directory temporary file after a complete write.
+\end{property}
+
+\begin{figure}[t]
+\centering
+\resizebox{0.96\textwidth}{!}{%
+\begin{tikzpicture}[
+  node distance=6mm and 6mm,
+  box/.style={draw,rounded corners=2pt,align=center,minimum height=9mm,minimum width=25mm,font=\small},
+  check/.style={box,fill=blue!7},
+  transform/.style={box,fill=green!8},
+  terminal/.style={box,fill=gray!12},
+  arrow/.style={-{Latex[length=2mm]},thick}
+]
+\node[check] (evidence) {profile\\convergence};
+\node[transform,right=of evidence] (rebuild) {required-strength\\reconstruction};
+\node[check,right=of rebuild] (parse) {independent\\complete parse};
+\node[check,right=of parse] (policy) {resource and\\signature policy};
+\node[terminal,right=of policy] (publish) {clean-only\\publication};
+\draw[arrow] (evidence) -- (rebuild);
+\draw[arrow] (rebuild) -- (parse);
+\draw[arrow] (parse) -- (policy);
+\draw[arrow] (policy) -- (publish);
+\end{tikzpicture}
+}
+\caption{Conjunctive acceptance path. Failure or uncertainty at any stage
+produces no deliverable bytes. No stage can authorize publication alone.}
+\label{fig:acceptance-path}
+\end{figure}
+
+\section{Format Profiles and Polyglot Handling}\label{sec:formats}
+
+The output language is an allowlist of registered canonical grammars. Each
+parser starts at offset zero, rejects budget exhaustion as failure, and reports
+complete consumption. Prefix camouflage, appended grammar, overlapping
+grammar, and nested active objects are measured separately. Semantic
+neutralization is claimed only when no source container or compressed payload
+bytes are copied into the output and the new representation passes an
+independent complete parser. Normative format rules supply the lower-level
+closure conditions. For example, the PNG specification fixes signature, chunk,
+and terminal-IEND requirements~\cite{png3}, while the Ogg Opus specification
+defines mandatory headers and page organization~\cite{rfc7845}.
+
+\begin{table}[t]
+\centering
+\caption{Release treatment by media family. Exact accepted profiles are frozen
+in the machine-readable registry.}
+\label{tab:profiles}
+\begin{tabularx}{\textwidth}{L{0.20\textwidth}L{0.25\textwidth}Y}
+\toprule
+Family & Principal transformation & Acceptance boundary \\
+\midrule
+PNG, JPEG, static WebP & Pixel decode and re-encode & Complete canonical raster parse and decode \\
+GIF & Frame decode and re-encode & Canvas, frame, timing, trailer, and complete sub-block parse \\
+APNG & Bounded chunk reconstruction & Structural profiles only. Semantic-required profiles block \\
+Animated WebP & Bounded RIFF and frame reconstruction & Metadata-free structural profile, complete frame parse and decode. Semantic-required profiles block \\
+MP3, WAV, FLAC & Metadata-aware structural reconstruction or transcode & Complete frame/chunk grammar and integrity fields \\
+Ogg/Opus & Page and packet reconstruction or transcode & CRC, sequence, packet, codec, and EOS closure \\
+MP4/M4A & Parent-aware atom reconstruction or transcode & Media-type alias convergence, Apple advisory-atom removal, track and sample-table closure \\
+WebM & Nested EBML reconstruction or transcode & DocType, track, block, lacing, timestamp, and boundary closure \\
+Other formats & No pass-through & Non-media and unsupported classes block \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\section{Implementation}\label{sec:implementation}
+
+The reference implementation is a Rust workspace with separate policy,
+signature, observability, foreign-function, media-handler, and facade crates.
+Input-profile convergence precedes handler dispatch. Every handler reports the
+performed reconstruction strength and exact structural removal counters where
+the parser can identify source regions. Output acceptance uses a separate
+validator module rather than trusting a handler declaration.
+
+Animated WebP is routed separately from static WebP. Its structural handler
+removes ICC, EXIF, and XMP chunks, bounds canvas and frame work, and retains
+constrained compressed frame payloads. The independent validator reparses the
+complete RIFF object and decodes every frame, but the performed level remains
+structural because the frame payloads are not regenerated. For ISO BMFF audio,
+\texttt{audio/mp4}, \texttt{audio/x-m4a}, and \texttt{audio/m4a} converge on
+one profile. The rewriter removes excluded Apple advisory atoms before the
+same complete sample-table and media-extent validation used for other MP4
+outputs.
+
+External FFmpeg and FFprobe work is supervised with a wall-clock deadline,
+cancellation token, bounded diagnostics, output-file monitoring, and process
+termination on all exit paths. Linux execution adds a dedicated process group,
+no-new-privileges state, disabled core dumps, CPU and output-file limits, and a
+bounded address space. The C and Swift boundaries repeat the clean-only output
+invariant. The Apple artifact contains iOS, Simulator, Mac Catalyst, and macOS
+slices built from one locked source revision. Its build remaps local source
+paths, fixes archive epochs, and canonically serializes the XCFramework property
+list before distribution comparison.
+
+\section{Evaluation Protocol}\label{sec:evaluation}
+
+The corpus is stratified into canonical benign media, benign noncanonical
+media, malformed structures, classifier disagreement, polyglot carriers,
+resource-exhaustion cases, unsupported active classes, and decoder regressions.
+Ground truth requires a reproducible generator, two independent reference
+parsers, or documented adjudication by at least two reviewers. Every accepted
+output is saved by digest and checked by independent parser families.
+
+For deterministic structural or lossless paths, stability requires
+\begin{equation}
+  \Rebuild_{p,k}(\Rebuild_{p,k}(x))=\Rebuild_{p,k}(x).
+  \label{eq:idempotence}
+\end{equation}
+Lossy semantic paths use the weaker named property of canonical closure and are
+evaluated with separately frozen fidelity thresholds. Performance observations
+are grouped by format and reconstruction level. Confidence intervals use a
+hierarchical bootstrap over server sessions and corpus samples, while corpus
+order is deterministically permuted for each session.
+
+\begin{table}[t]
+\centering
+\caption{Controlled-run summary. Values remain pending until the run manifest
+reports a passed scientific release gate.}
+\label{tab:results}
+\begin{tabular}{ll}
+\toprule
+Run identifier & \AFDRunID \\
+Source commit & \AFDCommit \\
+Corpus samples & \AFDCorpusSamples \\
+Clean / non-clean outcomes & \AFDAcceptedSamples{} / \AFDBlockedSamples \\
+False-blocking rate & \AFDFalseBlockingRate \\
+Median / p95 latency & \AFDMedianLatency{} / \AFDPninetyfiveLatency \\
+Peak resident memory & \AFDPeakMemory \\
+Fuzzing budget & \AFDFuzzBudget \\
+Fidelity summary & \AFDFidelitySummary \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Discussion and Limitations}\label{sec:discussion}
+
+Canonical reconstruction narrows the representation delivered to a renderer.
+It does not prove the absence of malicious meaning or information encoded in
+retained semantic content. Structural reconstruction cannot claim removal of a
+payload inside copied codec frames. Semantic reconstruction depends on the
+decoder, encoder, operating-system isolation, and the fidelity thresholds used
+in the evaluation. Coverage-guided fuzzing and parser agreement are empirical
+evidence rather than a proof of parser correctness.
+
+The method also makes an explicit availability trade-off. Unknown formats,
+missing evidence, and unavailable required tools are non-deliverable under the
+release profile. The false-blocking analysis must therefore be reported by
+concrete format and corpus stratum rather than hidden in one aggregate rate.
+Future work may add a semantic animated-WebP path, stronger operating-system
+sandboxing for external decoders, and typed export of all parser resource
+counters.
+
+\section{Conclusion}\label{sec:conclusion}
+
+\AFD{} treats attachment admissibility as an endpoint-local, format-specific
+decision that remains compatible with a blind encrypted relay. Its central
+claim is not universal malware detection. It is the enforceable conjunction of
+profile convergence, required reconstruction strength, complete canonical
+output parsing, bounded execution, and clean-only publication. The frozen
+evaluation protocol is designed to show precisely which part of that
+conjunction is supported by each experiment.
+
+\section*{Data and Code Availability}
+
+\enlargethispage{4\baselineskip}
+
+The source revision, policy, classifier registry, corpus manifest, raw
+observations, analysis scripts, tool digests, and run-manifest hashes will be
+reported with the evaluated artifact. Raw malicious samples that cannot be
+redistributed will remain in the isolated corpus and will be represented by
+provenance, mutation recipes, and cryptographic digests.
+
+\begin{thebibliography}{99}
+
+\bibitem{unger2015}
+N. Unger, S. Dechand, J. Bonneau, S. Fahl, H. Perl, I. Goldberg, and
+M. Smith, ``SoK: Secure Messaging,'' in \emph{2015 IEEE Symposium on
+Security and Privacy}, 2015, pp. 232--249.
+\url{https://doi.org/10.1109/SP.2015.22}
+
+\bibitem{cohngordon2020}
+K. Cohn-Gordon, C. Cremers, B. Dowling, L. Garratt, and D. Stebila,
+``A formal security analysis of the Signal messaging protocol,''
+\emph{Journal of Cryptology}, vol. 33, pp. 1914--1983, 2020.
+\url{https://doi.org/10.1007/s00145-020-09360-1}
+
+\bibitem{jana2012}
+S. Jana and V. Shmatikov, ``Abusing file processing in malware detectors
+for fun and profit,'' in \emph{2012 IEEE Symposium on Security and Privacy},
+2012, pp. 80--94. \url{https://doi.org/10.1109/SP.2012.15}
+
+\bibitem{momot2016}
+F. Momot, S. Bratus, S. M. Hallberg, and M. L. Patterson, ``The seven
+turrets of Babel: A taxonomy of LangSec errors and how to expunge them,''
+in \emph{2016 IEEE Cybersecurity Development}, 2016, pp. 45--52.
+\url{https://doi.org/10.1109/SecDev.2016.019}
+
+\bibitem{bangert2014}
+J. Bangert and N. Zeldovich, ``Nail: A practical tool for parsing and
+generating data formats,'' in \emph{11th USENIX Symposium on Operating
+Systems Design and Implementation}, 2014, pp. 615--628.
+\url{https://www.usenix.org/conference/osdi14/technical-sessions/presentation/bangert}
+
+\bibitem{ramananandro2019}
+T. Ramananandro, A. Delignat-Lavaud, C. Fournet, N. Swamy, T. Chajed,
+N. Kobeissi, and J. Protzenko, ``EverParse: Verified secure zero-copy
+parsers for authenticated message formats,'' in \emph{28th USENIX Security
+Symposium}, 2019, pp. 1465--1482.
+\url{https://www.usenix.org/conference/usenixsecurity19/presentation/delignat-lavaud}
+
+\bibitem{zhang2023}
+J. Zhang, G. Morrisett, and G. Tan, ``Interval parsing grammars for file
+format parsing,'' \emph{Proceedings of the ACM on Programming Languages},
+vol. 7, no. PLDI, art. 150, 2023.
+\url{https://doi.org/10.1145/3591264}
+
+\bibitem{albertini2022}
+A. Albertini, T. Duong, S. Gueron, S. K{\"o}lbl, A. Luykx, and S. Schmieg,
+``How to abuse and fix authenticated encryption without key commitment,''
+in \emph{31st USENIX Security Symposium}, 2022, pp. 3291--3308.
+\url{https://www.usenix.org/conference/usenixsecurity22/presentation/albertini}
+
+\bibitem{koch2025}
+L. Koch, S. Oesch, A. Sadovnik, B. Weber, A. Chaulagain, M. Dixson,
+J. Dixon, M. Huettel, C. Watson, J. Hartman, and R. Patulski, ``On the
+abuse and detection of polyglot files,'' in \emph{Proceedings of the ACM Web
+Conference 2025}, 2025, pp. 4810--4822.
+\url{https://doi.org/10.1145/3696410.3714814}
+
+\bibitem{you2025}
+Y. You, J. Chen, Q. Wang, and H. Duan, ``My ZIP isn't your ZIP: Identifying
+and exploiting semantic gaps between ZIP parsers,'' in \emph{34th USENIX
+Security Symposium}, 2025, pp. 431--450.
+\url{https://www.usenix.org/conference/usenixsecurity25/presentation/you}
+
+\bibitem{nist80083}
+M. Souppaya and K. Scarfone, \emph{Guide to Malware Incident Prevention
+and Handling for Desktops and Laptops}, NIST Special Publication 800-83
+Revision 1, 2013. \url{https://doi.org/10.6028/NIST.SP.800-83r1}
+
+\bibitem{rfc9110}
+R. Fielding, M. Nottingham, and J. Reschke, \emph{HTTP Semantics},
+RFC 9110, 2022. \url{https://www.rfc-editor.org/rfc/rfc9110}
+
+\bibitem{png3}
+W3C PNG Working Group, \emph{Portable Network Graphics (PNG)
+Specification, Third Edition}, W3C Recommendation, 2025.
+\url{https://www.w3.org/TR/png-3/}
+
+\bibitem{rfc7845}
+T. Terriberry, R. Lee, and R. Giles, \emph{Ogg Encapsulation for the Opus
+Audio Codec}, RFC 7845, 2016.
+\url{https://www.rfc-editor.org/rfc/rfc7845}
+
+\end{thebibliography}
+
+\end{document}

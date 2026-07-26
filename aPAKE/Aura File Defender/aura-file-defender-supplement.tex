@@ -1,0 +1,55 @@
+% !TEX program = tectonic
+\documentclass[preprint,12pt,a4paper]{elsarticle}
+
+\usepackage{iftex}
+\usepackage[T1]{fontenc}
+\ifPDFTeX
+  \usepackage[utf8]{inputenc}
+\fi
+\usepackage{lmodern}
+\usepackage[english]{babel}
+\usepackage{microtype}
+\usepackage{amsmath,amssymb,mathtools}
+\usepackage{booktabs,tabularx,longtable,array}
+\usepackage{xcolor,graphicx,pdflscape}
+\usepackage{hyperref}
+\hypersetup{colorlinks=true,linkcolor=black,citecolor=black,urlcolor=blue}
+\urlstyle{same}
+\usepackage{xr}
+\externaldocument{aura-file-defender-extended}
+\usepackage[capitalise,noabbrev]{cleveref}
+
+\newcolumntype{Y}{>{\raggedright\arraybackslash}X}
+\newcolumntype{L}[1]{>{\raggedright\arraybackslash}p{#1}}
+\setlength{\emergencystretch}{3em}
+\hfuzz=3pt
+\raggedbottom
+
+\newcommand{\AFD}{\textsc{Aura File Defender}}
+\newcommand{\NotProcessed}{\ensuremath{\mathsf{NotProcessed}}}
+\newcommand{\Structural}{\ensuremath{\mathsf{Structural}}}
+\newcommand{\Semantic}{\ensuremath{\mathsf{Semantic}}}
+
+\begin{document}
+
+\begin{frontmatter}
+\title{Supplementary Registers and Scenario Catalogue for Aura File Defender}
+\author{Oleksandr Melnychenko}
+\address{Khmelnytskyi National University, Khmelnytskyi, Ukraine}
+\journal{Supplementary material}
+
+\begin{abstract}
+This supplement contains the field-level evaluation policy, canonical format
+register, safe scenario catalogue, and reproducibility checklist referenced by
+the Aura File Defender methodology. It is versioned with the implementation and
+does not replace the definitions or claim boundaries in the main article.
+\end{abstract}
+\end{frontmatter}
+
+\appendix
+\input{extended/sections/a-policy-register}
+\input{extended/sections/b-format-register}
+\input{extended/sections/c-scenario-catalogue}
+\input{extended/sections/d-reproducibility}
+
+\end{document}

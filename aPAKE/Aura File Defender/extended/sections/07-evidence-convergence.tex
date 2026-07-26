@@ -1,0 +1,193 @@
+\section{Evidence Convergence and Handler Routing}
+\label{sec:evidence-convergence}
+
+\subsection{Three routing sources and one acceptance observer}
+
+File-type evidence serves two different decisions. Before reconstruction, three
+bounded sources select at most one candidate handler. After reconstruction, a
+separate complete-parser registry determines whether the candidate belongs to
+one observed format profile. Routing is therefore a work-selection decision.
+It is never authority to publish.
+
+Let $\mathcal{K}$ be the finite registry of concrete format profiles. Profiles
+distinguish materially different grammars, including static PNG from APNG,
+static WebP from animated WebP, and constrained WebM from general Matroska. A
+versioned relation $\equiv_p$ maps declared aliases such as \texttt{jpg} and
+\texttt{jpeg}, or the M4A media types \texttt{audio/mp4},
+\texttt{audio/x-m4a}, and \texttt{audio/m4a}, to one profile. Policy
+admits $\mathcal{K}_p\subseteq\mathcal{K}$ for positive routing. For an input
+$a=(x,n,m,d)$, the routing sources are
+\begin{align}
+  E_p(n)&\subseteq\mathcal{K}, &
+  M_p(m)&\subseteq\mathcal{K}, &
+  B_p(x)&\subseteq\mathcal{K}.
+  \label{eq:evidence-functions}
+\end{align}
+$E_p$ interprets the normalized final suffix of the display name. $M_p$
+parses the supplied media-type essence and its registered aliases. $B_p$
+performs bounded byte recognition. Structural header checks belong to $B_p$
+rather than constituting a fourth routing source. Each source returns a set and
+a typed status rather than a scalar confidence score.
+
+An evidence report is $\epsilon_i=(S_i,s_i,c_i)$, where
+$S_i\subseteq\mathcal{K}$ is the candidate set, $s_i$ is the source status, and
+$c_i$ contains bounded counters and reason codes. Status distinguishes an
+absent supplied value, unknown alias, malformed syntax, budget exhaustion,
+recognition failure, and successful completion. An empty candidate set alone
+does not distinguish these cases and is never interpreted as evidence of
+safety.
+
+\begin{table}[t]
+\centering
+\caption{Evidence roles and their authority in the method. Complete parsing is
+reserved for source resolution and output acceptance, not counted as a fourth
+routing source.}
+\label{tab:evidence-strength}
+\small
+\begin{tabularx}{\textwidth}{L{0.22\textwidth}L{0.22\textwidth}YY}
+\toprule
+Evidence operation & Stage & Permitted use & Fail-closed interpretation \\
+\midrule
+Name evidence $E_p$ & Routing & Candidate profile and dangerous-suffix policy & Unknown or conflicting suffix gives no byte authority \\
+Supplied type $M_p$ & Routing & Caller intent and provisional compatibility & Missing, malformed, wildcard, or conflicting type is policy-visible \\
+Bounded bytes $B_p$ & Routing & Magic and minimum structural-header evidence & Bare, conflicting, or exhausted recognition cannot authorize delivery \\
+Complete source parse & Selected reconstruction path & Account for source boundaries and resolve ambiguity required by the chosen method & Failure or unaccounted ranges prevent structural copying \\
+Complete output parsers & Acceptance & Whole-object profile observation from offset zero & Prefix success, ambiguity, or parser exhaustion prevents acceptance \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+No source follows a last-writer-wins rule. A compatible byte probe does not
+erase an incompatible supplied type or a dangerous name. HTTP semantics also
+distinguish declared type from content inspection~\cite{rfc9110}. The decision
+record retains every source, status, disagreement, and resolution step.
+
+\subsection{Normalization and compatibility}
+
+The display name $n$ is not a filesystem path. The normalization function
+$N_p(n)$ accepts one basename and rejects path separators, alternate-stream
+syntax, dot components, control characters, bidirectional formatting controls,
+reserved device names, and trailing platform-sensitive syntax. It records all
+suffix components. A forbidden executable, script, archive, shortcut, package,
+or macro-bearing nonfinal suffix causes rejection even when the final suffix is
+an admitted media extension. Extension comparison uses ASCII case folding and
+does not silently remove trailing dots or spaces.
+
+The supplied media type is parsed after syntactic parameter removal. Wildcards
+and malformed strings are not positive evidence. A versioned alias table maps
+accepted spellings to profiles without treating a complete top-level media
+family as supported.
+
+Compatibility is the explicit relation
+$\mathsf{Compat}_p\subseteq\mathcal{K}\times\mathcal{K}$. It contains aliases
+and narrowly stated container relationships. For example, bounded ISO base
+media recognition can identify a generic container before a parent-aware parser
+establishes whether the object is audio-only or includes video. This is
+provisional compatibility. It is not equivalence among all MP4-family profiles.
+
+\begin{definition}[Input convergence]
+\label{def:input-convergence}
+Let $I_p(a)=\{\epsilon_E,\epsilon_M,\epsilon_B\}$. Input evidence converges on
+$k\in\mathcal{K}_p$ when every present nonempty candidate set contains a profile
+compatible with $k$, no report identifies an incompatible or forbidden profile,
+every policy-required report is present, and no recognizer terminates by budget
+exhaustion. The predicate is written $\mathsf{Conv}_p(a,k)$.
+\end{definition}
+
+Strict evaluation treats unresolved disagreement, missing required supplied
+type, unknown required name evidence, and indeterminate byte recognition as
+non-routable. Diagnostic profiles may record warnings, but warning and dry-run
+outcomes are outside the accepted scientific relation.
+
+\subsection{Routing through a singleton eligible set}
+
+Define the eligible route set
+\begin{equation}
+  \mathcal{C}_p(a)=
+  \{k\in\mathcal{K}_p:N_p(n)\land\mathsf{Conv}_p(a,k)\}.
+  \label{eq:eligible-routes}
+\end{equation}
+The routing function is then genuinely partial:
+\begin{equation}
+  \mathsf{Route}_p(a)=
+  \begin{cases}
+    k, & \mathcal{C}_p(a)=\{k\},\\
+    \bot, & |\mathcal{C}_p(a)|\neq 1.
+  \end{cases}
+  \label{eq:routing-function}
+\end{equation}
+The value $\bot$ means that no unique route is authorized. Depending on the
+failure boundary, it becomes a blocking verdict or a typed error. Neither case
+can expose deliverable bytes.
+
+After selection, a handler may perform a complete source parse or a semantic
+decode. Its evidence record must establish
+$\mathsf{SourceResolved}_p(a,k,\eta)$. For structural reconstruction, this
+predicate requires complete source accounting, explicit treatment of every
+copied range, and resolution of ambiguity relevant to the retained bytes. For
+semantic reconstruction it requires a bounded successful decode of the selected
+interpretation. The predicate is part of acceptance. It is not another source
+that competes in routing.
+
+\begin{property}[Routing is non-authorizing]
+\label{prop:routing-nonauthorizing}
+There are inputs for which $\mathsf{Route}_p(a)=k$ but no deliverable artifact
+exists. A recognized header can be followed by truncation, reconstruction can
+fail, source resolution can remain incomplete, or a candidate can fail an
+output gate. Routing success therefore implies only unique work selection.
+\end{property}
+
+\subsection{Policy-independent complete output observations}
+
+Let $\mathcal{O}_v$ be the complete-parser observation registry fixed by
+registry version $v$. It includes admitted profiles and forbidden profiles that
+remain relevant as negative ambiguity evidence. For candidate bytes $y$, parser
+$k$ returns either failure or
+\begin{equation}
+  \rho_k(y)=(k,o,t,C,q),
+  \label{eq:parse-report}
+\end{equation}
+where $o$ is the start offset, $t$ is the terminal offset, $C$ is the parsed
+component tree, and $q$ contains structural facts and resource counters. The
+observation set is
+\begin{equation}
+  \mathsf{Full}_v(y)=
+  \{k\in\mathcal{O}_v:\exists C,q\ .\
+    \rho_k(y)=(k,0,|y|,C,q)\}.
+  \label{eq:full-parser-set}
+\end{equation}
+Crucially, $\mathsf{Full}_v$ does not remove a parse because a policy forbids a
+component. Policy is applied later to the stable parser report. Tightening a
+policy therefore cannot hide an alternate complete interpretation.
+
+A successful reconstruction returns the typed candidate
+\begin{equation}
+  c=(y,n_{\mathrm{out}},m_{\mathrm{out}},k_h,\ell,\eta),
+  \label{eq:candidate-artifact}
+\end{equation}
+where $k_h$ is the handler profile, $\ell$ is the performed level, and $\eta$
+is the evidence record. Output convergence for $(c,k)$ requires
+$\mathsf{Full}_v(y)=\{k\}$, $k_h$ compatible with $k$, and both the generated
+name and declared output type to map to $k$. A successful prefix parse never
+enters $\mathsf{Full}_v(y)$.
+
+This rule distinguishes four mechanisms. Prefix camouflage fails the
+offset-zero requirement. A trailing object or appended data fails exact
+consumption. A true dual-format polyglot produces at least two incompatible
+complete observations of the same whole octet string. A nested active object is
+handled by the location-aware component policy. Structural reconstruction
+cannot claim to neutralize an alternate interpretation inside retained codec
+ranges. Semantic reconstruction supports a narrower statement only when a
+bounded decoder supplies semantic state, source container and compressed
+payload ranges are not copied, and the newly encoded candidate has one complete
+observed profile.
+
+\begin{property}[Unique observed output profile]
+\label{prop:unique-output-profile}
+If output convergence holds for $(c,k)$, no other profile in $\mathcal{O}_v$
+has a complete incompatible parse of $c.y$. This is a registry-relative design
+invariant. It does not exclude an unmodeled grammar or a common parser defect.
+\end{property}
+
+The remaining policy predicates operate on this fixed observation and typed
+candidate. They are defined in \cref{sec:formal-method}.

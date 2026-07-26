@@ -1,0 +1,146 @@
+\section{Background, Terminology, and Research Position}
+\label{sec:background}
+
+Early malware terminology separates self-replication from host dependence and
+propagation \cite{cohen1987,spafford1989}. Contemporary operational labels add
+initial-access mechanism, staged-delivery role, payload objective, persistence,
+and privacy impact \cite{nist80083,kharraz2016,scaife2016}. These distinctions
+guide corpus design but are not interchangeable with carrier structure.
+A media file may carry an exploit trigger without being a self-replicating
+program. A downloader may arrive through a document, archive, executable, or a
+parser flaw in nominal media. Conversely, suspicious metadata or an ambiguous
+container does not establish any malware family. This study therefore reports
+measurable carrier properties and keeps behavioral attribution outside the
+acceptance decision.
+
+Delivery and storage systems establish different upstream properties: sender or
+server authentication, access control, transport integrity, provenance, or
+confidentiality. None of these properties entails whole-file grammar,
+canonicality, or safe publication. In end-to-end encrypted messaging the
+inspection point must remain local because moving plaintext inspection to a
+relay would alter the confidentiality model \cite{unger2015,cohngordon2020,
+abelson2024}. Email, cloud synchronization, web download, and direct import
+reach the same local admission problem through different upstream assumptions.
+The proposed method therefore begins at the media trust boundary and treats
+transport provenance as context rather than acceptance evidence.
+
+Parser-differential research shows why one recognizer is insufficient. Different
+tools can disagree about valid prefixes, terminal offsets, duplicated fields,
+integer interpretation, and nested structure \cite{jana2012,momot2016}. Work on
+canonical parsing, language-oriented security, and generated parsers replaces
+permissive recognition with an explicit input language and complete parsing
+\cite{samuel2012,nail2014,everparse2019,ipg2023}. SafeDocs applies the related
+principle that complex data should be reduced to well-defined, safely processable
+forms \cite{darpaSafeDocs}.
+Recent studies of file ambiguity and polyglots further demonstrate that extension,
+media type, and isolated parser success do not determine one whole-file meaning
+\cite{albertini2022,belkind2023,koch2025,you2025}.
+
+Content disarm and reconstruction operationalizes reduction by deleting excluded
+structures or by decoding and re-encoding content. The relevant security claim
+depends on what is retained. Structural reconstruction parses the source and
+serializes an allowed structure while retaining selected compressed payloads.
+Semantic reconstruction derives a new representation from decoded pixels,
+samples, frames, or equivalent media semantics. Structural reconstruction can
+remove metadata, normalize layout, and exclude unaccounted suffixes. It cannot
+support a claim that retained compressed payload bytes have been neutralized.
+Semantic reconstruction supports a stronger source-independence claim, but only
+under explicit decoder, encoder, resource, and fidelity assumptions.
+
+Let the attacker-influenced request evidence be \(r=(x,n,m)\), where \(x\) is
+the input octet string, \(n\) is one portable display basename, and \(m\) is
+the supplied media type. Let \(c=(p,d)\) be trusted processing context, where
+\(p\) is an immutable policy snapshot and \(d\) contains the enforced deadline
+and cancellation state. One processing request is therefore
+\begin{equation}
+  u=(r,c)=((x,n,m),(p,d)).
+  \label{eq:processing-unit}
+\end{equation}
+An untrusted caller may request earlier cancellation or a shorter deadline but
+cannot weaken \(p\) or extend the host-imposed processing budget. The request
+excludes a caller-controlled output path. A final path is derived only after
+acceptance from a policy-controlled directory, a sanitized basename, and the
+canonical output suffix.
+
+A format profile is more specific than a broad media family. A source profile
+\(s\) fixes the admissible input evidence and reconstruction route. An output
+profile \(k\) fixes a canonical output grammar, media type, suffix set, resource
+limits, and parser version. Policy also registers the permitted
+source-to-output mappings and the minimum reconstruction level. This distinction
+is necessary because strict routes may convert WAV, FLAC, or Ogg input to MP3,
+and WebM input to MP4. Static and animated WebP are separate profiles because
+their component languages and reconstruction claims differ. Likewise, WebM and
+general Matroska cannot share one native structural route merely because both
+use EBML.
+
+For policy $p$ and profile $k$, let $L_{p,k}\subseteq\{0,1\}^{*}$ denote the
+canonical output language. A sound authorizing parser starts at offset zero,
+terminates at $|y|$, admits every component at its parsed location, and checks
+ordering, cardinality, cross-reference, integrity, and resource constraints.
+If \(\rho_{p,v,k}(y)\) is its report under policy \(p\) and parser-registry
+version \(v\), the soundness direction used here is
+\begin{equation}
+  \mathsf{CompleteOK}_{p}(\rho_{p,v,k}(y),k,y)
+  \Longrightarrow y\in L_{p,k}.
+  \label{eq:complete-profile}
+\end{equation}
+The reverse implication is not assumed: a conservative parser may reject a
+language member. A successful prefix parse is not complete acceptance, and
+membership is not permanent across policy or parser-registry versions.
+Canonicality always refers to a named profile and frozen policy.
+
+Reconstruction levels form the ordered set
+\begin{equation}
+  \NotProcessed \prec \Structural \prec \Semantic.
+  \label{eq:reconstruction-order}
+\end{equation}
+The order describes admissible claim strength, not a universal quality ranking.
+A policy requirement \(q_{p,s}\) for source profile \(s\) is satisfied only
+when the performed level obeys \(\ell\geq q_{p,s}\). Unsupported input is blocked
+rather than misrepresented as structurally reconstructed.
+
+Verdicts are separated from pipeline errors:
+\begin{equation}
+  V=\{\Clean,\Suspicious,\Blocked\},\qquad
+  O=\mathsf{Result}(V\times E,\mathsf{PipelineError}),
+  \label{eq:verdict-space}
+\end{equation}
+where $E$ contains bounded stage evidence. In enforcement mode, a clean verdict
+means that every mandatory check succeeded and no policy warning or blocker
+remains. A suspicious verdict means that no blocking condition remains but at
+least one policy warning does. A blocked verdict records at least one blocking
+condition. Suspicious and blocked results are both non-deliverable. A pipeline
+error is also non-deliverable but remains distinct for diagnosis and
+availability analysis. These cases are mutually exclusive, and no failure is
+converted into a clean result by exception handling or fallback routing.
+
+An authorizing parser is considered separate from construction when it is
+invoked after reconstruction through a code path distinct from the handler's
+source parser and writer. This separation does not imply that the parser was
+independently verified. The stronger term \emph{implementation-diverse
+validator} is reserved for external parser or decoder families used in the
+differential evaluation. The distinction prevents separation within one
+implementation from being reported as independent replication.
+
+\begin{table}[t]
+\centering
+\caption{Research position relative to selected technical lines of work.}
+\label{tab:research-position}
+\small
+\begin{tabularx}{\textwidth}{L{0.20\textwidth}L{0.33\textwidth}Y}
+\toprule
+Line of work & Established contribution & Boundary addressed in this work \\
+\midrule
+Signature and malware scanning \cite{nist80083} & Recognition of configured indicators and known malicious structures & Does not establish complete grammar, reconstruction strength, or publication safety \\
+Canonical and verified parsing \cite{samuel2012,nail2014,everparse2019,ipg2023} & Grammar-defined recognition, complete parsing, and reduced parser ambiguity & Joint route, reconstruction-strength, output-validation, and publication judgment \\
+Content disarm and reconstruction \cite{darpaSafeDocs,belkind2023,dubin2023} & Format-specific transformation into reduced representations & Policy-indexed claim strength and authorization of the emitted object rather than handler success \\
+Parser differentials and polyglots \cite{jana2012,koch2025,you2025} & Detection and characterization of conflicting file interpretations & Routing only when the evidence admits one profile, followed by canonical output observation and fail-closed delivery \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\Cref{tab:research-position} locates the proposed method at the intersection of
+these lines of work. It combines routing to exactly one admissible profile,
+explicit reconstruction strength, separate output validation, and publication
+restricted to clean verdicts, with a distinct falsification oracle for each
+obligation.

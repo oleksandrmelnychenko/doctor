@@ -1,0 +1,181 @@
+\section{Reference Implementation}\label{sec:implementation}
+
+The \AFD{} reference implementation targets Rust 2024. Its production crate
+contains dispatch, format handlers, validation, and publication, while two
+workspace crates retain compatibility and interface schemas. The reviewed
+snapshot is commit \texttt{823a5ec7a0dd}. The retained evidence records the full
+digest. Optional policy authentication uses a hash-based message authentication
+code (HMAC). \Cref{fig:implementation-planes} shows the separation of policy
+construction, media processing, and publication.
+
+\begin{figure}[H]
+\centering
+\resizebox{0.96\textwidth}{!}{%
+\begin{tikzpicture}[
+  node distance=5mm and 8mm,
+  box/.style={draw,rounded corners=2pt,align=center,minimum height=9mm,font=\small,inner sep=3pt},
+  control/.style={box,fill=blue!7,minimum width=33mm},
+  data/.style={box,fill=green!8,minimum width=31mm},
+  gate/.style={box,fill=yellow!10,minimum width=32mm},
+  api/.style={box,fill=gray!12,minimum width=31mm},
+  arrow/.style={-{Latex[length=2mm]},thick},
+  policy/.style={-{Latex[length=2mm]},thick,dashed}
+]
+\node[font=\small\bfseries,anchor=east] at (-0.8,1.35) {control plane};
+\node[control] (doc) at (1.2,1.35) {versioned policy\\document};
+\node[control,right=of doc] (auth) {migration, validation,\\HMAC/keyring};
+\node[control,right=of auth] (snapshot) {immutable defender\\or tenant snapshot};
+\draw[arrow] (doc) -- (auth);
+\draw[arrow] (auth) -- (snapshot);
+
+\node[font=\small\bfseries,anchor=east] at (-0.8,0) {data plane};
+\node[data] (request) at (1.2,0) {bytes, name,\\media type};
+\node[data,right=of request] (route) {evidence\\convergence};
+\node[data,right=of route] (handler) {profile handler\\and candidate};
+\node[gate,right=of handler] (validator) {authorizing parser,\\bounds, rebuilt scan};
+\node[gate,right=of validator] (verdict) {total verdict\\and byte gate};
+\draw[arrow] (request) -- (route);
+\draw[arrow] (route) -- (handler);
+\draw[arrow] (handler) -- (validator);
+\draw[arrow] (validator) -- (verdict);
+\draw[policy] (snapshot.south) -- (route.north);
+\draw[policy] (snapshot.south east) -- (validator.north);
+
+\node[font=\small\bfseries,anchor=east] at (-0.8,-1.35) {publication plane};
+\node[api] (rust) at (7.7,-1.35) {Rust result};
+\node[api,right=of rust] (ffi) {native-language\\interface};
+\node[api,right=of ffi] (path) {non-overwriting\\filesystem commit};
+\draw[arrow] (verdict.south) -- node[right,font=\scriptsize]{\Clean{} only carries bytes} (rust.north);
+\draw[arrow] (rust) -- (ffi);
+\draw[arrow] (rust.south) to[out=-35,in=-145] (path.south);
+\end{tikzpicture}%
+}
+\caption{Reference implementation planes. Policy state is validated and frozen
+before request processing. HMAC authentication is optional and configured
+separately. Handlers produce candidates, whereas the
+validation and verdict stages alone authorize bytes for an interface or final
+path.}
+\label{fig:implementation-planes}
+\end{figure}
+
+Construction of \texttt{FileDefender} normalizes media allowlists and denylists
+into lookup sets and compiles baseline plus administrator signatures into one
+Aho--Corasick automaton. Request processing uses this immutable state. The hot
+path performs no policy read or network lookup.
+
+The first stage checks cancellation, input length, portable-name rules, blocked
+terminal extensions, and dangerous suffix chains. It derives profiles from the
+name, supplied type, and bytes. Strict policy treats incompatible, missing, or
+unknown evidence as a typed error. Precedence cannot override disagreement
+because convergence is checked before dispatch and again on the rebuilt type.
+
+An optional signature pass can reject before decoding. It is an early policy
+check, not an acceptance proof. The mandatory post-reconstruction pass scans
+the candidate with location-aware rules. Baseline patterns include the EICAR
+test string and leading executable, bytecode, script, and archive markers.
+Administrator indicators are compiled into the immutable engine. Exact byte
+matching detects configured indicators but cannot infer behavior or malware
+family.
+
+Handlers dispatch by media kind, while agreement is recorded at the more
+specific format-profile level. The implemented routes are compared in
+\cref{tab:format-profile-comparison}. Semantic audio uses FFmpeg with
+\texttt{libmp3lame} and emits \texttt{audio/mpeg}. Semantic video uses H.264
+with \texttt{yuv420p}, optional AAC audio, and the \texttt{faststart} MP4 layout.
+Both paths remove source metadata and chapters before the candidate enters the
+authorizing parser.
+Unsupported or non-media input reaches a generic handler that reports an
+unprocessed level and a blocking alert, never a pass-through path.
+
+\begin{table}[t]
+\centering
+\caption{Implementation traceability at reviewed source revision
+\texttt{823a5ec7a0dd}. The table records source boundaries, not empirical
+results.}
+\label{tab:implementation-traceability}
+\footnotesize
+\begin{tabularx}{\textwidth}{L{0.22\textwidth}L{0.34\textwidth}Y}
+\toprule
+Obligation & Primary implementation & Enforced evidence or terminal effect \\
+\midrule
+Input convergence & \path{src/types.rs}, \path{src/lib.rs} & Name, supplied type, and byte profile are compared before dispatch \\
+Policy strength & \path{src/policy.rs}, \path{src/lib.rs} & Per-kind required level is compared with the handler-reported level \\
+Bounded reconstruction & \path{src/handlers/*.rs}, \path{src/process.rs} & Dimensions, counts, durations, process budgets, and cancellation yield typed failure \\
+Component closure & \path{src/validation.rs} & A separate parser reports profile, component count, and complete bytes consumed \\
+Signature policy & \path{crates/defender-signatures}, \path{src/lib.rs} & Pre-scan is configurable and rebuilt-output scanning precedes verdict derivation \\
+Delivery after a clean verdict & \path{src/lib.rs}, \path{src/ffi.rs} & Non-clean outcomes expose zero output bytes through Rust and C \\
+Non-overwriting path publication & \path{src/lib.rs} & Suffix convergence, same-directory staging, file synchronization, and non-overwriting persistence occur only for clean results. Directory crash durability is not claimed \\
+Tenant snapshot selection & \path{src/tenant.rs} & Versioned copy-on-write snapshots resolve to immutable defenders \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Validation separate from construction distinguishes transformation from
+acceptance. The implementation selects one registered complete-file grammar for
+the output profile. Its parsers cover PNG, APNG, JPEG, static and animated WebP,
+GIF, MP3, WAV, Ogg/Opus, FLAC, ISO base media, and constrained WebM. They check
+terminal boundaries, component placement, required or duplicate structures,
+specified integrity fields, arithmetic bounds, and internal references. Raster
+and GIF output also undergo a decode check. A handler declaration is never
+reused as format evidence.
+
+The facade then compares the declared output media type with a per-kind
+allowlist, applies a global denylist, and independently sniffs the output bytes.
+Executable magic at offset zero is always blocking even if output-kind matching
+is relaxed. Candidate length is checked against an absolute output bound and,
+for nonempty input, against a maximum expansion ratio. Failure of any check adds
+a blocking alert or returns a typed terminal error. The final verdict is
+\(\Blocked\) when any blocking alert exists, \(\Suspicious\) when no blocker but at
+least one warning exists, and \(\Clean\) otherwise. Informational alerts record
+normal transformations without changing the verdict.
+
+Dry-run mode converts blockers into diagnostic warnings and may therefore
+return \(\Suspicious\). The controlled profile uses enforcement mode. Dry-run
+outcomes do not enter accepted counts or carry deliverable bytes.
+
+Policy lifecycle begins with a versioned document. Migration validates finite
+positive limits, resolves the named base profile, normalizes extension changes,
+and constructs immutable processing state. Strict and paranoid profiles require
+supplied media evidence, reject unknown types and decoder failure, require
+semantic audio and video reconstruction, and prohibit source retention as a
+fallback. The default profile admits broader diagnostic and structural
+behavior. Results under different profiles are not interchangeable.
+
+Multi-tenant deployment uses versioned immutable snapshots. Readers resolve one
+tenant policy without a read lock, while writers construct a replacement
+snapshot and publish it conditionally. Monotonic version checks reject stale
+updates and removals. A removed tenant uses the registry fallback policy.
+Import and export records may bind actor, source, reason, and timestamp
+provenance.
+
+Snapshot authenticity must be configured explicitly. Plain SHA-256 snapshot
+objects support checksum comparison but their \texttt{verify} method rejects
+them as unauthenticated. HMAC with SHA-256 envelopes bind a canonical serialized
+policy payload to a key identifier. Keyring imports reject unknown, expired,
+or invalid keys and record per-key use counters. Deprecation plus a grace
+period supports rotation. These APIs assume secure key provisioning and a
+trustworthy control-plane clock. They do not provide public-key signatures,
+rollback-resistant durable storage, or confidentiality for policy contents.
+
+The optional native interface validates serialized lengths and text fields
+before dispatch and converts implementation failures into typed results. It
+exposes no output for a non-clean verdict, preserving F8 at the interface
+boundary. Allocation and platform-packaging details belong to the implementation
+documentation and do not strengthen the process-supervision claim in
+\cref{sec:process-isolation}.
+
+Decoder failure remains non-deliverable. A policy may retain a bounded,
+control-sanitized diagnostic in the blocked stage, but that evidence cannot
+authorize candidate bytes.
+
+Results retain structured alerts, ordered stages, reconstruction strength,
+profile, component and consumption counts, sizes, removal counters, and
+duration. Bounded logs omit input bytes. The current audit sink is inert, so
+durable delivery, redaction, retention, and correlation remain responsibilities
+of the embedding application. The reference crate does not persist audit
+events.
+
+Source traceability identifies each enforcement site. Empirical support remains
+subject to the parser, fuzzing, external-validation, fault, and performance
+protocol in \cref{sec:evaluation}. \Cref{sec:server-experiment} reports the
+retained bounded run, not a completed controlled experiment.

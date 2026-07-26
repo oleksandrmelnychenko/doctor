@@ -1,0 +1,219 @@
+\section{Introduction}
+\label{sec:introduction}
+
+\subsection{The unresolved attachment boundary}
+
+End-to-end encryption changes the location at which an attachment can be
+examined, but it does not remove the need for an examination decision. A relay
+that follows the confidentiality model of a protected conversation does not
+receive attachment plaintext. The endpoint, by contrast, eventually decrypts
+the attachment and presents some representation of it to an operating-system
+service, a codec, a preview generator, or an application renderer. The security
+of the transport and the admissibility of the decrypted representation are
+therefore distinct properties. Secure-messaging analyses establish valuable
+communication guarantees, including confidentiality, authentication, and
+forms of post-compromise security~\cite{unger2015,cohngordon2020}. They do not
+establish that an arbitrary decrypted file has one unambiguous interpretation
+or that every parser exposed by the receiving endpoint will process it safely.
+
+This distinction matters because a file is not merely an inert sequence of
+bytes. It is an input to a collection of recognizers whose views can differ.
+The sender application may derive a type from a filename. A transport wrapper
+may carry a declared media type. A preview service may inspect a prefix. A
+codec may accept a valid initial object and ignore trailing bytes. A security
+scanner may search for a set of signatures. The final application may invoke a
+different parser with different stopping conditions. An adversary can exploit
+the disagreement without defeating encryption. Encryption preserves the
+attacker-selected bytes faithfully until they reach the endpoint that has the
+keys and the parser attack surface.
+
+Gateway scanning offers no general solution to this placement problem. A
+gateway that sees plaintext changes the confidentiality model. A gateway that
+sees only ciphertext cannot make a content-derived decision. Client-side
+scanning can inspect plaintext, but a scanner verdict alone does not define the
+representation later consumed by the renderer. Even a correct negative
+signature result cannot establish that the scanner and renderer assigned the
+same grammar to the bytes. Research on parser differentials, polyglot files,
+and language-theoretic security shows that discrepancies among file-processing
+components form an attack surface in their own right~\cite{jana2012,momot2016,
+nail2014,everparse2019,ipg2023,koch2025,you2025}.
+
+The term \emph{client-side} also requires a trust-purpose distinction.
+Abelson et al. analyze client-side scanning in which an endpoint searches
+cleartext for centrally designated targets and may report a match or its source
+to an outside party~\cite{abelson2024}. The method studied here is instead a
+user-benefiting endpoint defense. It reconstructs an attachment to reduce the
+local parser exposure and returns no content-derived match report to the relay,
+an authority, or another central service. The two designs share an execution
+location, but not a beneficiary, reporting path, or surveillance capability.
+
+The problem addressed in this manuscript is consequently narrower than
+universal malware detection and stronger than isolated format sniffing. Given
+an attacker-controlled attachment, the endpoint must decide whether it can
+derive a new representation that belongs to a declared format profile, meets a
+policy-selected reconstruction strength, survives independent complete
+parsing, and can be published without exposing any other result. The relay must
+remain blind throughout this procedure. The same decision must apply to an
+outgoing attachment before encryption and to an incoming attachment after
+decryption, because both directions can introduce hostile content into a
+protected conversation.
+
+\subsection{Why malware labels are not enough}
+
+Terms such as virus, worm, Trojan, downloader, dropper, stager, ransomware, and
+spyware describe different aspects of malicious software. Some terms concern
+replication. Some concern deception or delivery. Others concern an operational
+role or an objective after code execution. These labels do not by themselves
+specify a byte-level property that a media reconstruction system can test. A
+Trojan may be a native executable presented as a photograph. A downloader,
+dropper, or stager may use a script hidden behind a misleading suffix.
+Ransomware may arrive through a document, an archive, or an exploit-bearing
+media sample. Spyware may be delivered as code, while a benign media file may
+still reveal location or author metadata.
+Conversely, a valid image can visually encode a command, a phishing message, or
+arbitrary information without violating its image grammar.
+
+The manuscript therefore uses malware labels and operational roles to organize
+threats and corpus strata, not as outputs of \AFD. Each scenario is reduced to
+an observable carrier property such as an executable prefix, trailing bytes, a
+misleading portable name, a conflicting media type, an active embedded object,
+excluded metadata, a malformed container, or a resource-exhaustion
+construction. A successful result permits a claim about that property and the
+configured policy. It does not permit the conclusion that the system has
+identified a malware family or proved that retained pixels, samples, or codec
+payloads contain no harmful information.
+
+This claim discipline is necessary for two reasons. First, it prevents a
+carrier-oriented method from being evaluated with labels that describe
+post-execution behavior. Second, it makes each security statement falsifiable.
+For example, a claim of complete output consumption is refuted by one accepted
+output with unconsumed trailing bytes. A claim of metadata exclusion is refuted
+by one accepted output containing a forbidden structural element. A broad
+claim that a file is free of malware has no comparably precise test when the
+system does not interpret all possible information encoded in the retained
+media semantics.
+
+\subsection{Research gap}
+
+Existing work provides several pieces of the required foundation, but the
+composition needed at an encrypted-messaging endpoint remains underspecified.
+Parser-generation systems can connect grammars, parsers, and serializers.
+Polyglot studies characterize cross-format ambiguity. Content disarm and
+reconstruction systems replace or remove selected file components. Malware
+engines detect known or learned indicators. Sandboxes constrain execution.
+Secure-messaging protocols protect communications in transit. None of these
+components alone answers the publication question posed at the endpoint:
+\emph{which exact bytes may become available to the application after an
+attachment has crossed an end-to-end encrypted channel?}
+
+Three gaps are especially consequential. The first is an evidence gap. A file
+extension, a declared media type, a magic-byte probe, and a complete parser do
+not provide interchangeable evidence. Treating any one of them as decisive
+creates a classifier-confusion path. The second is a reconstruction gap.
+Container remultiplexing and semantic decode-and-reencode have different
+security meanings. A structural path may remove metadata and reject trailing
+objects while retaining the original compressed payload. A policy that requires
+semantic reconstruction must not silently accept the weaker path. The third is
+a publication gap. Failure must not leave partially reconstructed bytes,
+unchecked temporary files, or a warning-labelled artifact that a downstream
+caller can still render.
+
+\AFD\ addresses these gaps as one endpoint-local method. It treats input
+classification as bounded routing evidence, not acceptance. It records the
+reconstruction level actually performed. It independently parses the output to
+its exact terminal offset. It applies policy again to the reconstructed object.
+It exposes deliverable bytes only when the final verdict is \Clean. These
+conditions are enforced symmetrically around encryption and decryption, while
+the relay continues to transport ciphertext.
+
+\subsection{Objective and contributions}
+
+The objective of this study is to define, implement, and pre-specify the
+evaluation of an endpoint-local method that reduces attachment ambiguity while
+preserving the confidentiality role of a blind encrypted relay. The object of
+study is the attachment-processing boundary of an end-to-end encrypted
+messaging system. The subject of study is the set of methods by which
+format-profile convergence, canonical reconstruction, independent validation,
+resource policy, and transactional publication can be composed into a
+falsifiable delivery rule.
+
+The residual novelty is the composition of five elements whose individual
+mechanisms have prior art. The first is endpoint-local, user-benefiting
+reconstruction at both plaintext boundaries of an end-to-end encrypted
+messaging system, without a content-reporting path to the blind relay. The
+second is convergence of exactly three routing sources, namely a normalized
+portable name, a parsed caller-supplied media type, and bounded byte evidence,
+followed by an independent complete output parser that authorizes delivery
+rather than dispatch. The third is policy-indexed reconstruction strength, with
+the performed level recorded and weaker reconstruction unable to satisfy a
+stronger requirement. The fourth is independently validated clean-only
+publication across in-memory, filesystem, and foreign-function interfaces. The
+fifth is a pre-specified evidence contract that separates structural closure,
+neutralization, false acceptance, false blocking, media fidelity, fault
+behavior, and cost before empirical results are admitted.
+
+The formal contribution is a separation between routing evidence and delivery
+authorization. This separation yields an explicit acceptance predicate,
+properties for complete consumption, canonical component closure, type
+convergence, metadata exclusion, source resolution and provenance, resource
+boundedness, independent candidate validation, and fail-closed result
+construction. It also supports a policy order in which a stronger profile
+cannot authorize an object solely because a weaker profile did. The
+propositions presented later are analytical composition arguments under stated
+assumptions. They are not represented as machine-checked proofs of codec
+correctness.
+
+The systems contribution is a Rust implementation whose architecture makes
+the claim boundary inspectable. Handlers report the level actually performed.
+A separate validation module parses rebuilt outputs. External codec processes
+are invoked with time, output, diagnostic, protocol, and platform-dependent
+resource constraints. Cancellation and panic paths terminate without a
+deliverable object. Versioned policy and interface representations preserve the
+decision across Rust, C-compatible, and application-facing boundaries.
+
+The empirical contribution is the pre-specified evidence contract rather than
+an early numerical claim. It defines benign canonical and noncanonical strata,
+malformed inputs, classifier disagreements, true polyglots, boundary-smuggling
+carriers, resource-exhaustion cases, unsupported active objects, and known
+parser regressions. It separates format closure, neutralization, false
+acceptance, false blocking, media fidelity, fault tolerance, and performance.
+Numerical cells remain unavailable until a pinned server run passes the
+declared release gates. This constraint prevents development-machine
+observations from becoming publication results.
+
+\subsection{Research question and scope}
+
+The central research question is whether an endpoint-local reconstruction and
+publication boundary can reduce measurable media-carrier ambiguity without
+granting plaintext access or attachment authority to an intermediary. The
+question decomposes into the more specific questions formalized in
+\cref{sec:terminology-questions}. The study asks what evidence is sufficient
+for dispatch, what additional evidence is necessary for acceptance, which
+security properties follow from structural and semantic reconstruction, how
+the policy behaves under strengthening, and how the implementation can be
+evaluated without confusing parser evidence with behavioral malware detection.
+
+The scope is intentionally restricted to configured media profiles. PDF,
+office-document, archive, executable, script, package, shortcut, and
+macro-bearing formats are outside the supported media grammar and are blocked
+by the evaluated media-only profile. Phishing meaning, harmful imagery,
+steganographic information retained in pixels or samples, and exploitation of
+a previously compromised endpoint remain outside the claim. Decoder isolation
+reduces consequences under stated operating-system controls, but it does not
+prove an invoked decoder free of vulnerabilities.
+
+The remainder of the manuscript proceeds from concepts to evidence.
+\Cref{sec:terminology-questions} fixes terminology, units of analysis, research
+questions, and falsification conditions. \Cref{sec:related-work} synthesizes the
+relevant literature.
+\Cref{sec:system-context,sec:malware-taxonomy,sec:extended-adversary}
+establish system placement, malware-carrier taxonomy, and the adversary.
+\Cref{sec:evidence-convergence,sec:formal-method,sec:policy-algebra,sec:publication-semantics}
+define the method.
+\Cref{sec:format-methods,sec:polyglots} instantiate it for supported formats
+and cross-format constructions.
+\Cref{sec:process-isolation,sec:implementation} trace the implementation.
+\Cref{sec:corpus,sec:evaluation,sec:threat-campaigns,sec:results-framework}
+pre-specify the empirical study. The discussion then distinguishes what the
+construction establishes, what the future server evidence may establish, and
+what remains outside both.

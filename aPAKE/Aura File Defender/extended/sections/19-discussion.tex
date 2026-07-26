@@ -1,0 +1,351 @@
+\section{Discussion}
+\label{sec:discussion}
+
+\subsection{What the method changes}
+
+The central effect of \AFD\ is not the addition of one more file detector. It
+changes the object on which delivery authority is based. A conventional
+pipeline often scans the source object and, if no blocking rule fires, releases
+that same object. The security decision is then coupled to the coverage and
+interpretation of the detectors. In the method developed here, exactly three
+source-evidence classes select a constrained reconstruction path. They are the
+normalized portable name, caller-supplied media type, and bounded byte evidence.
+Delivery authority applies to the newly produced object only after an
+independent parser has established its complete output profile. This change is
+modest at the level of application flow, yet
+substantial at the level of the claim. The accepted object is no longer merely
+an object for which no detector raised an alarm. It is an object for which a
+specified conjunction of positive structural conditions holds.
+
+Positive conditions do not make detection obsolete. Signature rules remain
+useful for excluding known indicators before and after reconstruction.
+Unsupported active classes remain useful policy categories. Operating-system
+malware protection and application isolation remain necessary. The composition
+changes the role of these controls. A signature result is one rejection layer
+rather than the definition of format validity. A MIME recognizer is one source
+of routing evidence rather than an authority. A codec success is evidence that
+a representation could be decoded rather than evidence that the complete
+output belongs to the intended canonical grammar.
+
+This separation also improves the interpretation of negative results. When a
+sample is blocked because its final suffix conflicts with its complete byte
+profile, the evidence supports a classifier-disagreement claim. When a sample
+is blocked because bytes follow the accepted terminator, the evidence supports
+a complete-consumption claim. When a source metadata element is absent from a
+reconstructed and reparsed output, the evidence supports a named metadata
+exclusion. None of these outcomes needs the broader assertion that a malware
+family was detected.
+
+\subsection{Canonicality as a policy-relative property}
+
+Canonicality is sometimes used to imply a unique encoding for an abstract
+object. That interpretation would be too strong for several media families in
+this study. Lossy encoders may produce different byte strings for perceptually
+equivalent media. EBML allows more than one size-width representation in some
+positions. Container brands and codec configurations can admit alternatives
+that are valid but not interchangeable under one deployment policy. The method
+therefore defines canonicality relative to a concrete format profile and a
+versioned policy.
+
+This policy-relative definition retains the properties needed at the delivery
+boundary. The output parser consumes the complete object. Components appear
+only at admitted locations. Required components have bounded multiplicities and
+consistent cross-references. Forbidden metadata is absent. Type evidence
+converges. Resource constraints hold. A different policy may define a different
+accepted language, but that language is explicit and pinned to the result.
+
+The definition also avoids a hidden dependence on encoder behavior. A handler
+cannot claim canonical output merely because it invoked a named encoder. The
+encoder output is reparsed under the same profile that governs delivery. This
+independent gate detects trailing data, unexpected application records,
+container features introduced by a tool version, and handler mistakes that a
+successful semantic decode would not reveal. The independence is architectural,
+not absolute. A handler and validator can share a specification error.
+Differential validation with separately implemented tools is therefore retained
+as empirical evidence rather than treated as a proof.
+
+\subsection{Structural and semantic reconstruction}
+
+The distinction between structural and semantic reconstruction is the most
+important limit on the disarm claim. Structural reconstruction can provide
+strong container-level results. A parser can reject invalid lengths and
+offsets, remove unadmitted boxes, replace comment packets, reconstruct checksums,
+normalize metadata, and establish that no bytes remain beyond the declared object.
+These properties directly address many prefix, suffix, nested-object, and
+privacy-metadata scenarios.
+
+Structural reconstruction can nevertheless preserve attacker-controlled codec
+payload. An accepted APNG or animated-WebP frame payload, FLAC frame, MP3
+frame, Ogg media packet, ISO BMFF sample, or WebM block remains an input to a codec. Deep structural validation narrows
+the syntax and can verify checksums and cross-field consistency. It does not
+prove that an external decoder contains no vulnerability triggered by the
+retained payload. Any statement about neutralizing content inside that payload
+therefore requires semantic decode-and-reencode or a decision to block.
+
+Semantic reconstruction provides a stronger information-flow break between
+source container bytes and output container bytes. Static raster images and GIF
+frames are reconstructed from decoded pixel state. A high-risk audio or video
+profile can require semantic transcoding. This stronger path introduces its own
+trusted computing base. The decoder consumes hostile input before the new
+representation exists. Process isolation, resource limits, protocol
+restrictions, cancellation, and output validation reduce exposure, but do not
+turn an unverified codec into verified code. The correct interpretation is
+therefore conditional: given successful bounded semantic processing within the
+stated isolation assumptions, source container and compressed payload bytes are
+not copied into the accepted output.
+
+The semantic-or-block policy makes the distinction operational. If a required
+semantic path is absent or fails, the system does not reinterpret structural
+success as an acceptable substitute. This behavior may increase false blocking
+and latency. It is still preferable to silently weakening the property that
+motivated the policy.
+
+\subsection{Closest work and residual novelty}
+
+The closest work narrows the novelty claim materially. Open Image CDR already
+provides semantic JPEG reconstruction with pixel manipulation and usability
+measurement~\cite{belkind2023}. ImSan already rebuilds images to remove
+metadata and extraneous content in image-based polyglot cases~\cite{koch2025}.
+PdfCDR already defines and evaluates rule-informed reconstruction for
+PDF~\cite{dubin2023}. SafeDocs already pursues verified parsers and
+high-assurance translation into safe format subsets~\cite{darpaSafeDocs}. The
+present work therefore does not claim invention of CDR, decode-and-reencode,
+metadata stripping, image-polyglot sanitization, safe subsetting, or verified
+parser research.
+
+The residual novelty is the following composition. Reconstruction is
+endpoint-local and user-benefiting within an end-to-end encrypted workflow,
+while the relay remains blind and receives no content-derived report. Exactly
+three routing sources select the candidate profile, followed by an independent
+complete output parser that participates in delivery authorization. The
+required reconstruction strength is indexed by policy and cannot be silently
+weakened. Publication is clean-only and independently validated. A
+pre-specified evidence contract fixes claims, strata, denominators, and release
+gates before empirical values are admitted. This is a system-boundary and
+evidence contribution, not a priority claim over the underlying reconstruction
+or parser techniques.
+
+\subsection{Implications for malware-carrier threats}
+
+The taxonomy in \cref{sec:malware-taxonomy} separates five dimensions that are
+often collapsed in security reporting: replication mechanism, initial-access
+mechanism, operational role, payload objective, and attachment-carrier
+property. This separation explains both the relevance and the limit of \AFD\
+for virus, worm, Trojan, downloader, dropper, stager, ransomware, and spyware
+scenarios.
+
+A file-infector virus may create a carrier with an executable host grammar, an
+appended body, or altered structural boundaries. Code labelled as a worm must
+self-propagate after execution, although its first carrier may be a script,
+executable, shortcut, archive, or active document. A downloader obtains a
+follow-on payload from another source. A dropper places an embedded payload. A
+stager prepares or transfers control to a later stage. A Trojan may exploit a
+misleading name or declared media type. Ransomware and spyware may use any of
+these delivery routes before displaying their characteristic behavior. The
+evaluated media-only policy blocks unsupported active classes and tests
+measurable classifier, boundary, nested-object, and true-polyglot properties.
+It does not execute the payload and infer replication, operational role, or
+objective.
+
+This approach may appear conservative because it refuses an aggregate
+\emph{malware blocked} rate. The alternative would be scientifically weaker.
+Such a rate would combine unsupported executables, malformed images, removed
+privacy metadata, decoder regressions, and semantic transcodes under one
+denominator.
+The mechanisms and failure conditions would be hidden. Reporting by carrier
+property permits reviewers to determine which threats were actually exercised
+and which output condition was established.
+
+There are also threats for which reconstruction is the wrong method. A
+phishing instruction rendered as ordinary pixels remains ordinary image
+content. A steganographic payload can remain in reconstructed pixels or
+samples. A visually benign QR code can direct a user to a hostile location.
+An audio waveform can carry commands for another recognizer. Addressing these
+cases requires perceptual, semantic, provenance, or behavioral analysis with a
+different error model. Incorporating such analysis into the same product may
+be useful, but its conclusions must remain separate from canonical
+reconstruction.
+
+\subsection{Privacy and deployment}
+
+Endpoint placement follows from the confidentiality model rather than from an
+assumption that endpoints are always safe. The sender necessarily has the
+source plaintext before encryption. The receiver necessarily obtains plaintext
+after decryption if the attachment is to be used. These are the points at which
+content-derived reconstruction can occur without granting the relay a new
+capability. The method consequently preserves the relay's blindness while
+reducing the set of representations exposed beyond the local attachment
+boundary.
+
+This endpoint placement is client-side defense for the participant's benefit,
+not centrally targeted and reporting-oriented client-side scanning. The latter
+searches cleartext for designated targets and may disclose a match or its
+source to an outside party, which creates the distinct risks analyzed by
+Abelson et al.~\cite{abelson2024}. \AFD{} neither receives a central target list
+for content matching nor sends a content-derived report to the relay or an
+authority. The shared use of endpoint plaintext does not erase this difference
+in purpose, information flow, and control.
+
+The same local placement creates deployment obligations. Policy updates,
+format profiles, decoder versions, and signature rules become endpoint software
+state. Different endpoint versions can reach different decisions. The system
+must therefore record the policy and implementation version with each decision
+and define compatibility behavior explicitly. A conversation participant
+should not infer that another participant applied the same local profile unless
+the messaging protocol authenticates such an assertion. This manuscript does
+not add that assertion to the transport protocol.
+
+Privacy leakage is reduced for metadata fields that are structurally excluded
+from the published object. EXIF location, application names, comments, and
+selected container records can be removed under the corresponding profile.
+Passive presence of those fields is not spyware. Their absence is a field-level
+statement, not complete de-identification. Identifying information may be
+visible in pixels, audible in samples, inferable from content, or encoded in a
+retained stream. The evidence tables therefore report each excluded metadata
+class rather than a general privacy score.
+
+\subsection{Policy selection and operational cost}
+
+One universal profile is unlikely to serve every deployment. A media-only
+profile with semantic reconstruction for all admitted formats offers the
+strongest source-to-output separation but can reject formats for which no
+pinned semantic path exists. A structural profile can preserve more media and
+reduce transcoding cost while supporting only container and metadata claims. A
+low-latency profile may use tighter size and duration limits. A child-safety or
+high-assurance deployment may reject animation, video, or all formats whose
+semantic path relies on a large external decoder.
+
+The policy algebra provides a disciplined way to compare such profiles, but
+not every pair is ordered. One profile may accept PNG and reject video, while
+another accepts structurally reconstructed video but imposes stricter image
+dimensions. Neither is globally stronger without a declared comparison domain.
+Monotonicity tests are therefore applied only to pairs for which an order has
+been stated. This prevents the word \emph{strict} from substituting for a formal
+relation.
+
+Performance must be interpreted in the same profile-specific manner.
+Reconstructing a small static raster in process has a different cost structure
+from starting an external video transcode. Rejecting a malformed prefix may be
+much cheaper than parsing a valid long-duration stream. Median latency alone
+can conceal these distinctions. The evaluation stratifies by format,
+reconstruction level, size, decoded size, and outcome, and retains upper
+quantiles, memory, expansion, and sequential service rate. Usability is
+measured independently through decoding completion and fidelity. A fast result
+that blocks most benign inputs is not a successful system result.
+
+\subsection{Evidence hierarchy}
+
+The manuscript distinguishes analytical argument, implementation inspection,
+automated property evidence, fuzzing evidence, corpus evidence, and performance
+measurement. These categories answer different questions. The acceptance
+predicate supports an analytical argument that clean-only publication follows
+if all conjuncts and interface invariants are enforced. Source inspection
+connects those conjuncts to implementation sites. Property tests seek
+counterexamples over generated inputs. Fuzzing searches parser state spaces
+under a recorded budget. Corpus evaluation measures behavior over declared
+strata. Performance experiments estimate costs in one pinned environment.
+
+No category silently promotes itself into another. Fuzzing without a crash does
+not prove parser safety. A bounded model does not verify an external codec.
+Agreement between two parsers does not prove the specification unambiguous. A
+proof argument about verdict composition does not establish that every handler
+correctly implements a media standard. A clean Rust build does not prove
+memory safety across foreign libraries and child processes. This hierarchy is
+not rhetorical caution. It defines what evidence a future reviewer would need
+to challenge each claim.
+
+At the present drafting stage, the analytical construction and implementation
+traceability can be inspected. The pre-specified evidence contract fixes the
+empirical protocol and its result macros remain pending. Effectiveness,
+false-blocking, fidelity, and performance conclusions are not available until
+the controlled server run satisfies the release gates. The absence of
+provisional numbers is intentional.
+
+\subsection{Limitations and threats to validity}
+
+The first construct-validity threat is the mapping from campaign terminology to
+carrier properties. Public labels can be incomplete or inconsistent, and one
+malware family can use many carriers. The study mitigates this threat by
+evaluating the property directly and retaining the behavioral label only as
+scenario context. It does not infer family coverage from a synthetic carrier.
+
+The second threat is corpus representativeness. A finite corpus cannot span all
+legal encodings, malformed structures, true polyglots, trailing-object
+constructions, nested objects, or decoder vulnerabilities. Boundary generators,
+mutations, regression cases,
+differential parsers, and coverage-guided fuzzing broaden the search. They do
+not establish population-level absence of defects. Results are reported by
+stratum and profile so that corpus composition remains visible.
+
+The third threat is ground truth. Extensions and upload labels are inadequate.
+The corpus contract therefore requires reproducible generation, agreement of
+complete reference parsers, or documented expert adjudication. Parser
+disagreement enters a separate queue rather than being resolved in favor of the
+system under evaluation. Malicious samples that cannot be redistributed remain
+identified by hashes and provenance in the isolated environment.
+
+The fourth threat is dependency and platform variation. Codec libraries,
+operating-system process controls, filesystem semantics, and compiler versions
+can change behavior. Linux-specific address-space, CPU, file-size, process-group,
+and no-new-privileges controls are not claimed on platforms where the
+implementation does not apply them. The run manifest pins each dependency and
+the target triple. Repeating the experiment on another platform is a separate
+external-validity study.
+
+The fifth threat is shared implementation. The reconstruction handler and
+independent validator are separate modules, but they can still share libraries,
+developers, and interpretations. External differential tools reduce but cannot
+eliminate common-mode failure. Standards themselves can permit alternatives or
+contain ambiguities. The accepted language is therefore the explicit Aura
+profile, not an assertion that every standards-conforming consumer will behave
+identically.
+
+The sixth threat concerns availability. Fail-closed behavior can be abused to
+deny service by submitting expensive or unsupported objects. Resource limits,
+cancellation, tenant policy, and rate controls bound individual work, but a
+complete distributed denial-of-service analysis lies outside this manuscript.
+Deployment must combine per-object bounds with admission control and endpoint
+resource governance.
+
+\subsection{Research directions}
+
+The nearest empirical task is execution of the frozen server protocol and
+publication of the resulting manifests, raw observations, analysis scripts,
+and minimized failures. Any release blocker discovered by the campaign must be
+resolved or reported before numerical claims are promoted into the manuscript.
+
+Two evidence-package synchronization items precede that freeze.  The
+machine-readable alias register inspected at the pinned implementation commit
+does not yet list \texttt{audio/m4a}, although the runtime maps it to the M4A
+audio profile.  The fidelity adapter also recognizes APNG and GIF profile names
+as animated but does not yet include
+\texttt{webp-animated-canonical-v1}.  These omissions do not change the runtime
+reconstruction result, but they prevent the current evidence package from
+supporting alias-parity and animated-WebP fidelity claims.  The scientific
+release predicate must remain false until both registries are synchronized and
+their regression checks pass.
+
+The nearest implementation task is to extend semantic coverage without
+weakening profile precision. APNG, animated WebP, retained audio bitstreams,
+and constrained video profiles require semantic paths before they can support
+codec-payload neutralization claims.  Animated WebP now has a complete
+structural reconstruction and validation profile, including a bounded
+post-reconstruction frame decode, but it still retains compressed frame
+payloads. Fragmented
+ISO BMFF and broader Matroska features require separate grammars and offset
+arguments rather than permissive extension of the current validators.
+
+A deeper formal direction is machine-checked correspondence between selected
+parser state machines, canonical serializers, and the acceptance predicate.
+This work would need to separate verified native parsers from unverified codec
+semantics and foreign processes. Another direction is authenticated policy
+attestation between messaging endpoints. Such an extension could allow a sender
+to know which reconstruction profile a receiver claims to enforce, but it would
+change the messaging protocol and introduce new downgrade and privacy questions.
+
+Finally, semantic safety mechanisms can be composed above canonical media
+without conflating their evidence. Perceptual classifiers, provenance
+credentials, child-safety policies, phishing analysis, and steganalysis can
+consume only clean canonical outputs while retaining their own verdicts,
+datasets, and uncertainty. The canonical boundary then serves as a controlled
+input layer rather than a universal content judgment.
