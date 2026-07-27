@@ -1,5 +1,19 @@
 # Server task: publish the frozen reviewer packet off-server
 
+Status: **completed on 2026-07-27; do not rerun or overwrite the release**.
+
+Completion:
+
+- release ID: `360560459`;
+- private prerelease:
+  `evidence-public-source-review-handoff-20260725T231947Z-8aa55ef`;
+- target/tag commit:
+  `8065a3582528b6061aacac1a7159dce04feebb2a`;
+- archive asset ID: `491668337`;
+- attestation asset ID: `491670170`;
+- upload/download byte identity: verified;
+- attestation byte identity: verified.
+
 Run this task on the audit server before inviting reviewers.
 
 ## Objective

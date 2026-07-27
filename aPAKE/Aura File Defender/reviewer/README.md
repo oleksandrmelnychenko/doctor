@@ -20,13 +20,29 @@ Use only the following archive:
 - SHA-256:
   `35848d3851d67808070fcc643a32cee825944f2765e8aaf50091161b60fa72cd`.
 
+Verified off-server copy:
+
+- private GitHub prerelease:
+  [evidence-public-source-review-handoff-20260725T231947Z-8aa55ef](https://github.com/oleksandrmelnychenko/ecliptix-file-defender/releases/tag/evidence-public-source-review-handoff-20260725T231947Z-8aa55ef);
+- release ID: `360560459`;
+- archive asset ID: `491668337`;
+- upload attestation asset ID: `491670170`;
+- upload attestation SHA-256:
+  `e9df8a92dca4318c5c9fab0dfc80f8fe61371968e26bc330346d6a9c299fcd6a`.
+
+The local, uploaded, and downloaded archive copies were all
+`1,534,238,629` bytes and had the same full SHA-256. The downloaded
+attestation was byte-identical to the uploaded attestation.
+
 The 47,774,624-byte GitHub prerelease asset whose digest begins
 `d7ba66114453` is a different ten-file compatibility-pilot archive. It is not
 the independent-review packet and must not be substituted for it.
 
-Before contacting reviewers, copy the 1,534,238,629-byte archive to
-access-controlled off-server storage. Send the download location privately and
-send the expected SHA-256 through a second channel.
+The repository and prerelease are private. A reviewer can use the release URL
+only when granted appropriate read access. Otherwise, the author must download
+the verified asset and redistribute that exact byte string through another
+access-controlled channel. Send the download location privately and the
+expected SHA-256 through a second channel.
 
 ## Independence requirement
 
@@ -50,6 +66,10 @@ Send each reviewer:
 2. its full SHA-256 through a separate channel;
 3. [INVITATION.md](INVITATION.md);
 4. [RUNBOOK.md](RUNBOOK.md).
+
+Track invitations and returned bundles in
+[REVIEWER-TRACKER.md](REVIEWER-TRACKER.md). Do not place private keys in the
+tracker or repository.
 
 The packet itself contains:
 

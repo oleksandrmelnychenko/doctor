@@ -57,5 +57,7 @@ public-source packet. The author-side materials are:
   invitation;
 - [reviewer/RUNBOOK.md](reviewer/RUNBOOK.md): offline verification, decision,
   Ed25519 signing, and return procedure;
+- [reviewer/REVIEWER-TRACKER.md](reviewer/REVIEWER-TRACKER.md): two-reviewer
+  independence and return-bundle status;
 - [reviewer/SERVER-PUBLISH-TASK.md](reviewer/SERVER-PUBLISH-TASK.md):
-  off-server private-prerelease publication task.
+  completed off-server private-prerelease publication record.
