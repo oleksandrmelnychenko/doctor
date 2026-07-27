@@ -36,19 +36,21 @@ reconstruction strength records whether compressed source payloads were retained
 or replaced from decoded pixels, frames, or samples.
 
 This study develops a transport-agnostic method for policy-indexed canonical
-media reconstruction and fail-closed publication. The protected transition is
-from an untrusted media tuple to either a policy-admissible reconstructed object
-or no deliverable bytes. The method first converges evidence from the portable
-name, supplied media type, and bounded byte recognizer. It then selects one
-source profile, performs the reconstruction level required by policy, subjects
-the candidate to an authorizing parser on a code path separate from
-reconstruction, applies post-rebuild signature and resource policy, and invokes
-publication only after a clean verdict. Delivery therefore depends jointly on
-one source route, a registered source-to-output mapping, policy-indexed
-canonicality, reconstruction-level sufficiency, output scanning, resource
-bounds, and non-overwriting publication. Every other result exposes no
-deliverable bytes, creates no new target through the component interface, and
-leaves any pre-existing target unchanged.
+media reconstruction and fail-closed delivery. Here, \emph{delivery} denotes
+any exposure of authorized bytes through the component interface, whereas
+\emph{publication} denotes the narrower non-overwriting filesystem transition.
+The protected transition is from an untrusted media tuple to either a
+policy-admissible reconstructed object or no deliverable bytes. The method first
+converges evidence from the portable name, supplied media type, and bounded byte
+recognizer. It then selects one source profile, performs the reconstruction
+level required by policy, subjects the candidate to an authorizing parser on a
+code path separate from reconstruction, applies post-rebuild signature and
+resource policy, and invokes publication only after a clean verdict. Delivery
+therefore depends jointly on one source route, a registered source-to-output
+mapping, policy-indexed canonicality, reconstruction-level sufficiency, output
+scanning, resource bounds, and non-overwriting publication. Every other result
+exposes no deliverable bytes, creates no new target through the component
+interface, and leaves any pre-existing target unchanged.
 
 The claim has separate analytical and empirical falsifiers. Analytically,
 under the registered-parser and filesystem assumptions, every delivered byte
@@ -62,6 +64,20 @@ authorize a structurally invalid output. The contribution evaluated here is the
 policy-indexed authorization relation that makes route selection,
 source-to-output conversion, reconstruction strength, output validation, and
 publication jointly auditable.
+
+The scientific contribution comprises four linked parts. \emph{C1
+(methodological)} is the policy-indexed authorization relation that composes
+unique routing, a registered source-level-output mapping, reconstruction
+sufficiency, complete candidate validation, rebuilt-output scanning, resource
+bounds, and clean-only delivery. \emph{C2 (analytical)} is the explicit
+assumption-to-claim boundary for conditional canonical delivery and
+fixed-witness post-reconstruction monotonicity. \emph{C3 (systems)} is the
+typed realization of the eight auditable obligations F1--F8, including
+separation of construction from authorization and non-overwriting publication.
+\emph{C4 (empirical)} is a versioned falsification protocol that binds each
+obligation to a record-level oracle, retains negative and incomplete runs, and
+withholds controlled or release claims whenever any scientific gate remains
+false.
 
 Research question 1 (RQ1) asks when heterogeneous endpoint evidence selects
 exactly one admissible route. RQ2 asks which conditions are sufficient to

@@ -126,10 +126,11 @@ publication-invariant violation was observed in those 11 executions, and no
 crash or recorded fuzz failure occurred during the shortened schedule. These
 are finite-schedule observations, not population failure-rate estimates.
 
-\Cref{fig:server-experiment-profile-results} shows two operational limitations.
-Security acceptance did not imply usability acceptance: all 32 audio and all 8
-source-WebM evaluations failed their fidelity profiles, while 24 static-image,
-8 GIF, and 8 MP4 evaluations passed. Latency differed by execution path.
+\Cref{fig:server-experiment-profile-results} shows two operational limitations
+of the original bounded run. Security acceptance did not imply usability
+acceptance: all 32 audio and all 8 source-WebM evaluations failed their fidelity
+profiles, while 24 static-image, 8 GIF, and 8 MP4 evaluations passed. Latency
+differed by execution path.
 Unsupported active inputs terminated in tens of microseconds, static images
 completed below 1 ms at the median, GIF in 1.906 ms, audio near 229 ms, and
 video near 357 ms. The mixed-corpus warm mean was
@@ -137,18 +138,18 @@ video near 357 ms. The mixed-corpus warm mean was
 \AFDExperimentSequentialRate{} sequential calls/s for this order and host. This
 is a service rate, not concurrent capacity or deployment throughput.
 
-The action result is a generated-fixture and policy consistency check, not
-independent ground-truth validation or evidence of source diversity. External
+The original action result is a generated-fixture and policy consistency check,
+not independent ground-truth validation or evidence of source diversity. External
 format/profile checks corroborate emitted outputs but do not independently
 validate expected decisions. The experiment therefore supports bounded
 record-level conformance observations and separately characterizes fidelity and
 finite-schedule latency for the tested records. The latency figure uses 1,560
 repeated warm calls, not independent samples. The shortened schedule supplies
 neither the prespecified bootstrap intervals nor a controlled RQ3 cost result.
-The experiment does not isolate the
-prescan, supplied type evidence, or reconstruction floor because no paired
-ablation stream was retained. The absent strata, controlled host,
-prespecified schedule, immutable external tools, and ablation results keep
+The original experiment does not isolate the prescan, supplied type evidence,
+or reconstruction floor because no paired ablation stream was retained. Its
+absent strata, controlled host, prespecified schedule, immutable external tools,
+and ablation results keep
 \cref{eq:scientific-gate} false and preclude broader efficacy or mechanism
 claims.
 
@@ -220,7 +221,53 @@ The packet contains \AFDReviewHandoffPrivateKeys{} private keys,
 \AFDReviewHandoffDecisions{} decisions, and
 \AFDReviewHandoffSignatures{} signatures. It makes independent review
 executable, not completed or approved \\
+Controlled-readiness cycle &
+Runner commit \texttt{\AFDReadinessRunnerCommit} retained
+\AFDReadinessBaseline{} baseline and \AFDReadinessWsThree{} WS3 results,
+\AFDReadinessFidelity{} fidelity and \AFDReadinessDifferential{} differential
+checks, \AFDReadinessAblation{} ablation rows with
+\AFDReadinessAblationErrors{} pipeline errors, \AFDReadinessFaults{} fault
+cases, and \AFDReadinessRegeneration{} available byte-identical regeneration
+checks. Evidence commit: \texttt{\AFDReadinessEvidenceCommit} &
+This was a generated, protocol-under-budget rehearsal. Independent signatures
+and admitted sources remained \AFDReadinessReviewerSignatures{} and
+\AFDReadinessAdmittedSources{}. The shared host had
+\AFDReadinessLiveContainers{} live containers; fuzz and controlled performance
+remained \AFDReadinessFuzzHours{} target-hours and
+\AFDReadinessPerformanceSessions{} sessions. Consequently
+\(G_{\mathrm{sci}}\) and release eligibility remained false \\
 \bottomrule
 \end{tabularx}
 \endgroup
 \end{table}
+
+The readiness cycle preserved the original fidelity result as a separate
+historical observation. In the versioned rerun, audio duration came from
+decoded sample counts, which excluded container padding. Video comparison
+normalized the source-WebM timebase and frame rate. No frozen threshold
+changed. The maximum audio duration drift was \AFDReadinessAudioMaxDrift{}, and
+the minimum video SSIM was \AFDReadinessVideoMinSsim{} against the unchanged
+0.90 threshold. All \AFDReadinessFidelity{} fidelity records and all
+\AFDReadinessDifferential{} differential records passed.
+
+The generated readiness inventory contained \AFDReadinessRehearsalTotal{}
+records with S0--S7 counts
+\AFDReadinessStratumZero{}, \AFDReadinessStratumOne{},
+\AFDReadinessStratumTwo{}, \AFDReadinessStratumThree{},
+\AFDReadinessStratumFour{}, \AFDReadinessStratumFive{},
+\AFDReadinessStratumSix{}, and \AFDReadinessStratumSeven{}. The 25 WS3 records
+were a scaffold, not independently adjudicated ground truth or a
+protocol-budget corpus. In the paired baseline rehearsal, removing the input
+signature prescan or supplied-type evidence caused no decision transition.
+Lowering the reconstruction floor changed \AFDReadinessLoweredFloorTransitions{}
+applicable full-policy accepts to blocks. These frozen-corpus transitions are
+descriptive and do not identify a causal or population-level mechanism effect.
+
+Only \(G_{\mathrm{schema}}\) and \(G_{\mathrm{fault}}\) passed in the complete
+gate matrix. Provenance failed; independent signatures and admitted sources
+remained absent, and the server was shared. The full corpus, F1--F8, ablation,
+differential, fidelity, fuzz, performance, and regeneration gates remained
+blocked pending independently signed admission and the protocol-budget run. The
+archive contained \AFDReadinessArchiveBytes{} bytes with SHA-256 prefix
+\texttt{\AFDReadinessArchiveHashShort}. No full fuzz hour, controlled
+performance session, or bootstrap replicate was executed in this cycle.

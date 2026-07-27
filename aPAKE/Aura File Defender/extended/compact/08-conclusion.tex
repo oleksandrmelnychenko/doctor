@@ -12,17 +12,16 @@ deliverable bytes, creates no new target through the component interface, and
 leaves any pre-existing target unchanged.
 
 The analytical model answers RQ1 and RQ2 conditionally. RQ3 remains incomplete.
-In the bounded experiment, fixture-derived actions, reason families, and
-pipeline states matched for 104 generated records. Eighty accepted record-level
+In the initial bounded experiment, fixture-derived actions, reason families,
+and pipeline states matched for 104 generated records, and 80 accepted
 evaluations representing 40 unique output digests passed the applicable
-external format/profile checks. Eleven selected single-test fault checks found
-no publication-invariant violation. Seven fuzz targets received 210 requested
-target-seconds and 7,299,439 iterations without a recorded crash or sanitizer
-finding. Fidelity failed for all 32 audio and all 8 source-WebM evaluations.
-The absent S2--S5 and S7 strata, missing paired ablation, shortened schedules,
-shared host, and failed fidelity gate keep \(G_{\mathrm{sci}}\) false.
-A separate ten-file public-benign pilot established only finite compatibility.
-Mechanical checks covered all 316 candidates, but no independent decision was
-signed and fail-closed selection returned 0/246 sources. No audited or admitted
-corpus record was produced. The offline handoff makes review executable but
-contains no key, decision, or signature; scientific release remains pending.
+external checks. A subsequent versioned readiness cycle retained 129 generated
+S0--S7 rehearsal records, passed 80/80 fidelity and differential checks,
+312/312 paired-ablation rows, 14/14 fault cases, and 6/6 available
+byte-identical regeneration checks. It did not convert those observations into
+controlled evidence: no independent decision was signed, 0/246 public sources
+were admitted, the host remained shared, and the full fuzz and controlled
+performance schedules were not run. Only the schema and fault gates passed;
+\(G_{\mathrm{sci}}\) and release eligibility remained false. The offline
+handoff and readiness archive make independent admission and the final run
+executable, but scientific release remains pending.

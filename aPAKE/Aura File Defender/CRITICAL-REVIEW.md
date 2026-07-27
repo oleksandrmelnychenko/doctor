@@ -102,3 +102,17 @@ No arithmetic error was found. The concerns above are about **scope, proof rigor
 
 ### Bottom line
 Keep the honesty — it is the paper's best quality and most CDR papers lack it. But the manuscript currently presents (i) definitional formal results as theorems and (ii) a benign-only experiment as threat-model evidence. Address M1–M4 and the paper becomes a solid method-and-protocol contribution; add the missing strata and prove the monotonicity grounding and it becomes a strong one.
+
+---
+
+## 8. Post-review evidence update (2026-07-27)
+
+The original review above remains an audit of revision `823a5ec7a0dd`; its historical measurements were not overwritten. Controlled-readiness runner `50e0c8ff7a7422c2aa5b55ad2b7ad80d6720f84e` and evidence commit `a7d4e4c0425a0265d3438d6a2474acc72de0933d` partially change the disposition of the concerns:
+
+- **M1 is partially addressed, not closed.** A 25-record generated WS3 scaffold now exercises S2–S5 and S7, yielding rehearsal counts `S0–S7 = 50, 30, 9, 6, 4, 4, 24, 2`. The manifest is still below protocol budgets, has no independently admitted public source, and does not provide independent ground truth.
+- **M4 is resolved at the measurement level in a new versioned run.** Using decoded-sample duration and normalized source-WebM video comparison, without changing thresholds post hoc, produced `80/80` fidelity passes, maximum audio duration drift `0.0`, and minimum video SSIM `0.969366` against the unchanged `0.90` threshold. The original `40/80` observation remains valid for its earlier metric implementation.
+- **The fault part of M5 is addressed for the rehearsal.** The complete registered 14-case fault schedule passed `14/14`. The fuzz part remains entirely open at `0/21` target-hours.
+- **Paired ablation is now executable.** All `312/312` rows were retained without a pipeline error. Removing the input prescan or supplied-type evidence caused no baseline decision transition; lowering the reconstruction floor changed `8/48` applicable accepts to blocks. These are descriptive frozen-rehearsal observations, not causal or population estimates.
+- **M2, M3, and M6 remain material.** Independent signatures and admitted sources remain zero, parser soundness remains assumed, the server is shared with 33 live containers, and controlled performance remains `0/10` sessions with `0/10,000` bootstrap replicates.
+
+The readiness cycle therefore strengthens the engineering and measurement story but does not change the publication boundary: `G_sci=false` and release eligibility remains false.
