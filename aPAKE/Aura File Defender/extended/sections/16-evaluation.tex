@@ -117,25 +117,29 @@ decode--re-encode step cannot be read off the candidate \(y\) alone, so F4 rests
 on \cref{asm:semantic-construction} and the code path that serializes only from
 the decoded intermediate representation.
 
-Second-pass stability operationalizes F5 but is not itself an acceptance
-condition. Let \(\mathsf{Out}_{p,v}(u)\) be defined as \(y\) only when the
-pipeline returns a clean accepted candidate
-\(a=(y,n_o,m_o,k_o,\ell,e)\). Let
-\(u[a]=((y,n_o,m_o),(p,d'))\) be a second request under the same policy and a
-fresh, equivalent deadline context \(d'\). For profiles registered as exact,
+Second-pass stability operationalizes F5 but is not an acceptance condition.
+Let \(\mathsf{Out}_{p,v}(u)=y\) only for a clean accepted candidate, and let
+\(u[y]\) submit that output under the same policy and an equivalent fresh
+deadline. For profile \(k\), decoded representation \(\phi_k\), registered
+metric \(d_k\), and threshold \(\varepsilon_{p,k}\), define
 \begin{equation}
- \mathsf{Out}_{p,v}(u)=y
- \Longrightarrow
- \mathsf{Out}_{p,v}(u[a])=y.
+ \mathsf{Close}_{p,k}(y,y')=
+ \begin{cases}
+  [y'=y],&k\in K_{\mathrm{exact}},\\
+  [d_k(\phi_k(y'),\phi_k(y))\le\varepsilon_{p,k}],
+    &k\in K_{\mathrm{lossy}},
+ \end{cases}
  \label{eq:idempotence}
 \end{equation}
-For lossy profiles, registered semantic closure instead requires a clean second
-verdict, the same output profile and reconstruction requirement, and a
-prespecified fidelity comparator. It does not imply perceptual equivalence or
-bounded accumulated drift. The policy comparison in
-\cref{eq:validation-monotonicity} holds the candidate and parser reports fixed.
-End-to-end comparisons remain descriptive when route selection or
-reconstruction changes.
+and require
+\[
+ \mathsf{Out}_{p,v}(u)=y\Longrightarrow
+ \exists y'=\mathsf{Out}_{p,v}(u[y]):
+ \mathsf{profile}(y')=k\land\mathsf{Close}_{p,k}(y,y').
+\]
+Lossy closure is one-step and metric-specific; it implies neither perceptual
+equivalence nor bounded accumulated drift. Unlike
+\cref{eq:validation-monotonicity}, it allows new bytes and parser reports.
 
 \subsection{Paired mechanism ablation}
 \label{subsec:mechanism-ablation}
@@ -343,33 +347,36 @@ table traces to its frozen source digests.
 \subsection{Release gates and claim authorization}
 \label{subsec:release-gates}
 
-Controlled-run and release-candidate eligibility require the conjunction
+Let each gate take a three-valued state
+\(\mathbb G=\{\mathsf P,\mathsf F,\mathsf B\}\) for pass, fail, and blocked.
+For a finite gate vector \(\mathbf g\), define
 \begin{equation}
- \begin{aligned}
- G_{\mathrm{sci}}={}&G_{\mathrm{prov}} \land G_{\mathrm{schema}}
- \land \bigwedge_{r\in\mathrm{corpus}}G_r
- \land \bigwedge_{j=1}^{8}G_{\mathrm{F}j} \\
- &{}\land G_{\mathrm{abl}} \land G_{\mathrm{diff}}
- \land G_{\mathrm{fidelity}}
- \land G_{\mathrm{fuzz}} \land G_{\mathrm{fault}}
- \land G_{\mathrm{perf}} \land G_{\mathrm{regen}}.
- \end{aligned}
+ \bigwedge\nolimits^\star\mathbf g=
+ \begin{cases}
+  \mathsf F,&\exists j:g_j=\mathsf F,\\
+  \mathsf P,&\forall j:g_j=\mathsf P,\\
+  \mathsf B,&\text{otherwise}.
+ \end{cases}
+ \label{eq:three-valued-gate}
+\end{equation}
+The scientific gate is
+\begin{equation}
+\begin{aligned}
+ G_{\mathrm{sci}}=\bigwedge\nolimits^\star\bigl(&
+ g_{\mathrm{prov}},g_{\mathrm{schema}},
+ (g_r)_{r\in\mathcal C},(g_{\mathrm F j})_{j=1}^{8},
+ g_{\mathrm{abl}},g_{\mathrm{diff}},g_{\mathrm{fidelity}},\\
+ &g_{\mathrm{fuzz}},g_{\mathrm{fault}},g_{\mathrm{perf}},
+ g_{\mathrm{regen}}\bigr).
+\end{aligned}
  \label{eq:scientific-gate}
 \end{equation}
-\(G_{\mathrm{prov}}\) requires frozen source, dependency, policy, corpus, tool,
-and environment identities. \(G_{\mathrm{schema}}\) requires every report to
-pass its versioned schema and cross-file consistency checks. Each \(G_r\)
-requires the expected action, reason family, pipeline state, digest, profile,
-and per-record evidence for manifest record \(r\). The predicates
-\(G_{\mathrm{F}1},\ldots,G_{\mathrm{F}8}\) correspond to the eight rows of
-\cref{tab:property-suite}. \(G_{\mathrm{diff}}\) and
-\(G_{\mathrm{fidelity}}\) require complete external-validation and fidelity
-records for every accepted evaluation. \(G_{\mathrm{fuzz}}\),
-\(G_{\mathrm{fault}}\), and \(G_{\mathrm{perf}}\) require their full
-prespecified budgets and cases. \(G_{\mathrm{regen}}\) requires every table and
-summary to regenerate from the retained raw records. Together with the ablation
-gate, these predicates define controlled-run eligibility. A failed conjunct
-precludes controlled, population, capacity, or release-candidate claims but
-does not suppress finite observations or negative results. Failed runs remain
-append-only, and a release candidate additionally requires
-\texttt{release\_eligibility.eligible=true}.
+Here \(\mathcal C\) is the frozen corpus; provenance freezes all input
+identities, schema validates cross-file consistency, \(g_r\) binds each
+record-level oracle and evidence, and \(g_{\mathrm F j}\) instantiates
+\cref{tab:property-suite}. The remaining gates require their complete
+prespecified ablation, external-validation, fidelity, fuzz, fault, performance,
+and regeneration schedules. Controlled or release claims require
+\(G_{\mathrm{sci}}=\mathsf P\) and
+\texttt{release\_eligibility.eligible=true}; \(\mathsf F\) or \(\mathsf B\)
+retains finite observations but forbids those claims.

@@ -15,20 +15,24 @@ input belongs to any profile. Their conjunction defines
 \end{equation}
 where \(K^{\mathrm{in}}_p\) is the finite enabled source-profile set and
 \(C_{p,s}\) contains explicit alias and compatibility rules. Routing proceeds
-only when
-$|R_p(x,n,m)|=1$. An empty set denotes unsupported or conflicting input, whereas
-a set with more than one member denotes ambiguity. Neither case is resolved
-through precedence, extension override, or best-effort fallback.
+through the partial selector
+\begin{equation}
+ \mathsf{Route}_p(u)=
+ \begin{cases}
+   s, & R_p(x,n,m)=\{s\},\\
+   \bot, & |R_p(x,n,m)|\neq 1.
+ \end{cases}
+ \label{eq:unique-route}
+\end{equation}
+Thus unsupported, conflicting, and ambiguous evidence all fail closed; no
+precedence or extension override supplies a route.
 
-Normalization accepts one portable basename and one syntactically valid media
-type. It rejects path separators, dot components, control or bidirectional
-characters, forbidden device names, trailing dots or spaces, wildcard types,
-malformed types, and dangerous suffix chains. Alias equivalence is registered
-by profile. For example, \texttt{audio/mp4},
-\texttt{audio/x-m4a}, and \texttt{audio/m4a} can converge on the same M4A
-profile. An alias does not broaden byte acceptance or authorize another ISO
-base media profile. HTTP content-type semantics likewise do not turn a supplied
-declaration into whole-file evidence \cite{rfc9110}.
+Normalization admits one portable basename and one syntactically valid media
+type, rejecting path syntax, control characters, forbidden names, malformed or
+wildcard types, and dangerous suffix chains. Registered aliases such as
+\texttt{audio/mp4}, \texttt{audio/x-m4a}, and \texttt{audio/m4a} may identify
+one M4A profile but do not broaden byte acceptance; a supplied HTTP media type
+is not whole-file evidence \cite{rfc9110}.
 
 For the unique source route \(s\), reconstruction is a total typed operation
 \begin{equation}
@@ -179,6 +183,43 @@ failure. All converge on one non-deliverable terminal state.}
 \label{fig:reconstruct-or-reject}
 \end{figure}
 
+\begin{definition}[Operational delivery system]
+\label{def:operational-system}
+Let a state be \(z=(\sigma,D,h)\), where
+\[
+ \sigma\in\{\mathsf I,\mathsf R,\mathsf C,\mathsf A,
+ \mathsf D,\mathsf P,\mathsf X\}
+\]
+denotes initial, routed, candidate, authorized, delivered, published, or
+rejected; \(D\) is filesystem state; and \(h\in\{\mathsf{None},
+\mathsf{Some}(y)\}\) is the externally deliverable byte handle. Internal
+transitions \(\mathsf I\to\mathsf R\to\mathsf C\to\mathsf A\) preserve
+\((D,\mathsf{None})\). A failed premise transitions to \(\mathsf X\) with the
+same pair. The transition \(\mathsf A\to\mathsf D\) exists only when
+\cref{eq:clean-only-delivery} yields \(\mathsf{Some}(y)\), and
+\(\mathsf D\to\mathsf P\) uses \cref{eq:publish-transition}.
+\end{definition}
+
+\begin{proposition}[Fail-closed trace invariant]
+\label{prop:fail-closed-trace}
+For every finite trace
+\(z_0=(\mathsf I,D_0,\mathsf{None})\to^{*}z\),
+\begin{equation}
+ \sigma(z)=\mathsf X\Longrightarrow
+ D(z)=D_0\ \land\ h(z)=\mathsf{None}.
+ \label{eq:fail-closed-trace}
+\end{equation}
+Moreover, \(h(z)=\mathsf{Some}(y)\) implies that the trace contains
+\(\mathsf A\to\mathsf D\) with \(\Accept_{p,v}(u,a)\) and a clean verdict.
+\end{proposition}
+
+\begin{proof}
+Induct on trace length. Each internal or rejecting rule preserves
+\((D_0,\mathsf{None})\); the only rule introducing a byte handle is guarded by
+\cref{eq:clean-only-delivery}. Exclusive publication either applies the sole
+state-changing branch of \cref{eq:publish-transition} or preserves \(D\).
+\end{proof}
+
 The eight analytical invariants are summarized in
 \cref{tab:method-invariants}. Each specifies an observable condition that maps
 directly to a test or release gate.
@@ -204,44 +245,32 @@ F8 & Clean-result publication & Non-clean and error outcomes expose no bytes, cr
 \end{tabularx}
 \end{table}
 
-Policy comparison is defined \emph{syntactically} on the components that enter
-post-reconstruction validation, so that the monotonicity result below is a
-theorem about those components rather than a restatement of an extensional
-inclusion. Let \(w=(s,a,\{\rho_j(y)\})\) be a fixed post-reconstruction witness,
-with \(a=(y,n_o,m_o,k_o,\ell,e)\), and let \(\mathsf{PostOK}_{p,v}(w)\) denote
-the conjunction of the source-level-output relation and the output-name,
-output-type, byte-type, level, bounds, scan, and authorizing-parser predicates
-in \cref{eq:extended-acceptance} (that is, \(\Accept_{p,v}\) with the routing
-conjunct \(R_p(x,n,m)=\{s\}\) removed).
+Let \(w=(s,a,\{\rho_j(y)\})\) be a fixed post-reconstruction witness and
+\(\mathsf{PostOK}_{p,v}(w)\) the acceptance conjunction after removing routing.
+The following syntactic order avoids defining refinement by the conclusion it
+is intended to prove.
 
 \begin{definition}[Syntactic policy refinement]
 \label{def:policy-refinement}
-Write \(p_2\sqsubseteq p_1\) when, for the fixed output profile \(k_o\) and
-parser-registry version \(v\), all of the following hold componentwise:
-(i) every scalar bound of \(p_2\) is no larger than the corresponding bound of
-\(p_1\), i.e.\ \(\mathcal B_{p_2}\le\mathcal B_{p_1}\) coordinatewise;
-(ii) the required reconstruction level is no weaker,
-\(q_{p_2,s}\ge q_{p_1,s}\), and \(\Omega_{p_2}\subseteq\Omega_{p_1}\);
-(iii) the output language is no broader, \(L_{p_2,k_o}\subseteq L_{p_1,k_o}\),
-together with the corresponding inclusions for the admissible name and
-media-type sets, \(\mathcal N_{p_2,k_o}\subseteq\mathcal N_{p_1,k_o}\) and
-\(\mathcal M_{p_2,k_o}\subseteq\mathcal M_{p_1,k_o}\);
-(iv) the signature set is no smaller, \(\Sigma_{p_1}\subseteq\Sigma_{p_2}\),
-so that \(p_2\) scans for at least the indicators \(p_1\) does and admits no
-scan bypass; and
-(v) the authorizing-parser set and canonicality predicate are preserved,
-\(\Pi^{\mathrm{auth}}_{p_1,v,k_o}=\Pi^{\mathrm{auth}}_{p_2,v,k_o}\) and
-\(\rho.\mathsf{canonical}_{p_1,k_o}\Leftrightarrow\rho.\mathsf{canonical}_{p_2,k_o}\),
-and the publication contract of \cref{eq:publish-transition} is unchanged.
+For fixed \(k_o,v\), write \(p_2\sqsubseteq p_1\) iff
+\begin{equation}
+\begin{gathered}
+ \mathcal B_{p_2}\le\mathcal B_{p_1},\quad
+ q_{p_2,s}\ge q_{p_1,s},\quad \Omega_{p_2}\subseteq\Omega_{p_1},\\
+ L_{p_2,k_o}\subseteq L_{p_1,k_o},\quad
+ \mathcal N_{p_2,k_o}\subseteq\mathcal N_{p_1,k_o},\quad
+ \mathcal M_{p_2,k_o}\subseteq\mathcal M_{p_1,k_o},\\
+ \Sigma_{p_1}\subseteq\Sigma_{p_2},\quad
+ \Pi^{\mathrm{auth}}_{p_1,v,k_o}=\Pi^{\mathrm{auth}}_{p_2,v,k_o},
+\end{gathered}
+\label{eq:policy-refinement}
+\end{equation}
+the canonicality predicate and publication contract being identical.
 \end{definition}
 
-Note the deliberate direction of the signature-set inclusion in
-\cref{def:policy-refinement}(iv). The scan predicate \(\mathsf{ScanOK}_p(y)\)
-holds when no signature in \(\Sigma_p\) matches \(y\); it is therefore
-\emph{antimonotone} in the signature set, and a naive ``larger \(\Sigma\)''
-ordering would break the result. Requiring \(\Sigma_{p_1}\subseteq\Sigma_{p_2}\)
-is what makes \(\mathsf{ScanOK}\) monotone in the same direction as the other
-conjuncts.
+The reversed signature inclusion is deliberate:
+\(\mathsf{ScanOK}_p(y)\equiv\forall\sigma\in\Sigma_p:
+\neg\mathsf{match}(\sigma,y)\) is antimonotone in \(\Sigma_p\).
 
 \begin{lemma}[Componentwise monotonicity]
 \label{lem:component-monotone}
@@ -253,25 +282,11 @@ byte-type, level, bounds, scan, and authorizing-parser checks,
 \end{lemma}
 
 \begin{proof}
-Each conjunct is checked against a set or bound that
-\cref{def:policy-refinement} relaxes from \(p_2\) to \(p_1\).
-\emph{Bounds:} \(\mathsf{BoundsOK}\) asserts that the recorded scalars of
-\((y,e)\) lie at or below the policy bounds; by (i) the \(p_1\) bounds dominate
-the \(p_2\) bounds, so satisfaction under \(p_2\) implies satisfaction under
-\(p_1\). \emph{Level:} \(\mathsf{LevelOK}\) asserts \(\ell\ge q_{p,s}\) and
-\((s,\ell,k_o)\in\Omega_p\); by (ii) \(q_{p_1,s}\le q_{p_2,s}\le\ell\) and
-\(\Omega_{p_2}\subseteq\Omega_{p_1}\). \emph{Output language, name, and type:}
-\(\mathsf{ByteTypeOK}\), \(\mathsf{NameOutOK}\), and \(\mathsf{TypeOutOK}\)
-assert membership of \(y\), \(n_o\), and \(m_o\) in the respective admissible
-sets; by (iii) each \(p_2\) set is a subset of the corresponding \(p_1\) set, so
-membership is preserved. \emph{Scan:} \(\mathsf{ScanOK}_p(y)\) holds when
-\(\Sigma_p\) has no match on \(y\); by (iv) \(\Sigma_{p_1}\subseteq\Sigma_{p_2}\),
-so the absence of a \(\Sigma_{p_2}\)-match implies the absence of a
-\(\Sigma_{p_1}\)-match. \emph{Authorizing parser:} by (v) the authorizing set
-and canonicality predicate are identical under \(p_1\) and \(p_2\), and the
-reports \(\{\rho_j(y)\}\) are fixed in \(w\), so \(\mathsf{Valid}_{p_2,v,k_o}(y)
-\Leftrightarrow\mathsf{Valid}_{p_1,v,k_o}(y)\). Each conjunct is therefore
-preserved.
+Bounds and level thresholds relax from \(p_2\) to \(p_1\); the route, language,
+name, and type sets enlarge; absence of a match in \(\Sigma_{p_2}\) implies
+absence in its subset \(\Sigma_{p_1}\); and the fixed parser reports are tested
+by an unchanged authorizing predicate. Hence every \(p_2\) conjunct implies its
+\(p_1\) counterpart.
 \end{proof}
 
 \begin{theorem}[Post-reconstruction validation monotonicity]
@@ -286,11 +301,8 @@ For a fixed post-reconstruction witness \(w\) and parser-registry version
 \end{theorem}
 
 \begin{proof}
-\(\mathsf{PostOK}_{p,v}(w)\) is the conjunction of the component predicates in
-\cref{lem:component-monotone}. Assuming \(p_2\sqsubseteq p_1\) and
-\(\mathsf{PostOK}_{p_2,v}(w)\), every \(p_2\)-conjunct holds; by
-\cref{lem:component-monotone} each corresponding \(p_1\)-conjunct holds; their
-conjunction is \(\mathsf{PostOK}_{p_1,v}(w)\).
+Apply \cref{lem:component-monotone} to each conjunct of
+\(\mathsf{PostOK}_{p_2,v}(w)\).
 \end{proof}
 
 \Cref{thm:validation-monotonicity} is a post-reconstruction validation
@@ -301,7 +313,7 @@ select a different reconstruction, or produce different bytes. Such cases are
 recorded as route or reconstruction changes and do not instantiate
 \cref{eq:validation-monotonicity}.
 
-The result constructor enforces the delivery boundary with an option type:
+The result constructor exposes bytes only through
 \begin{equation}
   \mathsf{deliverable}(o,u,a)=
   \begin{cases}
@@ -311,27 +323,22 @@ The result constructor enforces the delivery boundary with an option type:
   \end{cases}
   \label{eq:clean-only-delivery}
 \end{equation}
-This rule applies to in-process values, interface buffers, and path publication.
-Suspicious, blocked, cancelled, timed-out,
-malformed, unsupported, and internally failed operations are distinguishable
-in evidence while sharing the same no-deliverable postcondition.
+All non-clean and error states remain distinguishable in evidence but map to
+\(\mathsf{None}\).
 
-Path publication has a non-overwriting abstract contract. The system derives
-the final basename and canonical suffix, stages accepted bytes, revalidates the
-policy snapshot and destination condition, and invokes a publication primitive
-whose platform-specific guarantees are stated separately. The abstract
-transition is
+For filesystem state \(D\), exclusive publication is the partial transition
 \begin{equation}
-  (D,\bot)\xrightarrow{
-    o=\mathsf{Ok}(\Clean,e)\land\Accept_{p,v}(u,a)}
-  (D\cup\{q\mapsto y\},q),
+ \mathsf{Pub}_{p,v}(D,u,a,o)=
+ \begin{cases}
+  (D\cup\{\zeta\mapsto y\},\zeta),&
+   \substack{\mathsf{deliverable}(o,u,a)=\mathsf{Some}(y),\\
+   \zeta\notin\mathrm{dom}(D),\ \mathsf{commit}(\zeta,y)},\\
+  (D,\bot),&\text{otherwise}.
+ \end{cases}
   \label{eq:publish-transition}
 \end{equation}
-where \(D\) is the pre-state and \(q\notin\mathrm{dom}(D)\). A failed component
-publication call neither creates nor replaces \(q\). If \(q\) already exists or
-is created by another actor during the attempt, that entry remains unchanged.
-The component does not report a staging object as a final path and removes
-staging state on abort to the extent guaranteed by the host filesystem.
+Staging is not a final path and is discarded on abort to the extent guaranteed
+by the host filesystem.
 
 The delivery guarantee rests on three assumptions that are stated explicitly
 because they, not the acceptance predicate, carry the security weight.
@@ -355,28 +362,30 @@ of the source \(x\) as an output component.
 \label{asm:publication}
 Publication uses an exclusive-create primitive with the non-overwrite semantics
 in \cref{eq:publish-transition}. On failure, the primitive creates no target and
-replaces none. If \(q\) already exists or is created concurrently, \(q\)
+replaces none. If \(\zeta\) already exists or is created concurrently, \(\zeta\)
 remains unchanged.
 \end{assumption}
 
 \begin{theorem}[Conditional canonical delivery]
 \label{thm:conditional-delivery}
-Under \cref{asm:parser-soundness}, if \(\Accept_{p,v}(u,a)\) holds then
-\(y\in L_{p,k_o}\). Under \cref{asm:semantic-construction}, a strict semantic
-route copies or references no source payload as an output component. Under
-\cref{asm:publication}, a non-clean result creates or replaces no target through
-the component API.
+Under \cref{asm:parser-soundness,asm:semantic-construction,asm:publication},
+\begin{equation}
+\begin{aligned}
+ \Accept_{p,v}(u,a)&\Longrightarrow y\in L_{p,k_o},\\
+ \ell=\Semantic&\Longrightarrow
+   \mathsf{copied}_{x}(y)=\varnothing,\\
+ \mathsf{deliverable}(o,u,a)=\mathsf{None}
+   &\Longrightarrow \mathsf{Pub}_{p,v}(D,u,a,o)=(D,\bot).
+\end{aligned}
+\label{eq:conditional-delivery}
+\end{equation}
 \end{theorem}
 
 \begin{proof}
-\(\Accept_{p,v}(u,a)\) contains the conjunct \(\mathsf{Valid}_{p,v,k_o}(y)\)
-(\cref{eq:authorizing-validation}), which requires
-\(\Pi^{\mathrm{auth}}_{p,v,k_o}\neq\varnothing\) and
-\(\mathsf{CompleteOK}_{p}(\rho_j(y),k_o,y)\) for every configured \(j\). Taking
-any such \(j\), \cref{asm:parser-soundness} gives \(y\in L_{p,k_o}\). The
-payload-independence and publication clauses follow directly from
-\cref{asm:semantic-construction,asm:publication}, respectively, together with
-\cref{eq:clean-only-delivery}, which withholds bytes on every non-clean result.
+\(\Accept\) contains \(\mathsf{Valid}\), so any configured sound authorizing
+parser yields \(y\in L_{p,k_o}\). Strict semantic construction gives the
+disjointness claim; \cref{eq:publish-transition} and exclusive creation give
+state preservation when no bytes are deliverable.
 \end{proof}
 
 \Cref{thm:conditional-delivery} is deliberately shallow given its assumptions:

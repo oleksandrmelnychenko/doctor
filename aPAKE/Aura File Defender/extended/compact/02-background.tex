@@ -124,6 +124,29 @@ implementation from being reported as independent replication.
 
 \begin{table}[t]
 \centering
+\caption{Core notation used by the formal method and evidence model.}
+\label{tab:core-notation}
+\small
+\begin{tabularx}{\textwidth}{L{0.22\textwidth}Y}
+\toprule
+Symbol & Meaning \\
+\midrule
+\(u=((x,n,m),(p,d))\) & One request: bytes, portable name, supplied type, immutable policy, and deadline context \\
+\(s,k\) & Registered source and output profiles \\
+\(R_p,\mathsf{Route}_p\) & Eligible-profile set and its fail-closed partial selector \\
+\(\ell,q_{p,s}\) & Performed and minimum required reconstruction levels \\
+\(\Omega_p\) & Registered source--level--output relation \\
+\(L_{p,k},\Gamma_{p,k}\) & Canonical output language and location-aware component policy \\
+\(a=(y,n_o,m_o,k_o,\ell,e)\) & Reconstructed candidate and bounded stage evidence \\
+\(\rho_j,\Pi^{\mathrm{auth}}_{p,v,k}\) & Parser report and configured authorizing-parser set \\
+\(\Accept_{p,v},\mathsf{Pub}_{p,v}\) & Candidate authorization and non-overwriting publication transition \\
+\(\mathbb G,G_{\mathrm{sci}}\) & Three-valued gate domain and aggregate scientific gate \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\begin{table}[t]
+\centering
 \caption{Research position relative to selected technical lines of work.}
 \label{tab:research-position}
 \small
