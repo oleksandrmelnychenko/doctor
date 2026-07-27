@@ -1,7 +1,7 @@
-# Aura File Defender paper plan
+# Aura File Defender manuscript
 
-Working title: **Aura File Defender: Endpoint-Local Canonical Reconstruction of
-Media Attachments in End-to-End Encrypted Messaging**.
+Current title: **A Policy-Indexed Method for Canonical Reconstruction and
+Fail-Closed Delivery of Untrusted Media**.
 
 The manuscript is a methods-and-evaluation paper. Its novelty is the composed
 acceptance method at the endpoint boundary, not a claim that a new codec or a
@@ -18,10 +18,11 @@ universal antivirus classifier has been invented.
 7. Evaluation protocol and results: 1.75 pages.
 8. Discussion, limitations, and conclusion: 1.0 page.
 
-The current drafting PDF is ten journal pages including references. The
+The extended manuscript PDF is 57 A4 pages including references. The
 related-work section is grounded in source-by-source verified IEEE, ACM,
-USENIX, NIST, RFC, and W3C publications. Empirical cells remain intentionally
-pending until the controlled server run passes the complete release gate.
+USENIX, NIST, RFC, and W3C publications. Retained finite observations are
+reported with explicit evidence boundaries. Controlled, population, capacity,
+and release claims remain pending until the complete scientific gate passes.
 
 ## Scientific contribution to keep explicit
 
@@ -38,7 +39,23 @@ pending until the controlled server run passes the complete release gate.
 
 ## Results rule
 
-Only `results/generated-results.tex` may supply empirical values. It must be
-generated from a completed run whose `run-manifest.json` has
-`release_eligibility.eligible=true`. Laptop measurements and ad hoc corpus
-counts must not enter the paper.
+`results/generated-results.tex` supplies controlled-release values only after a
+completed run whose `run-manifest.json` has
+`release_eligibility.eligible=true`. Versioned finite observations retained in
+`results/server-experiment-results.tex` may enter the manuscript only with
+their run identity, denominator, and release-ineligible boundary. Laptop
+measurements and unbound ad hoc counts must not enter the paper.
+
+## Independent review
+
+The next evidence dependency is two-cluster independent review of the frozen
+public-source packet. The author-side materials are:
+
+- [reviewer/README.md](reviewer/README.md): packet identity and evidence
+  boundary;
+- [reviewer/INVITATION.md](reviewer/INVITATION.md): copy-paste reviewer
+  invitation;
+- [reviewer/RUNBOOK.md](reviewer/RUNBOOK.md): offline verification, decision,
+  Ed25519 signing, and return procedure;
+- [reviewer/SERVER-PUBLISH-TASK.md](reviewer/SERVER-PUBLISH-TASK.md):
+  off-server private-prerelease publication task.
