@@ -32,9 +32,11 @@ permissive recognition with an explicit input language and complete parsing
 \cite{samuel2012,nail2014,everparse2019,ipg2023}. SafeDocs applies the related
 principle that complex data should be reduced to well-defined, safely processable
 forms \cite{darpaSafeDocs}.
-Recent studies of file ambiguity and polyglots further demonstrate that extension,
-media type, and isolated parser success do not determine one whole-file meaning
-\cite{albertini2022,belkind2023,koch2025,you2025}.
+Recent studies of file ambiguity and polyglots further demonstrate that
+extension, media type, and isolated parser success do not determine one
+whole-file meaning \cite{koch2025,you2025}. Open reconstruction studies for
+images, PDF, and OLE documents instead evaluate format-specific reduction and
+fidelity \cite{belkind2023,dubin2023,dubin2024ole}.
 
 Content disarm and reconstruction operationalizes reduction by deleting excluded
 structures or by decoding and re-encoding content. The relevant security claim
@@ -156,7 +158,7 @@ Line of work & Established contribution & Boundary addressed in this work \\
 \midrule
 Signature and malware scanning \cite{nist80083} & Recognition of configured indicators and known malicious structures & Does not establish complete grammar, reconstruction strength, or publication safety \\
 Canonical and verified parsing \cite{samuel2012,nail2014,everparse2019,ipg2023} & Grammar-defined recognition, complete parsing, and reduced parser ambiguity & Joint route, reconstruction-strength, output-validation, and publication judgment \\
-Content disarm and reconstruction \cite{darpaSafeDocs,belkind2023,dubin2023} & Format-specific transformation into reduced representations & Policy-indexed claim strength and authorization of the emitted object rather than handler success \\
+Content disarm and reconstruction \cite{darpaSafeDocs,belkind2023,dubin2023,dubin2024ole} & Format-specific transformation into reduced representations & Policy-indexed claim strength and authorization of the emitted object rather than handler success \\
 Parser differentials and polyglots \cite{jana2012,koch2025,you2025} & Detection and characterization of conflicting file interpretations & Routing only when the evidence admits one profile, followed by canonical output observation and fail-closed delivery \\
 \bottomrule
 \end{tabularx}

@@ -1,6 +1,6 @@
 # Aura File Defender manuscript
 
-Current title: **A Policy-Indexed Method for Canonical Reconstruction and
+Current title: **Policy-Indexed Authorization for Canonical Reconstruction and
 Fail-Closed Delivery of Untrusted Media**.
 
 The manuscript is a methods-and-evaluation paper. Its novelty is the composed
@@ -18,7 +18,7 @@ universal antivirus classifier has been invented.
 7. Evaluation protocol and results: 1.75 pages.
 8. Discussion, limitations, and conclusion: 1.0 page.
 
-The extended manuscript PDF is 57 A4 pages including references. The
+The extended manuscript PDF is 54 A4 pages including references. The
 related-work section is grounded in source-by-source verified IEEE, ACM,
 USENIX, NIST, RFC, and W3C publications. Retained finite observations are
 reported with explicit evidence boundaries. Controlled, population, capacity,
