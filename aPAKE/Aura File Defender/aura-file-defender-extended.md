@@ -74,7 +74,7 @@ An authorizing parser is considered separate from construction when it is invoke
 | $\ensuremath{\mathsf{Accept}}_{p,v},\mathsf{Pub}_{p,v}$ | Candidate authorization and non-overwriting publication transition |
 | $\mathbb G,G_{\mathrm{sci}}$ | Three-valued gate domain and aggregate scientific gate |
 
-: **Table 1.** Core notation used by the formal method and evidence model.
+: **Table 1.** Core notation used by the formal method and evidence model. {#tab:core-notation}
 
 | Line of work | Established contribution | Boundary addressed in this work |
 | --- | --- | --- |
@@ -83,7 +83,7 @@ An authorizing parser is considered separate from construction when it is invoke
 | Content disarm and reconstruction [10, 16, 19–20]   Format-specific transformation into reduc | d representations                   Policy-indexed claim strength and authori | ation of the emitted object rather than handler success |
 | Parser differentials and polyglots [5, 17–18]                           Detection and charact | rization of conflicting file interpretations            Routing only when the | evidence admits one profile, followed by canonical output observation and fail-closed delivery |
 
-: **Table 2.** Research position relative to selected technical lines of work.
+: **Table 2.** Research position relative to selected technical lines of work. {#tab:research-position}
 
 [Table 2](#tab:research-position) locates the proposed method at the intersection of these lines of work. It combines routing to exactly one admissible profile, explicit reconstruction strength, separate output validation, and publication restricted to clean verdicts, with a distinct falsification oracle for each obligation.
 
@@ -115,7 +115,7 @@ $$ where the classes denote evidence and type confusion, malformed or ambiguous 
 | Counts, dimensions, and timing | Allocation, expansion, or execution exhaustion | Checked arithmetic, limits, deadline, and cancellation |
 | Fault timing and destination state | Partial publication or overwrite | Temporary output, validation before commit, and non-overwriting persistence with deployment-verified atomic visibility |
 
-: **Table 3.** Adversary capabilities and the corresponding enforced boundary.
+: **Table 3.** Adversary capabilities and the corresponding enforced boundary. {#tab:adversary-capabilities}
 
 Malware labels organize scenario provenance but do not enter the output verdict. The behavioral distinctions defined in [Section 2](#sec:background) prevent a carrier property from being reported as evidence of replication, delivery role, or payload objective. The empirical corpus can therefore contain inert carriers shaped around those mechanisms without implying a malware-family detection rate.
 
@@ -225,7 +225,7 @@ The eight analytical invariants are summarized in [Table 4](#tab:method-invarian
 | F7 | Validation separate from construction | The authorizing parser is distinct from the constructing handler |
 | F8 | Clean-result publication | Non-clean and error outcomes expose no bytes, create no new target, and leave any pre-existing target unchanged |
 
-: **Table 4.** Formal invariants and their empirical interpretation.
+: **Table 4.** Formal invariants and their empirical interpretation. {#tab:method-invariants}
 
 Let $w=(s,a,\{\rho_j(y)\})$ be a fixed post-reconstruction witness and $\mathsf{PostOK}_{p,v}(w)$ the acceptance conjunction after removing routing. The following syntactic order avoids defining refinement by the conclusion it is intended to prove.
 
@@ -346,7 +346,7 @@ $$ where $\Gamma_{p,k}$ is the location-aware component and permitted-metadata p
 | ISO BMFF | Structural or semantic | Samples in `mdat` on the structural path | Box grammar, sample tables, and extent coverage | Container and offset closure. Payload independence only after semantic reconstruction |
 | WebM | Structural or semantic | Blocks structurally, decoded streams semantically | EBML closure or semantic MP4 reparse | Structural container claims. Source-payload independence only semantically |
 
-: **Table 5.** Comparison of implemented reconstruction routes. Retained source identifies content that survives a structural route and limits its claim.
+: **Table 5.** Comparison of implemented reconstruction routes. Retained source identifies content that survives a structural route and limits its claim. {#tab:format-profile-comparison}
 
 Policy fixes $\Phi_{p,s,\ell,k}$ before dispatch. The handler reports $(y,\ell,e)$, after which the authorizing parser checks $$\begin{aligned}
  y&\in L_{p,k},&
@@ -507,7 +507,7 @@ The supervisor polls the child every 25 milliseconds. During each cycle it check
 | macOS | Temporary-file lifetime, deadline polling, cancellation, output-size monitoring, bounded diagnostics, and direct child termination | No Linux process-group, `no_new_privs`, or resource-limit setup in the compiled branch | Embed in an application sandbox with constrained entitlements and storage access |
 | iOS | In-process checks and fail-closed policy handling | Conventional applications cannot spawn the packaged FFmpeg/FFprobe child path | Strict semantic audio/video blocks unless a separately evaluated in-process backend is supplied |
 
-: **Table 6.** Comparison of external-decoder containment by deployment platform.
+: **Table 6.** Comparison of external-decoder containment by deployment platform. {#tab:platform-containment}
 
 On Linux, `SIGXFSZ` is reported as an exceeded output bound rather than an unspecified decoder failure. Across all platforms, the decoder retains the filesystem authority of its host process unless the enclosing deployment narrows it.
 
@@ -544,7 +544,7 @@ Handlers dispatch by media kind, while agreement is recorded at the more specifi
 | Non-overwriting path publication | `src/lib.rs` | Suffix convergence, same-directory staging, file synchronization, and non-overwriting persistence occur only for clean results. Directory crash durability is not claimed |
 | Tenant snapshot selection | `src/tenant.rs` | Versioned copy-on-write snapshots resolve to immutable defenders |
 
-: **Table 7.** Implementation traceability at reviewed source revision 823a5ec7a0dd. The table records source boundaries, not empirical results.
+: **Table 7.** Implementation traceability at reviewed source revision 823a5ec7a0dd. The table records source boundaries, not empirical results. {#tab:implementation-traceability}
 
 Validation separate from construction distinguishes transformation from acceptance. The implementation selects one registered complete-file grammar for the output profile. Its parsers cover PNG, APNG, JPEG, static and animated WebP, GIF, MP3, WAV, Ogg/Opus, FLAC, ISO base media, and constrained WebM. They check terminal boundaries, component placement, required or duplicate structures, specified integrity fields, arithmetic bounds, and internal references. Raster and GIF output also undergo a decode check. A handler declaration is never reused as format evidence.
 
@@ -595,7 +595,7 @@ Each record contains one explicitly frozen primary stratum from [Table 8](#tab:c
 | S6 | Unsupported or active classes | Executables, scripts, archives, active documents, PDF, vector markup, shortcuts, packages, and unknown bytes | Media-only policy enforcement |
 | S7 | Parser and decoder regressions | Legally distributable minimized panic, arithmetic, differential, and decoder cases | Regression resistance |
 
-: **Table 8.** Prespecified corpus strata and their primary inferential roles.
+: **Table 8.** Prespecified corpus strata and their primary inferential roles. {#tab:corpus-strata}
 
 S0 and S1 estimate benign false blocking. S2 mutates one obligation before selected interactions. S3 holds bytes fixed while crossing names and types. S4 reserves true polyglot for one octet string completely accepted by two incompatible parsers and records other ambiguous carriers separately. S5 tests $L-1$, $L$, and $L+1$ where representable. S6 expects blocking. S7 contains minimized, versioned regressions and does not represent a vulnerability class.
 
@@ -622,7 +622,7 @@ The matrix in [Table 9](#tab:mutation-matrix) lists format-aware mutation famili
 | ISO BMFF | Standard, extended, and zero sizes, parent location, duplicate mandatory boxes, offsets, sample and fragment tables, M4A media-type aliases, sample-group, dependency, composition, language, and track-reference boxes, and suffix |
 | EBML and WebM [34–36]   VINT identifier and size, no | canonical encoding, unknown size, DocType, stale positions, application and date fields, codec configuration, duplicate tracks, undeclared block track, timestamp order, duration coverage, lacing, frame bounds, and budget exhaustion |
 
-: **Table 9.** Format-aware mutation families from which a frozen protocol selects and records concrete operators and interactions.
+: **Table 9.** Format-aware mutation families from which a frozen protocol selects and records concrete operators and interactions. {#tab:mutation-matrix}
 
 Pairwise interactions cross boundary, size, metadata, classification, limit, and cancellation conditions. Higher orders require a named mechanism or prior regression. Base and mutation remain paired even when outcomes match.
 
@@ -672,7 +672,7 @@ The eight invariants in [Table 4](#tab:method-invariants) map one to one to the 
 | F7 | Validation separate from construction | Every clean candidate is reparsed by a registered authorizing parser distinct from the constructing handler | Accepted candidate and internal authorizing report |
 | F8 | Fail-closed result construction and publication | Every failed conjunct, non-clean verdict, error, race, and persistence failure exposes no deliverable candidate and preserves a pre-existing target | Interface and filesystem trace |
 
-: **Table 10.** Property suite, test oracle, and admissible evidence.
+: **Table 10.** Property suite, test oracle, and admissible evidence. {#tab:property-suite}
 
 F1 appends zero, foreign-object, and malformed suffixes after the terminal extent. F2 checks parsed component paths, F3 compares normalized profiles, and F4 verifies that strict semantic output is serialized from decoded media. Unlike F1--F3, F4 is established by the construction path rather than by an artifact-observable predicate: byte-level source independence across a decode--re-encode step cannot be read off the candidate $y$ alone, so F4 rests on [Assumption 4.7](#asm:semantic-construction) and the code path that serializes only from the decoded intermediate representation.
 
@@ -696,21 +696,11 @@ The paired study measures decision sensitivity within the frozen corpus, not ant
 
 | Condition | Single registered change from $P_0$ | Applicable records | Interpretive endpoint |
 | --- | --- | --- | --- |
+| `signature-prescan` | Replace input-and-output signature scanning with output-only scanning | All records | Observed paired transition after removing pre-reconstruction signature evidence |
+| `supplied-type-evidence` | For records with a supplied type, omit that value and disable its prerequisite. For records without one, change only the prerequisite | Two prespecified groups analyzed separately. No pooled intervention estimate | Observed paired transition within each distinct intervention group |
+| `reconstruction-requirement-where-configurable` | Lower the animated-image, video, and audio requirement from required semantic reconstruction to structural reconstruction | Manifest profiles eligible for one of these configurable requirements | Decision transition under a lower registered reconstruction floor |
 
-: **Table 11.** Prespecified paired mechanism-ablation conditions. Condition identifiers match the machine-readable protocol.
-
-  `signature-`
-  `prescan`           Replace input-and-output signature scanning with output-only scanning                                                                   All records                                                                    Observed paired transition after removing pre-reconstruction signature evidence
-
-  `supplied-type-`
-  `evidence`          For records with a supplied type, omit that value and disable its prerequisite. For records without one, change only the prerequisite   Two prespecified groups analyzed separately. No pooled intervention estimate   Observed paired transition within each distinct intervention group
-
-  `reconstruction-`
-  `requirement-`
-  `where-`
-  `configurable`      Lower the animated-image, video, and audio requirement from required semantic reconstruction to structural reconstruction               Manifest profiles eligible for one of these configurable requirements          Decision transition under a lower registered reconstruction floor
-
-  : Prespecified paired mechanism-ablation conditions. Condition identifiers match the machine-readable protocol. {#tab:mechanism-ablation}
+: **Table 11.** Prespecified paired mechanism-ablation conditions. Condition identifiers match the machine-readable protocol. {#tab:mechanism-ablation}
 
 Let $\mathcal I$ be the full corpus and $I_c\subseteq\mathcal I$ the preregistered applicable set for condition $c$. The evidence stream retains one auditable row for every pair in $\mathcal C\times\mathcal I$, including an explicit inapplicable row when $i\notin I_c$. Estimands use only $I_c$. $E_i^{(c)}\in\{0,1\}$ indicates completion without a pipeline error, and $Y_i^{(c)}\in\{0,1\}$ is the observed decision for record $i$, where one denotes acceptance and zero denotes blocking. The superscript zero denotes the eligible full-policy record. The paired transition counts and full-policy denominators are $$
  \begin{aligned}
@@ -811,7 +801,7 @@ The experimental path was exercised under a two-CPU, 12-GiB Linux control group 
 | Ablation | Three conditions were prespecified but not executed in this package | No mechanism-contribution claim |
 | Scientific gate | $G_{\mathrm{sci}}=0$; release ineligible | Missing strata, public-source admission, full fuzz and controlled performance schedules, and immutable execution conditions |
 
-: **Table 12.** Selected outcomes of the bounded server experiment. All proportions describe only the generated corpus and executed schedules.
+: **Table 12.** Selected outcomes of the bounded server experiment. All proportions describe only the generated corpus and executed schedules. {#tab:server-experiment-complete}
 
 ![Fidelity outcomes by source or metric group and warm latency by execution class. Panel (a) reports 80 accepted record-level evaluations representing 40 unique output digests. Panel (b) reports the range of profile medians and p95 values within each execution class across 1,560 repeated warm calls, equal to 104 records times five repetitions times three shortened sessions. The logarithmic axis separates immediate rejection, in-process reconstruction, and external codec paths. The observations describe this generated corpus and host only.](word-assets/figure-7.png){#fig:server-experiment-profile-results width=96%}
 
@@ -833,7 +823,7 @@ The original action result is a generated-fixture and policy consistency check, 
 | Candidate inventory and review handoff | 246 Wikimedia Commons and 60 Internet Archive candidates yielded 316 distinct SHA-256 identities totaling 1,569,496,445 bytes. The packet verified 316 identities and retained 948 inspection outputs; the 1,534,238,629-byte handoff supplied decision contexts and a frozen Ed25519 tool | No provenance decision was independently signed: 0 decisions, 0 signatures, and 0/246 selected sources. Candidate inventory is not corpus admission |
 | Controlled-readiness cycle | 104/104 baseline and 25/25 WS3 results, 80/80 fidelity and 80/80 differential checks, 312/312 ablation rows with 0 pipeline errors, 14/14 fault cases, and 6/6 available byte-identical regeneration checks | This was a generated, protocol-under-budget rehearsal. Independent signatures and admitted sources remained 0 and 0. The shared host had 33 live containers; fuzz and controlled performance remained 0/21 target-hours and 0/10 sessions. Consequently $G_{\mathrm{sci}}$ and release eligibility remained false |
 
-: **Table 13.** Evidence status of the public-source compatibility and readiness rehearsals. Counts are retained observations. The evidence boundary states the maximum supported interpretation for each stage.
+: **Table 13.** Evidence status of the public-source compatibility and readiness rehearsals. Counts are retained observations. The evidence boundary states the maximum supported interpretation for each stage. {#tab:public-source-evidence-status}
 
 In the versioned readiness rerun, decoded-sample duration and normalized source-WebM comparison replaced the earlier metric implementations without changing thresholds. All 80/80 fidelity and 80/80 differential records passed; maximum audio drift was 0.0 and minimum video SSIM was 0.969366 against 0.90. The 129-record inventory had S0--S7 counts 50, 30, 9, 6, 4, 4, 24, and 2. The 25 WS3 records were an under-budget generated scaffold. Removing the input prescan or supplied-type evidence caused no baseline decision transition; Lowering the reconstruction floor changed 8/48 applicable accepts to blocks. These transitions are descriptive, not causal or population estimates.
 
