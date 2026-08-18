@@ -17,9 +17,9 @@ Let $R_p(x,n,m)$ be the eligible route set defined in
 \cref{eq:eligible-routes}. Selection is admissible only when this set is a
 one-element set:
 \begin{equation}
-  \mathsf{Route}_p(x,n,m)=k
+  \mathsf{Route}_p(u)=s
   \quad\Longleftrightarrow\quad
-  R_p(x,n,m)=\{k\}.
+  R_p(x,n,m)=\{s\}.
   \label{eq:type-convergence}
 \end{equation}
 Compatibility follows the versioned alias relation, not a textual MIME prefix.
@@ -78,7 +78,7 @@ distinct test strata rather than interchangeable uses of ``polyglot.''}
 \end{figure*}
 
 Complete consumption directly addresses trailing material in the candidate.
-For every nonempty suffix \(z\) that an authorizing parser leaves after the
+For every nonempty suffix \(z\in\mathbb O^*\) that an authorizing parser leaves after the
 original terminal point,
 \begin{equation}
 \begin{aligned}

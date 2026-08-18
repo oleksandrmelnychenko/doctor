@@ -124,24 +124,28 @@ the decoded intermediate representation.
 Second-pass stability operationalizes F5 but is not an acceptance condition.
 Let \(\mathsf{Out}_{p,v}(u)=y\) only for a clean accepted candidate, and let
 \(u[y]\) submit that output under the same policy and an equivalent fresh
-deadline. For profile \(k\), decoded representation \(\phi_k\), registered
-metric \(d_k\), and threshold \(\varepsilon_{p,k}\), define
+deadline. Let \(K_p^{\mathrm{out}}=K_{\mathrm{exact}}\mathbin{\dot\cup}
+K_{\mathrm{lossy}}\). For \(k\in K_{\mathrm{lossy}}\), decoded
+representation \(\phi_k\) maps into a registered metric space with finite
+metric \(d_k\) and threshold \(\varepsilon_{p,k}\ge0\). Define
 \begin{equation}
- \mathsf{Close}_{p,k}(y,y')=
+ \begin{gathered}
+ \mathsf{Close}_{p,k}(y,y')=\\[-0.25ex]
  \begin{cases}
   [y'=y],&k\in K_{\mathrm{exact}},\\
   [d_k(\phi_k(y'),\phi_k(y))\le\varepsilon_{p,k}],
     &k\in K_{\mathrm{lossy}},
  \end{cases}
+ \end{gathered}
  \label{eq:idempotence}
 \end{equation}
-and require
+For \(k=\mathsf{profile}(y)\), require
 \[
 \begin{aligned}
  \mathsf{Out}_{p,v}(u)=y&\Longrightarrow
- \exists y'=\mathsf{Out}_{p,v}(u[y]):\\
- &\mathsf{profile}(y')=k\land
- \mathsf{Close}_{p,k}(y,y').
+ \exists y'\;\bigl[\mathsf{Out}_{p,v}(u[y])=y'\\
+ &{}\land\mathsf{profile}(y')=k\land
+ \mathsf{Close}_{p,k}(y,y')\bigr].
 \end{aligned}
 \]
 Lossy closure is one-step and metric-specific; it implies neither perceptual
@@ -196,9 +200,10 @@ preregistered applicable set for condition \(c\). The evidence stream retains
 one auditable row for every pair in \(\mathcal C\times\mathcal I\), including an
 explicit inapplicable row when \(i\notin I_c\). Estimands use only \(I_c\).
 \(E_i^{(c)}\in\{0,1\}\) indicates completion without a pipeline error, and
-\(Y_i^{(c)}\in\{0,1\}\) is the observed decision for record \(i\), where one
-denotes acceptance and zero denotes blocking. The superscript zero denotes the
-eligible full-policy record. The paired transition counts and full-policy
+\(Y_i^{(c)}\in\{0,1,\bot\}\) is the observed decision for record \(i\), where
+one denotes acceptance, zero denotes blocking, and \(\bot\) occurs exactly
+when \(E_i^{(c)}=0\). The superscript zero denotes the eligible, successfully
+replayed full-policy record. The paired transition counts and full-policy
 denominators are
 \begin{equation}
  \begin{aligned}
@@ -289,10 +294,13 @@ fuzzing nor static review verifies an external codec.
 The fault schedule exercises cancellation, deadlines, child launch and timeout,
 bounded diagnostics, output-size termination, validation failure, caught panic,
 and attempted non-clean publication. The executed cases record the injection point, terminal
-state, paths, child status, and cleanup against
+state, paths, child status, and cleanup. For every executed fault case
+\(t\in\mathcal T_{\mathrm{fault}}\), let \(F_t^{\mathrm{pre}}\) denote failure
+before publication and let \(B_t^{\mathrm{del}}\in\mathbb N_0\) be the number
+of externally deliverable bytes. The required oracle is
 \begin{equation}
- \mathrm{FailureBeforePublication} \Longrightarrow
- \mathrm{DeliverableBytes}=0.
+ F_t^{\mathrm{pre}} \Longrightarrow B_t^{\mathrm{del}}=0,
+ \qquad t\in\mathcal T_{\mathrm{fault}}.
  \label{eq:no-publication}
 \end{equation}
 The destination is monitored and any pre-existing object is hashed. Allocator,
@@ -315,7 +323,7 @@ construction are outside the timed interval.
 Latency summaries report the median, 95th percentile (p95), and 99th percentile
 (p99). Sequential single-worker service rate is not concurrent throughput.
 Hashed resource logs provide peak resident set size (RSS). Output expansion for
-clean deliverable \(i\) is
+clean deliverable \(i\) with \(|x_i|>0\) is
 \begin{equation}
  e_i=\frac{|y_i|}{|x_i|},
  \label{eq:expansion}
@@ -356,7 +364,7 @@ table traces to its frozen source digests.
 
 Let each gate take a three-valued state
 \(\mathbb G=\{\mathsf P,\mathsf F,\mathsf B\}\) for pass, fail, and blocked.
-For a finite gate vector \(\mathbf g\), define
+For a finite nonempty gate vector \(\mathbf g\in\mathbb G^J\), define
 \begin{equation}
  \bigwedge\nolimits^\star\mathbf g=
  \begin{cases}
@@ -371,16 +379,17 @@ The scientific gate is
 \begin{aligned}
  G_{\mathrm{sci}}=\bigwedge\nolimits^\star\bigl(&
  g_{\mathrm{prov}},g_{\mathrm{schema}},
- (g_r)_{r\in\mathcal C},(g_{\mathrm F j})_{j=1}^{8},
+ (g_r)_{r\in\mathcal I},(g_{F_j})_{j=1}^{8},
  g_{\mathrm{abl}},g_{\mathrm{diff}},g_{\mathrm{fidelity}},\\
  &g_{\mathrm{fuzz}},g_{\mathrm{fault}},g_{\mathrm{perf}},
  g_{\mathrm{regen}}\bigr).
 \end{aligned}
  \label{eq:scientific-gate}
 \end{equation}
-Here \(\mathcal C\) is the frozen corpus; provenance freezes all input
-identities, schema validates cross-file consistency, \(g_r\) binds each
-record-level oracle and evidence, and \(g_{\mathrm F j}\) instantiates
+Here \(\mathcal I\) is the frozen corpus, while \(\mathcal C\) remains the
+ablation-condition set from \cref{subsec:mechanism-ablation}; provenance freezes
+all input identities, schema validates cross-file consistency, \(g_r\) binds
+each record-level oracle and evidence, and \(g_{F_j}\) instantiates
 \cref{tab:property-suite}. The remaining gates require their complete
 prespecified ablation, external-validation, fidelity, fuzz, fault, performance,
 and regeneration schedules. Controlled or release claims require

@@ -139,14 +139,15 @@ record-weighted, and unique source and output digests are reported separately.
 Let \(B_{\mathrm{ben}}=\{i\in S0\cup S1:\text{$i$ is expected to be
 accepted}\}\) be the benign acceptance set, and let $D$ contain every record
 whose expected action is blocking. Expected accepts outside S0 and S1 contribute
-to action agreement but not to benign false blocking. Let $A_i$ indicate
-observed delivery of a clean output for record $i$. The false-blocking rate is
+to action agreement but not to benign false blocking. Let
+\(A_i\in\{0,1\}\) indicate observed delivery of a clean output for record
+\(i\). When \(|B_{\mathrm{ben}}|>0\), the false-blocking rate is
 \begin{equation}
  \widehat{\mathrm{FBR}}=
  \frac{\sum_{i\in B_{\mathrm{ben}}}(1-A_i)}{|B_{\mathrm{ben}}|},
  \label{eq:false-blocking}
 \end{equation}
-and the false-acceptance rate is
+and, when \(|D|>0\), the false-acceptance rate is
 \begin{equation}
  \widehat{\mathrm{FAR}}=
  \frac{\sum_{i\in D}A_i}{|D|}.

@@ -37,13 +37,15 @@ Parser-differential research shows why one recognizer is insufficient. Different
 
 Content disarm and reconstruction operationalizes reduction by deleting excluded structures or by decoding and re-encoding content. The relevant security claim depends on what is retained. Structural reconstruction parses the source and serializes an allowed structure while retaining selected compressed payloads. Semantic reconstruction derives a new representation from decoded pixels, samples, frames, or equivalent media semantics. Structural reconstruction can remove metadata, normalize layout, and exclude unaccounted suffixes. It cannot support a claim that retained compressed payload bytes have been neutralized. Semantic reconstruction supports a stronger source-independence claim, but only under explicit decoder, encoder, resource, and fidelity assumptions.
 
+Throughout, let $\mathbb O=\{0,\ldots,255\}$ be the octet alphabet and $\mathbb O^*$ the set of finite byte strings. For $b\in\mathbb O^*$, $|b|$ denotes octet length; $[P]\in\{0,1\}$ is the Iverson indicator of proposition $P$; and $\bot$ denotes an undefined selector result or an absent published path, according to type. Sets and finite maps are compared only within their declared domains; all indexed sums, products, and conjunctions use the finite index sets stated locally.
+
 Let the attacker-influenced request evidence be $r=(x,n,m)$, where $x$ is the input octet string, $n$ is one portable display basename, and $m$ is the supplied media type. Let $c=(p,d)$ be trusted processing context, where $p$ is an immutable policy snapshot and $d$ contains the enforced deadline and cancellation state. One processing request is therefore $$
   u=(r,c)=((x,n,m),(p,d)).
 $$ An untrusted caller may request earlier cancellation or a shorter deadline but cannot weaken $p$ or extend the host-imposed processing budget. The request excludes a caller-controlled output path. A final path is derived only after acceptance from a policy-controlled directory, a sanitized basename, and the canonical output suffix.
 
 A format profile is more specific than a broad media family. A source profile $s$ fixes the admissible input evidence and reconstruction route. An output profile $k$ fixes a canonical output grammar, media type, suffix set, resource limits, and parser version. Policy also registers the permitted source-to-output mappings and the minimum reconstruction level. This distinction is necessary because strict routes may convert WAV, FLAC, or Ogg input to MP3, and WebM input to MP4. Static and animated WebP are separate profiles because their component languages and reconstruction claims differ. Likewise, WebM and general Matroska cannot share one native structural route merely because both use EBML.
 
-For policy $p$ and profile $k$, let $L_{p,k}\subseteq\{0,1\}^{*}$ denote the canonical output language. A sound authorizing parser starts at offset zero, terminates at $|y|$, admits every component at its parsed location, and checks ordering, cardinality, cross-reference, integrity, and resource constraints. If $\rho_{p,v,k}(y)$ is its report under policy $p$ and parser-registry version $v$, the soundness direction used here is $$
+For policy $p$ and profile $k$, let $L_{p,k}\subseteq\mathbb O^{*}$ denote the canonical output language. A sound authorizing parser starts at offset zero, terminates at $|y|$, admits every component at its parsed location, and checks ordering, cardinality, cross-reference, integrity, and resource constraints. If $\rho_{p,v,k}(y)$ is its report under policy $p$ and parser-registry version $v$, the soundness direction used here is $$
   \mathsf{CompleteOK}_{p}(\rho_{p,v,k}(y),k,y)
   \Longrightarrow y\in L_{p,k}.
 $$ The reverse implication is not assumed: a conservative parser may reject a language member. A successful prefix parse is not complete acceptance, and membership is not permanent across policy or parser-registry versions. Canonicality always refers to a named profile and frozen policy.
@@ -55,9 +57,9 @@ $$ The order describes admissible claim strength, not a universal quality rankin
 Verdicts are separated from pipeline errors: $$
 \begin{aligned}
   V&=\{\ensuremath{\mathsf{Clean}},\ensuremath{\mathsf{Suspicious}},\ensuremath{\mathsf{Blocked}}\},\\
-  O&=\mathsf{Result}(V\times E,\mathsf{PipelineError}),
+  O&=\mathsf{Result}(V\times \mathcal E,\mathsf{PipelineError}),
 \end{aligned}
-$$ where $E$ contains bounded stage evidence. In enforcement mode, a clean verdict means that every mandatory check succeeded and no policy warning or blocker remains. A suspicious verdict means that no blocking condition remains but at least one policy warning does. A blocked verdict records at least one blocking condition. Suspicious and blocked results are both non-deliverable. A pipeline error is also non-deliverable but remains distinct for diagnosis and availability analysis. These cases are mutually exclusive, and no failure is converted into a clean result by exception handling or fallback routing.
+$$ where $\mathcal E$ is the set of bounded stage-evidence records. In enforcement mode, a clean verdict means that every mandatory check succeeded and no policy warning or blocker remains. A suspicious verdict means that no blocking condition remains but at least one policy warning does. A blocked verdict records at least one blocking condition. Suspicious and blocked results are both non-deliverable. A pipeline error is also non-deliverable but remains distinct for diagnosis and availability analysis. These cases are mutually exclusive, and no failure is converted into a clean result by exception handling or fallback routing.
 
 An authorizing parser is considered separate from construction when it is invoked after reconstruction through a code path distinct from the handler's source parser and writer. This separation does not imply that the parser was independently verified. The stronger term *implementation-diverse validator* is reserved for external parser or decoder families used in the differential evaluation. The distinction prevents separation within one implementation from being reported as independent replication.
 
@@ -149,11 +151,11 @@ For the unique source route $s$, reconstruction is a total typed operation $$
   \mathsf{Result}(\mathcal A,\mathsf{PipelineError}),\\
   a&=(y,n_o,m_o,k_o,\ell,e)\in\mathcal A,
 \end{aligned}
-$$ where $y$ is the candidate byte string, $n_o$ is its generated portable name, $m_o$ is its declared output media type, $k_o$ is its output profile, $\ell$ is the performed reconstruction level, and $e$ is bounded stage evidence. Failure returns a typed non-deliverable error. A successful operation returns $\mathsf{Ok}(a)$, not a final verdict, so transformation success is not confused with authorization.
+$$ where $y$ is the candidate byte string, $n_o$ is its generated portable name, $m_o$ is its declared output media type, $k_o$ is its output profile, $\ell$ is the performed reconstruction level, and $e$ is bounded stage evidence. Thus $y\in\mathbb O^*$, $k_o\in K_p^{\mathrm{out}}$, and $\mathcal A$ is the corresponding typed candidate-tuple space. Failure returns a typed non-deliverable error. A successful operation returns $\mathsf{Ok}(a)$, not a final verdict, so transformation success is not confused with authorization.
 
-The performed level records how the output was obtained. Structural output is serialized from a complete parsed source using an allowlisted component grammar and may retain selected compressed payload. Semantic output is serialized from a decoded intermediate representation under policy bounds. Let $\Omega_p\subseteq
+The performed level records construction. Structural output reserializes a complete parse under an allowlisted component grammar and may retain selected compressed payload; semantic output serializes a decoded intermediate representation under policy bounds. Let $\Omega_p\subseteq
 K^{\mathrm{in}}_p\times
-\{\ensuremath{\mathsf{NotProcessed}},\ensuremath{\mathsf{Structural}},\ensuremath{\mathsf{Semantic}}\}\times K^{\mathrm{out}}_p$ be the registered source-level-output relation. It permits format-preserving routes and explicit conversions such as WAV to MP3 or WebM to MP4. The required level $q_{p,s}$ is fixed before dispatch. Acceptance requires $$
+\{\ensuremath{\mathsf{NotProcessed}},\ensuremath{\mathsf{Structural}},\ensuremath{\mathsf{Semantic}}\}\times K^{\mathrm{out}}_p$ be the registered source--level--output relation. It permits same-format routes and explicit conversions such as WAV to MP3 or WebM to MP4. The required level $q_{p,s}$ is fixed before dispatch. Acceptance requires $$
   \ell\geq q_{p,s}
   \quad\land\quad
   (s,\ell,k_o)\in\Omega_p.
@@ -191,14 +193,14 @@ The candidate acceptance predicate is $$
 \end{aligned}
 $$ Every conjunct is necessary. Signature policy is evaluated on the reconstructed bytes because scanning only the source would not authorize the emitted object. An optional pre-scan can reject early but cannot replace the rebuilt-output scan. Output bytes, expansion ratio, dimensions, frames, duration, channels, component counts, and nesting are checked with overflow-safe arithmetic.
 
-Reconstruction success creates only a candidate. An unavailable required level cannot become a weaker pass-through path, and bytes remain unauthorized until complete output validation. [Figure 2](#fig:reconstruct-or-reject) summarizes this decision.
+Reconstruction success creates only a candidate; unsupported required levels block, and delivery awaits complete validation ([Figure 2](#fig:reconstruct-or-reject)).
 
 ![Fail-closed reconstruction decision. Solid edges form the only publication path. Dashed edges denote disagreement, unsupported reconstruction, transformation failure, failed or indeterminate authorization, and commit failure. All converge on one non-deliverable terminal state.](word-assets/figure-2.png){#fig:reconstruct-or-reject width=96%}
 
 ::: {#def:operational-system .definition}
 **Definition 1** (Operational delivery system). *Let a state be $z=(\sigma,D,h)$, where $$\sigma\in\{\mathsf I,\mathsf R,\mathsf C,\mathsf A,
  \mathsf D,\mathsf P,\mathsf X\}$$ denotes initial, routed, candidate, authorized, delivered, published, or rejected; $D$ is filesystem state; and $h\in\{\mathsf{None},
-\mathsf{Some}(y)\}$ is the externally deliverable byte handle. Internal transitions $\mathsf I\to\mathsf R\to\mathsf C\to\mathsf A$ preserve $(D,\mathsf{None})$. A failed premise transitions to $\mathsf X$ with the same pair. The transition $\mathsf A\to\mathsf D$ exists only when [Equation (16)](#eq:clean-only-delivery) yields $\mathsf{Some}(y)$, and $\mathsf D\to\mathsf P$ uses [Equation (17)](#eq:publish-transition).*
+\mathsf{Some}(y)\}$ is the externally deliverable byte handle. Internal transitions $\mathsf I\to\mathsf R\to\mathsf C\to\mathsf A$ preserve $(D,\mathsf{None})$. A failed premise transitions to $\mathsf X$ with the same pair. States $\mathsf P$ and $\mathsf X$ are terminal, so rejection cannot follow a completed publication. The transition $\mathsf A\to\mathsf D$ exists only when [Equation (16)](#eq:clean-only-delivery) yields $\mathsf{Some}(y)$, and $\mathsf D\to\mathsf P$ uses [Equation (17)](#eq:publish-transition).*
 :::
 
 ::: {#prop:fail-closed-trace .proposition}
@@ -227,20 +229,23 @@ The eight analytical invariants are summarized in [Table 4](#tab:method-invarian
 
 : **Table 4.** Formal invariants and their empirical interpretation. {#tab:method-invariants}
 
-Let $w=(s,a,\{\rho_j(y)\})$ be a fixed post-reconstruction witness and $\mathsf{PostOK}_{p,v}(w)$ the acceptance conjunction after removing routing. The following syntactic order avoids defining refinement by the conclusion it is intended to prove.
+Let $w=(s,a,\{\rho_j(y)\})$ be a fixed post-reconstruction witness and $\mathsf{PostOK}_{p,v}(w)$ the conjunction of the source--level--output, generated-name, output-type, byte-type, level, bounds, scan, and authorizing-parser checks in [Equation (12)](#eq:extended-acceptance), after removing routing and the already completed reconstruction equality. In particular, $\mathsf{LevelOK}_p(s,\ell)\equiv[\ell\ge q_{p,s}]$, generated names and types are tested against $\mathcal N_{p,k_o}$ and $\mathcal M_{p,k_o}$, and resource observations are compared componentwise with $\mathcal B_{p,s,k_o}$. The following syntactic order avoids defining refinement by the conclusion it is intended to prove.
 
 ::: {#def:policy-refinement .definition}
-**Definition 3** (Syntactic policy refinement). *For fixed $k_o,v$, write $p_2\sqsubseteq p_1$ iff $$
-\begin{gathered}
- \mathcal B_{p_2}\le\mathcal B_{p_1},\quad
- q_{p_2,s}\ge q_{p_1,s},\quad \Omega_{p_2}\subseteq\Omega_{p_1},\\
- L_{p_2,k_o}\subseteq L_{p_1,k_o},\quad
- \mathcal N_{p_2,k_o}\subseteq\mathcal N_{p_1,k_o},\quad
- \mathcal M_{p_2,k_o}\subseteq\mathcal M_{p_1,k_o},\\
- \Sigma_{p_1}\subseteq\Sigma_{p_2},\quad
- \Pi^{\mathrm{auth}}_{p_1,v,k_o}=\Pi^{\mathrm{auth}}_{p_2,v,k_o},
-\end{gathered}
-$$ the canonicality predicate and publication contract being identical.*
+**Definition 3** (Syntactic policy refinement). *For fixed $s,k_o,v$, write $p_2\sqsubseteq p_1$ iff $$
+\begin{aligned}
+ \mathcal B_{p_2,s,k_o}&\preceq\mathcal B_{p_1,s,k_o},&
+ q_{p_2,s}&\ge q_{p_1,s},\\
+ \Omega_{p_2}&\subseteq\Omega_{p_1},&
+ L_{p_2,k_o}&\subseteq L_{p_1,k_o},\\
+ \Gamma_{p_2,k_o}&\subseteq\Gamma_{p_1,k_o},&
+ \mathcal N_{p_2,k_o}&\subseteq\mathcal N_{p_1,k_o},\\
+ \mathcal M_{p_2,k_o}&\subseteq\mathcal M_{p_1,k_o},&
+ \Sigma_{p_1}&\subseteq\Sigma_{p_2},\\
+ \Pi^{\mathrm{auth}}_{p_1,v,k_o}&=
+ \Pi^{\mathrm{auth}}_{p_2,v,k_o}.&&
+\end{aligned}
+$$ Here $\preceq$ is the componentwise order on the registered resource-bound vector. The byte recognizer, parser-report semantics, parser-registry version, and publication contract are fixed; the canonicality predicates induced by $L$ and $\Gamma$ must preserve acceptance from $p_2$ to $p_1$.*
 :::
 
 The reversed signature inclusion is deliberate: $\mathsf{ScanOK}_p(y)\equiv\forall\sigma\in\Sigma_p:
@@ -251,7 +256,7 @@ The reversed signature inclusion is deliberate: $\mathsf{ScanOK}_p(y)\equiv\fora
 :::
 
 ::: proof
-*Proof.* Bounds and level thresholds relax from $p_2$ to $p_1$; the route, language, name, and type sets enlarge; absence of a match in $\Sigma_{p_2}$ implies absence in its subset $\Sigma_{p_1}$; and the fixed parser reports are tested by an unchanged authorizing predicate. Hence every $p_2$ conjunct implies its $p_1$ counterpart. ◻
+*Proof.* Bounds and level thresholds relax from $p_2$ to $p_1$; the registered source--level--output, language, component, name, and type sets enlarge; absence of a match in $\Sigma_{p_2}$ implies absence in its subset $\Sigma_{p_1}$; and the fixed parser reports are tested by the stipulated monotone authorizing predicate. Hence every $p_2$ conjunct implies its $p_1$ counterpart. ◻
 :::
 
 ::: {#thm:validation-monotonicity .theorem}
@@ -268,23 +273,28 @@ $$*
 [Theorem 4.5](#thm:validation-monotonicity) is a post-reconstruction validation property, not an end-to-end routing property, and it holds only with the witness $w$ (in particular the candidate $y$ and the reports $\{\rho_j(y)\}$) held fixed. A policy change can alter the eligible route set, select a different reconstruction, or produce different bytes. Such cases are recorded as route or reconstruction changes and do not instantiate [Equation (15)](#eq:validation-monotonicity).
 
 The result constructor exposes bytes only through $$
-  \mathsf{deliverable}(o,u,a)=
+  \begin{gathered}
+  \mathsf{deliverable}(o,u,a)=\\
   \begin{cases}
     \mathsf{Some}(y), &
-      \substack{o=\mathsf{Ok}(\ensuremath{\mathsf{Clean}},e),\\
-      \ensuremath{\mathsf{Accept}}_{p,v}(u,a)},\\
+      \substack{o=\mathsf{Ok}(\ensuremath{\mathsf{Clean}},e)\\
+      {}\land\ensuremath{\mathsf{Accept}}_{p,v}(u,a)},\\
     \mathsf{None}, & \text{otherwise}.
   \end{cases}
+  \end{gathered}
 $$ All non-clean and error states remain distinguishable in evidence but map to $\mathsf{None}$.
 
 For filesystem state $D$, write $d=\mathsf{deliverable}(o,u,a)$. Exclusive publication is $$
- \mathsf{Pub}_{p,v}(D,u,a,o)=
+ \begin{gathered}
+ \mathsf{Pub}_{p,v}(D,u,a,o)=\\
  \begin{cases}
   (D\cup\{\zeta\mapsto y\},\zeta),&
-   \substack{d=\mathsf{Some}(y),\\
-   \zeta\notin\mathrm{dom}(D),\ \mathsf{commit}(\zeta,y)},\\
+   \substack{d=\mathsf{Some}(y)\\
+   {}\land\zeta\notin\mathrm{dom}(D)\\
+   {}\land\mathsf{commit}(\zeta,y)},\\
   (D,\bot),&\text{otherwise}.
  \end{cases}
+ \end{gathered}
 $$ Staging is not a final path and is discarded on abort to the extent guaranteed by the host filesystem.
 
 The delivery guarantee rests on three assumptions that are stated explicitly because they, not the acceptance predicate, carry the security weight.
@@ -305,7 +315,7 @@ The delivery guarantee rests on three assumptions that are stated explicitly bec
 **Theorem 9** (Conditional canonical delivery). *Under [\[asm:parser-soundness,asm:semantic-construction,asm:publication\]](#asm:parser-soundness,asm:semantic-construction,asm:publication){reference-type="ref+label" reference="asm:parser-soundness,asm:semantic-construction,asm:publication"}, $$
 \begin{aligned}
  \ensuremath{\mathsf{Accept}}_{p,v}(u,a)&\Longrightarrow y\in L_{p,k_o},\\
- \ell=\ensuremath{\mathsf{Semantic}}&\Longrightarrow
+ \substack{\ensuremath{\mathsf{Accept}}_{p,v}(u,a)\\ \ell=\ensuremath{\mathsf{Semantic}}}&\Longrightarrow
    \mathsf{copied}_{x}(y)=\varnothing,\\
  \mathsf{deliverable}(o,u,a)=\mathsf{None}
    &\Longrightarrow \mathsf{Pub}_{p,v}(D,u,a,o)=(D,\bot).
@@ -325,8 +335,8 @@ $$*
 
 Each source-to-output mapping instantiates [Equation (12)](#eq:extended-acceptance) with an explicit output language, reconstruction floor, generated identity, bounds, and an authorizing parser separate from construction. Explicit languages avoid enumerating malformed cases and conflicting processor boundaries [5–7, 9]. For candidate $a=(y,n_o,m_o,k_o,\ell,e)$, acceptance requires complete consumption, location-aware component admission, profile convergence, and bounds over both $y$ and reconstruction evidence $e$; it does not imply that arbitrary media in the broad format family are harmless.
 
-The contract for a permitted source profile $s$, reconstruction level $\ell$, and output profile $k$ is recorded as $$
- \Phi_{p,s,\ell,k}=
+The contract for a permitted source profile $s$, parser-registry version $v$, reconstruction level $\ell$, and output profile $k$ is recorded as $$
+ \Phi_{p,v,s,\ell,k}=
  \bigl(\Omega_p,q_{p,s},L_{p,k},\Gamma_{p,k},
        \Pi^{\mathrm{auth}}_{p,v,k},
        \mathcal{N}_{p,k},\mathcal{M}_{p,k},
@@ -348,7 +358,7 @@ $$ where $\Gamma_{p,k}$ is the location-aware component and permitted-metadata p
 
 : **Table 5.** Comparison of implemented reconstruction routes. Retained source identifies content that survives a structural route and limits its claim. {#tab:format-profile-comparison}
 
-Policy fixes $\Phi_{p,s,\ell,k}$ before dispatch. The handler reports $(y,\ell,e)$, after which the authorizing parser checks $$\begin{aligned}
+Policy and registry version fix $\Phi_{p,v,s,\ell,k}$ before dispatch. The handler reports $(y,\ell,e)$, after which the authorizing parser checks $$\begin{aligned}
  y&\in L_{p,k},&
  \mathsf{components}(y)&\subseteq\Gamma_{p,k},\\
  \mathbf b(y,e)&\le\mathcal B_{p,s,k},&
@@ -359,15 +369,17 @@ The strict policy maps supported audio sources to an MP3 output profile and supp
 
 Component closure fixes legal units and locations; metadata policy restricts the optional subset. Removal is established by reparsing components, not by substring search inside compressed payloads.
 
-Size and offset integrity are also treated as parser obligations. For a length-delimited component $c$ at offset $o_c$ with header length $h_c$ and declared payload length $\ell_c$, the parser requires checked arithmetic and the containment relation $$
-o_c+h_c+\ell_c\leq b_{\mathrm{parent}},
-\qquad
-[o_c,o_c+h_c+\ell_c)\subseteq B_{\mathrm{parent}}.
+Size and offset integrity are also treated as parser obligations. Let $B_{\mathrm{parent}}=[o_{\mathrm{parent}},b_{\mathrm{parent}})$ be the parent byte interval. For a length-delimited component $c$ at offset $o_c$ with header length $h_c$ and declared payload length $\ell_c$, the parser requires nonnegative integer lengths, checked addition, and $$
+\begin{aligned}
+o_{\mathrm{parent}}&\le o_c,&
+o_c+h_c+\ell_c&\leq b_{\mathrm{parent}},\\
+[o_c,o_c+h_c+\ell_c)&\subseteq B_{\mathrm{parent}}.&&
+\end{aligned}
 $$ Sequential components abut; referenced extents must lie in an allowed media-data region and agree with count tables. Checked arithmetic precedes slicing, allocation, and offset conversion.
 
 ## Static raster images {#subsec:static-raster-method}
 
-JPEG, PNG, static WebP, BMP, and TIFF inputs are probed and decoded to a raster $z$; only JPEG, PNG, and WebP are emitted [22–24]. If $(w_0,h_0)$, $(w_1,h_1)$, and $(w_2,h_2)$ are source probe, source decode, and output decode dimensions, respectively, clean delivery requires $$
+JPEG, PNG, static WebP, BMP, and TIFF inputs are probed and decoded to a raster $z$; only JPEG, PNG, and WebP are emitted [22–24]. Let $w_i,h_i\in\mathbb N_{>0}$ for $i\in\{0,1,2\}$, and let $P_{\max}\in\mathbb N_{>0}$ be the policy pixel bound. If $(w_0,h_0)$, $(w_1,h_1)$, and $(w_2,h_2)$ are source probe, source decode, and output decode dimensions, respectively, clean delivery requires $$
 \begin{aligned}
  (w_0,h_0)&=(w_1,h_1)=(w_2,h_2),\\
  0&<w_i h_i\le P_{\max}\quad(i=0,1,2).
@@ -382,7 +394,7 @@ $$ The PNG parser checks all lengths and CRCs, one valid `IHDR`, palette/transpa
 
 ## GIF, APNG, and animated WebP {#subsec:animated-raster-method}
 
-GIF is semantically reconstructed from decoded RGBA frames under $$
+GIF is semantically reconstructed from $N$ decoded RGBA frames. For $i=1,\ldots,N$, let $w_i,h_i\in\mathbb N_{>0}$ be frame dimensions and $\tau_i\ge0$ its recorded delay; $N_{\max}$, $P_{\max}$, and $P_{\Sigma}$ are the frame-count, per-frame-pixel, and aggregate-pixel policy bounds. Reconstruction requires $$
 \begin{aligned}
  1\le N&\le N_{\max},&
  \max_i(w_i h_i)&\le P_{\max},\\
@@ -409,7 +421,7 @@ WAV is reconstructed as a new RIFF/WAVE container around retained sample bytes u
 \mathrm{byteRate}&=F_s\,\mathrm{blockAlign},\\
 \lvert\mathrm{data}\rvert\bmod\mathrm{blockAlign}&=0,
 \end{aligned}
-$$ where $C$ is channel count, $B$ is bits per sample, and $F_s$ is sample rate. The RIFF size is $|y|-8$. Retained PCM makes the native route structural even though ancillary chunks and compressed subcodecs are excluded.
+$$ where $C,F_s\in\mathbb N_{>0}$, $B\in\mathbb N_{>0}$, and $8\mid B$; the channel count, sample rate, and bit depth must also belong to their finite profile allowlists. The RIFF size is $|y|-8$. Retained PCM makes the native route structural even though ancillary chunks and compressed subcodecs are excluded.
 
 FLAC structural reconstruction follows the native stream organization standardized in RFC 9639 [28]. It emits `fLaC`, one terminal 34-byte STREAMINFO metadata block, and retained frames; all other metadata is removed. The independent parser checks STREAMINFO ranges, canonical frame numbers, block/sample-rate codes, channel and bit-depth agreement, CRC-8/CRC-16, subframe and Rice/LPC structure, streamable-subset limits, contiguous frames, and aggregate sample consistency. Because predictor output and STREAMINFO MD5 are not recomputed, the claim is frame-CRC-consistent closure, not payload neutralization.
 
@@ -423,7 +435,7 @@ MP4, MOV, and M4A inputs enter a common ISO base media file format path. The pro
 
 The canonical hierarchy contains one profile-allowed `ftyp` brand set, one complete `moov`, and one `mdat`. Parent-contained sizes, mandatory movie/track/media/sample-table children, self-contained data references, codec fields, dimensions, channels, timescales, durations, and edit lists are checked. Location-forbidden metadata, vendor, free-space, grouping, dependency, seeking, and inter-track boxes are excluded. Because some removed boxes affect presentation, the structural claim is container closure under a registered fidelity policy, not general semantic equivalence.
 
-For chunk extents $I_j=[o_j,o_j+L_j)$ derived jointly from the timing, sample-size, sample-to-chunk, and offset tables, the nonfragmented profile requires $$
+For $J\ge1$ chunk extents $I_j=[o_j,o_j+L_j)$, $j=1,\ldots,J$, with $L_j>0$, derived jointly from the timing, sample-size, sample-to-chunk, and offset tables, let $B_{\mathtt{mdat}}$ be the payload interval of the sole output `mdat`. The nonfragmented profile requires $$
  \biguplus_j I_j=B_{\mathtt{mdat}},
 $$ where $\biguplus$ requires disjoint, gap-free coverage. Fragment boxes are outside the language. Semantic transcoding still passes this parser; payload independence is claimed only for that semantic route.
 
@@ -449,9 +461,9 @@ The implementation and unit tests identify where these checks are enforced. Empi
 A file-type label selects work under policy. It is not an authorization decision. Name evidence, caller-supplied media type, and bounded byte recognition can disagree. A separate authorizing parser can then expose a different whole-object interpretation. Polyglot research shows that several file interpretations can be combined and that detector behavior depends on the chosen grammar and boundary [17]. Parser differentials have the same general consequence even when the carrier was not intentionally constructed as a polyglot [5, 18].
 
 Let $R_p(x,n,m)$ be the eligible route set defined in [Equation (6)](#eq:eligible-routes). Selection is admissible only when this set is a one-element set: $$
-  \mathsf{Route}_p(x,n,m)=k
+  \mathsf{Route}_p(u)=s
   \quad\Longleftrightarrow\quad
-  R_p(x,n,m)=\{k\}.
+  R_p(x,n,m)=\{s\}.
 $$ Compatibility follows the versioned alias relation, not a textual MIME prefix. For example, `audio/wav` and `audio/x-wav` can select one WAV profile. A media suffix paired with an executable grammar is not such an alias.
 
 A complete parser accounts for the whole object presented to that parser, but source and output evidence have different domains. A selected source parser accounts for ranges retained by structural reconstruction. Semantic reconstruction may discard source bytes after bounded decoding. The authorizing parser accounts for the reconstructed candidate $y$. Its success does not prove that every byte of source $x$ had one interpretation. Context can expose disguise but cannot override incompatible bytes. A handler's declared output media type is a claim to test, not proof of the candidate format.
@@ -462,7 +474,7 @@ The four carrier constructions differ in byte topology and therefore in the obse
 
 ![Carrier construction and decisive acceptance control. Prefix camouflage, a suffix, a dual-format interpretation, and a nested component are distinct test strata rather than interchangeable uses of “polyglot.”](word-assets/figure-3.png){#fig:carrier-control-map width=96%}
 
-Complete consumption directly addresses trailing material in the candidate. For every nonempty suffix $z$ that an authorizing parser leaves after the original terminal point, $$
+Complete consumption directly addresses trailing material in the candidate. For every nonempty suffix $z\in\mathbb O^*$ that an authorizing parser leaves after the original terminal point, $$
 \begin{aligned}
   &\mathsf{Parse}_{p,v,k}(y\parallel z)=\rho,\\
   &\rho.t=|y|<|y\parallel z|\\
@@ -631,10 +643,10 @@ Pairwise interactions cross boundary, size, metadata, classification, limit, and
 A base artifact is the original acquired or generated object from which one or more mutation records descend. Partitions keep every descendant of the same base artifact together. The current schema records source digests and base relationships but does not enforce decoded-semantic fingerprints or automatic deduplication across identifiers. Record-level summaries are therefore record-weighted, and unique source and output digests are reported separately.
 
 Let $B_{\mathrm{ben}}=\{i\in S0\cup S1:\text{$i$ is expected to be
-accepted}\}$ be the benign acceptance set, and let $D$ contain every record whose expected action is blocking. Expected accepts outside S0 and S1 contribute to action agreement but not to benign false blocking. Let $A_i$ indicate observed delivery of a clean output for record $i$. The false-blocking rate is $$
+accepted}\}$ be the benign acceptance set, and let $D$ contain every record whose expected action is blocking. Expected accepts outside S0 and S1 contribute to action agreement but not to benign false blocking. Let $A_i\in\{0,1\}$ indicate observed delivery of a clean output for record $i$. When $|B_{\mathrm{ben}}|>0$, the false-blocking rate is $$
  \widehat{\mathrm{FBR}}=
  \frac{\sum_{i\in B_{\mathrm{ben}}}(1-A_i)}{|B_{\mathrm{ben}}|},
-$$ and the false-acceptance rate is $$
+$$ and, when $|D|>0$, the false-acceptance rate is $$
  \widehat{\mathrm{FAR}}=
  \frac{\sum_{i\in D}A_i}{|D|}.
 $$ Both are record-weighted estimands. They are reported overall and by stratum, concrete format, carrier mechanism, and reconstruction requirement when the subgroup was prespecified. A base-artifact-weighted sensitivity summary is required when mutation multiplicities differ. An expected block that ends in a pipeline error remains a non-delivery for [Equation (31)](#eq:false-acceptance), but it also increments the separate pipeline-error gate and cannot be credited as a successful expected rejection. A benign sample blocked because a required external tool is missing contributes to [Equation (30)](#eq:false-blocking). Missing tools are not an exclusion criterion.
@@ -676,18 +688,20 @@ The eight invariants in [Table 4](#tab:method-invariants) map one to one to the 
 
 F1 appends zero, foreign-object, and malformed suffixes after the terminal extent. F2 checks parsed component paths, F3 compares normalized profiles, and F4 verifies that strict semantic output is serialized from decoded media. Unlike F1--F3, F4 is established by the construction path rather than by an artifact-observable predicate: byte-level source independence across a decode--re-encode step cannot be read off the candidate $y$ alone, so F4 rests on [Assumption 4.7](#asm:semantic-construction) and the code path that serializes only from the decoded intermediate representation.
 
-Second-pass stability operationalizes F5 but is not an acceptance condition. Let $\mathsf{Out}_{p,v}(u)=y$ only for a clean accepted candidate, and let $u[y]$ submit that output under the same policy and an equivalent fresh deadline. For profile $k$, decoded representation $\phi_k$, registered metric $d_k$, and threshold $\varepsilon_{p,k}$, define $$
- \mathsf{Close}_{p,k}(y,y')=
+Second-pass stability operationalizes F5 but is not an acceptance condition. Let $\mathsf{Out}_{p,v}(u)=y$ only for a clean accepted candidate, and let $u[y]$ submit that output under the same policy and an equivalent fresh deadline. Let $K_p^{\mathrm{out}}=K_{\mathrm{exact}}\mathbin{\dot\cup}K_{\mathrm{lossy}}$. For $k\in K_{\mathrm{lossy}}$, decoded representation $\phi_k$ maps into a registered metric space with finite metric $d_k$ and threshold $\varepsilon_{p,k}\ge0$. Define $$
+ \begin{gathered}
+ \mathsf{Close}_{p,k}(y,y')=\\
  \begin{cases}
   [y'=y],&k\in K_{\mathrm{exact}},\\
   [d_k(\phi_k(y'),\phi_k(y))\le\varepsilon_{p,k}],
     &k\in K_{\mathrm{lossy}},
  \end{cases}
-$$ and require $$\begin{aligned}
+ \end{gathered}
+$$ For $k=\mathsf{profile}(y)$, require $$\begin{aligned}
  \mathsf{Out}_{p,v}(u)=y&\Longrightarrow
- \exists y'=\mathsf{Out}_{p,v}(u[y]):\\
- &\mathsf{profile}(y')=k\land
- \mathsf{Close}_{p,k}(y,y').
+ \exists y'\;\bigl[\mathsf{Out}_{p,v}(u[y])=y'\\
+ &{}\land\mathsf{profile}(y')=k\land
+ \mathsf{Close}_{p,k}(y,y')\bigr].
 \end{aligned}$$ Lossy closure is one-step and metric-specific; it implies neither perceptual equivalence nor bounded accumulated drift. Unlike [Equation (15)](#eq:validation-monotonicity), it allows new bytes and parser reports.
 
 ## Paired mechanism ablation {#subsec:mechanism-ablation}
@@ -702,7 +716,7 @@ The paired study measures decision sensitivity within the frozen corpus, not ant
 
 : **Table 11.** Prespecified paired mechanism-ablation conditions. Condition identifiers match the machine-readable protocol. {#tab:mechanism-ablation}
 
-Let $\mathcal I$ be the full corpus and $I_c\subseteq\mathcal I$ the preregistered applicable set for condition $c$. The evidence stream retains one auditable row for every pair in $\mathcal C\times\mathcal I$, including an explicit inapplicable row when $i\notin I_c$. Estimands use only $I_c$. $E_i^{(c)}\in\{0,1\}$ indicates completion without a pipeline error, and $Y_i^{(c)}\in\{0,1\}$ is the observed decision for record $i$, where one denotes acceptance and zero denotes blocking. The superscript zero denotes the eligible full-policy record. The paired transition counts and full-policy denominators are $$
+Let $\mathcal I$ be the full corpus and $I_c\subseteq\mathcal I$ the preregistered applicable set for condition $c$. The evidence stream retains one auditable row for every pair in $\mathcal C\times\mathcal I$, including an explicit inapplicable row when $i\notin I_c$. Estimands use only $I_c$. $E_i^{(c)}\in\{0,1\}$ indicates completion without a pipeline error, and $Y_i^{(c)}\in\{0,1,\bot\}$ is the observed decision for record $i$, where one denotes acceptance, zero denotes blocking, and $\bot$ occurs exactly when $E_i^{(c)}=0$. The superscript zero denotes the eligible, successfully replayed full-policy record. The paired transition counts and full-policy denominators are $$
  \begin{aligned}
  N_{ab}^{(c)}
  &=\sum_{i\in I_c}
@@ -743,16 +757,16 @@ Budget exhaustion with no discovered failure means only "no failure observed" un
 
 ## Crash, cancellation, and publication campaigns {#subsec:fault-campaigns}
 
-The fault schedule exercises cancellation, deadlines, child launch and timeout, bounded diagnostics, output-size termination, validation failure, caught panic, and attempted non-clean publication. The executed cases record the injection point, terminal state, paths, child status, and cleanup against $$
- \mathrm{FailureBeforePublication} \Longrightarrow
- \mathrm{DeliverableBytes}=0.
+The fault schedule exercises cancellation, deadlines, child launch and timeout, bounded diagnostics, output-size termination, validation failure, caught panic, and attempted non-clean publication. The executed cases record the injection point, terminal state, paths, child status, and cleanup. For every executed fault case $t\in\mathcal T_{\mathrm{fault}}$, let $F_t^{\mathrm{pre}}$ denote failure before publication and let $B_t^{\mathrm{del}}\in\mathbb N_0$ be the number of externally deliverable bytes. The required oracle is $$
+ F_t^{\mathrm{pre}} \Longrightarrow B_t^{\mathrm{del}}=0,
+ \qquad t\in\mathcal T_{\mathrm{fault}}.
 $$ The destination is monitored and any pre-existing object is hashed. Allocator, temporary-file, and persistence failures require explicit injection evidence before $G_{\mathrm{fault}}$ can pass. Code review can motivate the expected behavior but cannot substitute for an executed fault case.
 
 ## Performance protocol {#subsec:performance-protocol}
 
 After functional gates pass, ten sessions invoke the public byte-defense API over corpus permutations generated from a recorded seed for each session. The matrix stratifies format, reconstruction level, input and decoded size, media structure, carrier, and outcome. Cold and warm records retain order, time, profile, reconstruction, outcome, and errors. Blocked and timed-out calls remain in their path denominator. Here, "cold" denotes the first timed invocation after an already constructed defender. Policy normalization and signature-engine construction are outside the timed interval.
 
-Latency summaries report the median, 95th percentile (p95), and 99th percentile (p99). Sequential single-worker service rate is not concurrent throughput. Hashed resource logs provide peak resident set size (RSS). Output expansion for clean deliverable $i$ is $$
+Latency summaries report the median, 95th percentile (p95), and 99th percentile (p99). Sequential single-worker service rate is not concurrent throughput. Hashed resource logs provide peak resident set size (RSS). Output expansion for clean deliverable $i$ with $|x_i|>0$ is $$
  e_i=\frac{|y_i|}{|x_i|},
 $$ with zero-length input retained as a separate invalid or blocked group.
 
@@ -768,7 +782,7 @@ Median latency uses 10,000 hierarchical bootstrap replicates over sessions, depe
 
 ## Release gates and claim authorization {#subsec:release-gates}
 
-Let each gate take a three-valued state $\mathbb G=\{\mathsf P,\mathsf F,\mathsf B\}$ for pass, fail, and blocked. For a finite gate vector $\mathbf g$, define $$
+Let each gate take a three-valued state $\mathbb G=\{\mathsf P,\mathsf F,\mathsf B\}$ for pass, fail, and blocked. For a finite nonempty gate vector $\mathbf g\in\mathbb G^J$, define $$
  \bigwedge\nolimits^\star\mathbf g=
  \begin{cases}
   \mathsf F,&\exists j:g_j=\mathsf F,\\
@@ -779,12 +793,12 @@ $$ The scientific gate is $$
 \begin{aligned}
  G_{\mathrm{sci}}=\bigwedge\nolimits^\star\bigl(&
  g_{\mathrm{prov}},g_{\mathrm{schema}},
- (g_r)_{r\in\mathcal C},(g_{\mathrm F j})_{j=1}^{8},
+ (g_r)_{r\in\mathcal I},(g_{F_j})_{j=1}^{8},
  g_{\mathrm{abl}},g_{\mathrm{diff}},g_{\mathrm{fidelity}},\\
  &g_{\mathrm{fuzz}},g_{\mathrm{fault}},g_{\mathrm{perf}},
  g_{\mathrm{regen}}\bigr).
 \end{aligned}
-$$ Here $\mathcal C$ is the frozen corpus; provenance freezes all input identities, schema validates cross-file consistency, $g_r$ binds each record-level oracle and evidence, and $g_{\mathrm F j}$ instantiates [Table 10](#tab:property-suite). The remaining gates require their complete prespecified ablation, external-validation, fidelity, fuzz, fault, performance, and regeneration schedules. Controlled or release claims require $G_{\mathrm{sci}}=\mathsf P$ and `release_eligibility.eligible=true`; $\mathsf F$ or $\mathsf B$ retains finite observations but forbids those claims.
+$$ Here $\mathcal I$ is the frozen corpus, while $\mathcal C$ remains the ablation-condition set from [Section 10.3](#subsec:mechanism-ablation); provenance freezes all input identities, schema validates cross-file consistency, $g_r$ binds each record-level oracle and evidence, and $g_{F_j}$ instantiates [Table 10](#tab:property-suite). The remaining gates require their complete prespecified ablation, external-validation, fidelity, fuzz, fault, performance, and regeneration schedules. Controlled or release claims require $G_{\mathrm{sci}}=\mathsf P$ and `release_eligibility.eligible=true`; $\mathsf F$ or $\mathsf B$ retains finite observations but forbids those claims.
 
 # Bounded Server Experiment {#sec:server-experiment}
 
@@ -799,7 +813,7 @@ The experimental path was exercised under a two-CPU, 12-GiB Linux control group 
 | Fault and fuzz schedules | 11/11 selected fault checks passed; 7,299,439 executions over 210 requested target-seconds recorded no failure | The fuzz schedule was about 0.28% of the prespecified 21 target-hours |
 | Performance | 1,872 observations; warm median/p95 1.906/358.892 ms and mean 125.936 ms | Repeated calls on a shared host, with no bootstrap interval; 7.94 calls/s is not concurrent capacity |
 | Ablation | Three conditions were prespecified but not executed in this package | No mechanism-contribution claim |
-| Scientific gate | $G_{\mathrm{sci}}=0$; release ineligible | Missing strata, public-source admission, full fuzz and controlled performance schedules, and immutable execution conditions |
+| Scientific gate | $G_{\mathrm{sci}}=\mathsf F$; release ineligible | Missing strata, public-source admission, full fuzz and controlled performance schedules, and immutable execution conditions |
 
 : **Table 12.** Selected outcomes of the bounded server experiment. All proportions describe only the generated corpus and executed schedules. {#tab:server-experiment-complete}
 

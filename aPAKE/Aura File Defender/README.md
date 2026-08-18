@@ -29,7 +29,7 @@ complete scientific gate passes.
 
 - `aura-file-defender-extended.tex` and its 23-page PDF remain the authoritative
   two-column manuscript.
-- `aura-file-defender-extended.docx` is a visually verified 22-page A4
+- `aura-file-defender-extended.docx` is a visually verified 23-page A4
   scientific-layout copy. Its title block and abstract are full width; the
   body and references use two columns; and all 13 tables and 7 figures retain
   full-width sections. Word equation objects, clickable links, numbered

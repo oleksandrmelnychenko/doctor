@@ -46,19 +46,21 @@ For the unique source route \(s\), reconstruction is a total typed operation
 where \(y\) is the candidate byte string, \(n_o\) is its generated portable
 name, \(m_o\) is its declared output media type, \(k_o\) is its output profile,
 \(\ell\) is the performed reconstruction level, and \(e\) is bounded stage
-evidence. Failure returns a typed non-deliverable error. A successful operation
+evidence. Thus \(y\in\mathbb O^*\), \(k_o\in K_p^{\mathrm{out}}\), and
+\(\mathcal A\) is the corresponding typed candidate-tuple space. Failure
+returns a typed non-deliverable error. A successful operation
 returns \(\mathsf{Ok}(a)\), not a final verdict, so transformation success is
 not confused with authorization.
 
-The performed level records how the output was obtained. Structural output is
-serialized from a complete parsed source using an allowlisted component grammar
-and may retain selected compressed payload. Semantic output is serialized from
-a decoded intermediate representation under policy bounds. Let
+The performed level records construction. Structural output reserializes a
+complete parse under an allowlisted component grammar and may retain selected
+compressed payload; semantic output serializes a decoded intermediate
+representation under policy bounds. Let
 \(\Omega_p\subseteq
 K^{\mathrm{in}}_p\times
 \{\NotProcessed,\Structural,\Semantic\}\times K^{\mathrm{out}}_p\)
-be the registered source-level-output relation. It permits format-preserving
-routes and explicit conversions such as WAV to MP3 or WebM to MP4. The required
+be the registered source--level--output relation. It permits same-format routes
+and explicit conversions such as WAV to MP3 or WebM to MP4. The required
 level \(q_{p,s}\) is fixed before dispatch. Acceptance requires
 \begin{equation}
   \ell\geq q_{p,s}
@@ -126,10 +128,9 @@ An optional pre-scan can reject early but cannot replace the rebuilt-output
 scan. Output bytes, expansion ratio, dimensions, frames, duration, channels,
 component counts, and nesting are checked with overflow-safe arithmetic.
 
-Reconstruction success creates only a candidate. An unavailable required level
-cannot become a weaker pass-through path, and bytes remain unauthorized until
-complete output validation. \Cref{fig:reconstruct-or-reject} summarizes this
-decision.
+Reconstruction success creates only a candidate; unsupported required levels
+block, and delivery awaits complete validation
+(\cref{fig:reconstruct-or-reject}).
 
 \begin{figure*}[t]
 \centering
@@ -199,7 +200,8 @@ rejected; \(D\) is filesystem state; and \(h\in\{\mathsf{None},
 \mathsf{Some}(y)\}\) is the externally deliverable byte handle. Internal
 transitions \(\mathsf I\to\mathsf R\to\mathsf C\to\mathsf A\) preserve
 \((D,\mathsf{None})\). A failed premise transitions to \(\mathsf X\) with the
-same pair. The transition \(\mathsf A\to\mathsf D\) exists only when
+same pair. States \(\mathsf P\) and \(\mathsf X\) are terminal, so rejection
+cannot follow a completed publication. The transition \(\mathsf A\to\mathsf D\) exists only when
 \cref{eq:clean-only-delivery} yields \(\mathsf{Some}(y)\), and
 \(\mathsf D\to\mathsf P\) uses \cref{eq:publish-transition}.
 \end{definition}
@@ -250,26 +252,38 @@ F8 & Clean-result publication & Non-clean and error outcomes expose no bytes, cr
 \end{table*}
 
 Let \(w=(s,a,\{\rho_j(y)\})\) be a fixed post-reconstruction witness and
-\(\mathsf{PostOK}_{p,v}(w)\) the acceptance conjunction after removing routing.
-The following syntactic order avoids defining refinement by the conclusion it
-is intended to prove.
+\(\mathsf{PostOK}_{p,v}(w)\) the conjunction of the source--level--output,
+generated-name, output-type, byte-type, level, bounds, scan, and authorizing-
+parser checks in \cref{eq:extended-acceptance}, after removing routing and the
+already completed reconstruction equality. In particular,
+\(\mathsf{LevelOK}_p(s,\ell)\equiv[\ell\ge q_{p,s}]\), generated names and
+types are tested against \(\mathcal N_{p,k_o}\) and \(\mathcal M_{p,k_o}\),
+and resource observations are compared componentwise with
+\(\mathcal B_{p,s,k_o}\). The following syntactic order avoids defining
+refinement by the conclusion it is intended to prove.
 
 \begin{definition}[Syntactic policy refinement]
 \label{def:policy-refinement}
-For fixed \(k_o,v\), write \(p_2\sqsubseteq p_1\) iff
+For fixed \(s,k_o,v\), write \(p_2\sqsubseteq p_1\) iff
 \begin{equation}
-\begin{gathered}
- \mathcal B_{p_2}\le\mathcal B_{p_1},\quad
- q_{p_2,s}\ge q_{p_1,s},\quad \Omega_{p_2}\subseteq\Omega_{p_1},\\
- L_{p_2,k_o}\subseteq L_{p_1,k_o},\quad
- \mathcal N_{p_2,k_o}\subseteq\mathcal N_{p_1,k_o},\quad
- \mathcal M_{p_2,k_o}\subseteq\mathcal M_{p_1,k_o},\\
- \Sigma_{p_1}\subseteq\Sigma_{p_2},\quad
- \Pi^{\mathrm{auth}}_{p_1,v,k_o}=\Pi^{\mathrm{auth}}_{p_2,v,k_o},
-\end{gathered}
+\begin{aligned}
+ \mathcal B_{p_2,s,k_o}&\preceq\mathcal B_{p_1,s,k_o},&
+ q_{p_2,s}&\ge q_{p_1,s},\\
+ \Omega_{p_2}&\subseteq\Omega_{p_1},&
+ L_{p_2,k_o}&\subseteq L_{p_1,k_o},\\
+ \Gamma_{p_2,k_o}&\subseteq\Gamma_{p_1,k_o},&
+ \mathcal N_{p_2,k_o}&\subseteq\mathcal N_{p_1,k_o},\\
+ \mathcal M_{p_2,k_o}&\subseteq\mathcal M_{p_1,k_o},&
+ \Sigma_{p_1}&\subseteq\Sigma_{p_2},\\
+ \Pi^{\mathrm{auth}}_{p_1,v,k_o}&=
+ \Pi^{\mathrm{auth}}_{p_2,v,k_o}.&&
+\end{aligned}
 \label{eq:policy-refinement}
 \end{equation}
-the canonicality predicate and publication contract being identical.
+Here \(\preceq\) is the componentwise order on the registered resource-bound
+vector. The byte recognizer, parser-report semantics, parser-registry version,
+and publication contract are fixed; the canonicality predicates induced by
+\(L\) and \(\Gamma\) must preserve acceptance from \(p_2\) to \(p_1\).
 \end{definition}
 
 The reversed signature inclusion is deliberate:
@@ -286,10 +300,11 @@ byte-type, level, bounds, scan, and authorizing-parser checks,
 \end{lemma}
 
 \begin{proof}
-Bounds and level thresholds relax from \(p_2\) to \(p_1\); the route, language,
-name, and type sets enlarge; absence of a match in \(\Sigma_{p_2}\) implies
-absence in its subset \(\Sigma_{p_1}\); and the fixed parser reports are tested
-by an unchanged authorizing predicate. Hence every \(p_2\) conjunct implies its
+Bounds and level thresholds relax from \(p_2\) to \(p_1\); the registered
+source--level--output, language, component, name, and type sets enlarge;
+absence of a match in \(\Sigma_{p_2}\) implies absence in its subset
+\(\Sigma_{p_1}\); and the fixed parser reports are tested by the stipulated
+monotone authorizing predicate. Hence every \(p_2\) conjunct implies its
 \(p_1\) counterpart.
 \end{proof}
 
@@ -319,13 +334,15 @@ recorded as route or reconstruction changes and do not instantiate
 
 The result constructor exposes bytes only through
 \begin{equation}
-  \mathsf{deliverable}(o,u,a)=
+  \begin{gathered}
+  \mathsf{deliverable}(o,u,a)=\\[-0.25ex]
   \begin{cases}
     \mathsf{Some}(y), &
-      \substack{o=\mathsf{Ok}(\Clean,e),\\
-      \Accept_{p,v}(u,a)},\\
+      \substack{o=\mathsf{Ok}(\Clean,e)\\
+      {}\land\Accept_{p,v}(u,a)},\\
     \mathsf{None}, & \text{otherwise}.
   \end{cases}
+  \end{gathered}
   \label{eq:clean-only-delivery}
 \end{equation}
 All non-clean and error states remain distinguishable in evidence but map to
@@ -334,13 +351,16 @@ All non-clean and error states remain distinguishable in evidence but map to
 For filesystem state \(D\), write
 \(d=\mathsf{deliverable}(o,u,a)\). Exclusive publication is
 \begin{equation}
- \mathsf{Pub}_{p,v}(D,u,a,o)=
+ \begin{gathered}
+ \mathsf{Pub}_{p,v}(D,u,a,o)=\\[-0.25ex]
  \begin{cases}
   (D\cup\{\zeta\mapsto y\},\zeta),&
-   \substack{d=\mathsf{Some}(y),\\
-   \zeta\notin\mathrm{dom}(D),\ \mathsf{commit}(\zeta,y)},\\
+   \substack{d=\mathsf{Some}(y)\\
+   {}\land\zeta\notin\mathrm{dom}(D)\\
+   {}\land\mathsf{commit}(\zeta,y)},\\
   (D,\bot),&\text{otherwise}.
  \end{cases}
+ \end{gathered}
   \label{eq:publish-transition}
 \end{equation}
 Staging is not a final path and is discarded on abort to the extent guaranteed
@@ -378,7 +398,7 @@ Under \cref{asm:parser-soundness,asm:semantic-construction,asm:publication},
 \begin{equation}
 \begin{aligned}
  \Accept_{p,v}(u,a)&\Longrightarrow y\in L_{p,k_o},\\
- \ell=\Semantic&\Longrightarrow
+ \substack{\Accept_{p,v}(u,a)\\ \ell=\Semantic}&\Longrightarrow
    \mathsf{copied}_{x}(y)=\varnothing,\\
  \mathsf{deliverable}(o,u,a)=\mathsf{None}
    &\Longrightarrow \mathsf{Pub}_{p,v}(D,u,a,o)=(D,\bot).

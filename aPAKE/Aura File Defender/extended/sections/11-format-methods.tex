@@ -13,10 +13,10 @@ location-aware component admission, profile convergence, and bounds over both
 \(y\) and reconstruction evidence \(e\); it does not imply that arbitrary media
 in the broad format family are harmless.
 
-The contract for a permitted source profile \(s\), reconstruction level
-\(\ell\), and output profile \(k\) is recorded as
+The contract for a permitted source profile \(s\), parser-registry version
+\(v\), reconstruction level \(\ell\), and output profile \(k\) is recorded as
 \begin{equation}
- \Phi_{p,s,\ell,k}=
+ \Phi_{p,v,s,\ell,k}=
  \bigl(\Omega_p,q_{p,s},L_{p,k},\Gamma_{p,k},
        \Pi^{\mathrm{auth}}_{p,v,k},
        \mathcal{N}_{p,k},\mathcal{M}_{p,k},
@@ -57,7 +57,7 @@ WebM & Structural or semantic & Blocks structurally, decoded streams semanticall
 \end{tabularx}
 \end{table*}
 
-Policy fixes \(\Phi_{p,s,\ell,k}\) before dispatch. The handler reports
+Policy and registry version fix \(\Phi_{p,v,s,\ell,k}\) before dispatch. The handler reports
 \((y,\ell,e)\), after which the authorizing parser checks
 \[
 \begin{aligned}
@@ -81,14 +81,17 @@ Component closure fixes legal units and locations; metadata policy restricts
 the optional subset. Removal is established by reparsing components, not by
 substring search inside compressed payloads.
 
-Size and offset integrity are also treated as parser obligations. For a
-length-delimited component $c$ at offset $o_c$ with header length $h_c$ and
-declared payload length $\ell_c$, the parser requires checked arithmetic and
-the containment relation
+Size and offset integrity are also treated as parser obligations. Let
+\(B_{\mathrm{parent}}=[o_{\mathrm{parent}},b_{\mathrm{parent}})\) be the
+parent byte interval. For a length-delimited component \(c\) at offset \(o_c\)
+with header length \(h_c\) and declared payload length \(\ell_c\), the parser
+requires nonnegative integer lengths, checked addition, and
 \begin{equation}
-o_c+h_c+\ell_c\leq b_{\mathrm{parent}},
-\qquad
-[o_c,o_c+h_c+\ell_c)\subseteq B_{\mathrm{parent}}.
+\begin{aligned}
+o_{\mathrm{parent}}&\le o_c,&
+o_c+h_c+\ell_c&\leq b_{\mathrm{parent}},\\
+[o_c,o_c+h_c+\ell_c)&\subseteq B_{\mathrm{parent}}.&&
+\end{aligned}
 \label{eq:component-bounds}
 \end{equation}
 Sequential components abut; referenced extents must lie in an allowed
@@ -98,7 +101,9 @@ slicing, allocation, and offset conversion.
 \subsection{Static raster images}\label{subsec:static-raster-method}
 
 JPEG, PNG, static WebP, BMP, and TIFF inputs are probed and decoded to a raster
-\(z\); only JPEG, PNG, and WebP are emitted \cite{ituT81,png3,webpRiff}. If
+\(z\); only JPEG, PNG, and WebP are emitted \cite{ituT81,png3,webpRiff}. Let
+\(w_i,h_i\in\mathbb N_{>0}\) for \(i\in\{0,1,2\}\), and let
+\(P_{\max}\in\mathbb N_{>0}\) be the policy pixel bound. If
 \((w_0,h_0)\), \((w_1,h_1)\), and \((w_2,h_2)\) are source probe, source decode,
 and output decode dimensions, respectively, clean delivery requires
 \begin{equation}
@@ -131,7 +136,11 @@ animation or metadata chunks. Each output also passes the second decode in
 
 \subsection{GIF, APNG, and animated WebP}\label{subsec:animated-raster-method}
 
-GIF is semantically reconstructed from decoded RGBA frames under
+GIF is semantically reconstructed from \(N\) decoded RGBA frames. For
+\(i=1,\ldots,N\), let \(w_i,h_i\in\mathbb N_{>0}\) be frame dimensions and
+\(\tau_i\ge0\) its recorded delay; \(N_{\max}\), \(P_{\max}\), and
+\(P_{\Sigma}\) are the frame-count, per-frame-pixel, and aggregate-pixel
+policy bounds. Reconstruction requires
 \begin{equation}
 \begin{aligned}
  1\le N&\le N_{\max},&
@@ -192,7 +201,9 @@ bytes under the RIFF model \cite{microsoftRiff}. It emits exactly a 16-byte PCM
 \end{aligned}
 \label{eq:wav-integrity}
 \end{equation}
-where $C$ is channel count, $B$ is bits per sample, and $F_s$ is sample rate.
+where \(C,F_s\in\mathbb N_{>0}\), \(B\in\mathbb N_{>0}\), and \(8\mid B\);
+the channel count, sample rate, and bit depth must also belong to their finite
+profile allowlists.
 The RIFF size is \(|y|-8\). Retained PCM makes the native route structural even
 though ancillary chunks and compressed subcodecs are excluded.
 
@@ -234,8 +245,10 @@ dependency, seeking, and inter-track boxes are excluded. Because some removed
 boxes affect presentation, the structural claim is container closure under a
 registered fidelity policy, not general semantic equivalence.
 
-For chunk extents \(I_j=[o_j,o_j+L_j)\) derived jointly from the timing,
-sample-size, sample-to-chunk, and offset tables, the nonfragmented profile
+For \(J\ge1\) chunk extents \(I_j=[o_j,o_j+L_j)\), \(j=1,\ldots,J\), with
+\(L_j>0\), derived jointly from the timing, sample-size, sample-to-chunk, and
+offset tables, let \(B_{\mathtt{mdat}}\) be the payload interval of the sole
+output \texttt{mdat}. The nonfragmented profile
 requires
 \begin{equation}
  \biguplus_j I_j=B_{\mathtt{mdat}},
