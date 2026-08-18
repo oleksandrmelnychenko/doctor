@@ -698,16 +698,16 @@ The paired study measures decision sensitivity within the frozen corpus, not ant
 | --- | --- | --- | --- |
 
 : **Table 11.** Prespecified paired mechanism-ablation conditions. Condition identifiers match the machine-readable protocol.
-                                                                                                                                                                                                                                             
-  `signature-`                                                                                                                                                                                                                               
+
+  `signature-`
   `prescan`           Replace input-and-output signature scanning with output-only scanning                                                                   All records                                                                    Observed paired transition after removing pre-reconstruction signature evidence
-                                                                                                                                                                                                                                             
-  `supplied-type-`                                                                                                                                                                                                                           
+
+  `supplied-type-`
   `evidence`          For records with a supplied type, omit that value and disable its prerequisite. For records without one, change only the prerequisite   Two prespecified groups analyzed separately. No pooled intervention estimate   Observed paired transition within each distinct intervention group
-                                                                                                                                                                                                                                             
-  `reconstruction-`                                                                                                                                                                                                                          
-  `requirement-`                                                                                                                                                                                                                             
-  `where-`                                                                                                                                                                                                                                   
+
+  `reconstruction-`
+  `requirement-`
+  `where-`
   `configurable`      Lower the animated-image, video, and audio requirement from required semantic reconstruction to structural reconstruction               Manifest profiles eligible for one of these configurable requirements          Decision transition under a lower registered reconstruction floor
 
   : Prespecified paired mechanism-ablation conditions. Condition identifiers match the machine-readable protocol. {#tab:mechanism-ablation}
