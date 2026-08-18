@@ -7,22 +7,23 @@ The manuscript is a methods-and-evaluation paper. Its novelty is the composed
 acceptance method at the endpoint boundary, not a claim that a new codec or a
 universal antivirus classifier has been invented.
 
-## Target structure and page budget
+## Target structure
 
-1. Introduction and research gap: 1.0 page.
-2. Related work and claim boundary: 1.25 pages.
-3. System and adversary model: 0.75 page.
-4. Canonical reconstruction method: 2.0 pages.
-5. Format profiles and polyglot handling: 1.25 pages.
-6. Implementation and process isolation: 1.0 page.
-7. Evaluation protocol and results: 1.75 pages.
-8. Discussion, limitations, and conclusion: 1.0 page.
+1. Introduction and research gap.
+2. Related work and claim boundary.
+3. System and adversary model.
+4. Canonical reconstruction method.
+5. Format profiles and polyglot handling.
+6. Implementation and process isolation.
+7. Evaluation protocol and results.
+8. Discussion, limitations, and conclusion.
 
-The extended manuscript PDF is 54 A4 pages including references. The
-related-work section is grounded in source-by-source verified IEEE, ACM,
-USENIX, NIST, RFC, and W3C publications. Retained finite observations are
-reported with explicit evidence boundaries. Controlled, population, capacity,
-and release claims remain pending until the complete scientific gate passes.
+The extended manuscript PDF is 23 A4 pages including references in the
+two-column Elsevier 5p layout. The related-work section is grounded in
+source-by-source verified IEEE, ACM, USENIX, NIST, RFC, and W3C publications.
+Retained finite observations are reported with explicit evidence boundaries.
+Controlled, population, capacity, and release claims remain pending until the
+complete scientific gate passes.
 
 ## Scientific contribution to keep explicit
 

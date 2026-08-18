@@ -34,7 +34,7 @@ excluded. The generated file remains a candidate. It is read only
 after a successful child exit and then traverses the same output-size,
 authorizing-grammar, type-convergence, and signature gates as native output.
 
-\begin{figure}[t]
+\begin{figure*}[t]
 \centering
 \resizebox{0.96\textwidth}{!}{%
 \begin{tikzpicture}[
@@ -63,7 +63,7 @@ authorizing-grammar, type-convergence, and signature gates as native output.
 only a candidate. Cancellation, timeout, launch failure, oversized output, or
 failed validation terminates the path without deliverable bytes.}
 \label{fig:decoder-sequence}
-\end{figure}
+\end{figure*}
 
 The supervisor polls the child every 25 milliseconds. During each cycle it
 checks whether the monitored output file exceeds the configured byte limit,
@@ -76,7 +76,7 @@ holding a pipe indefinitely. The \texttt{ManagedChild} guard remains armed
 until normal completion, so an early return or unwinding path still attempts
 termination and reaping.
 
-\begin{table}[t]
+\begin{table*}[t]
 \centering
 \caption{Comparison of external-decoder containment by deployment platform.}
 \label{tab:platform-containment}
@@ -90,7 +90,7 @@ macOS & Temporary-file lifetime, deadline polling, cancellation, output-size mon
 iOS & In-process checks and fail-closed policy handling & Conventional applications cannot spawn the packaged FFmpeg/FFprobe child path & Strict semantic audio/video blocks unless a separately evaluated in-process backend is supplied \\
 \bottomrule
 \end{tabularx}
-\end{table}
+\end{table*}
 
 On Linux, \texttt{SIGXFSZ} is reported as an exceeded output bound rather than
 an unspecified decoder failure. Across all platforms, the decoder retains the

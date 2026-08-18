@@ -32,7 +32,7 @@ reconstruction, and output bounds. The remaining symbols were defined in
 the limits of their claims are compared in
 \cref{tab:format-profile-comparison}.
 
-\begin{table}[t]
+\begin{table*}[t]
 \centering
 \caption{Comparison of implemented reconstruction routes. ``Retained source''
 identifies content that survives a structural route and limits its claim.}
@@ -55,14 +55,17 @@ ISO BMFF & Structural or semantic & Samples in \texttt{mdat} on the structural p
 WebM & Structural or semantic & Blocks structurally, decoded streams semantically & EBML closure or semantic MP4 reparse & Structural container claims. Source-payload independence only semantically \\
 \bottomrule
 \end{tabularx}
-\end{table}
+\end{table*}
 
 Policy fixes \(\Phi_{p,s,\ell,k}\) before dispatch. The handler reports
 \((y,\ell,e)\), after which the authorizing parser checks
 \[
- y\in L_{p,k},\qquad
- \mathsf{components}(y)\subseteq\Gamma_{p,k},\qquad
- \mathbf b(y,e)\le\mathcal B_{p,s,k},\qquad \ell\ge q_{p,s}.
+\begin{aligned}
+ y&\in L_{p,k},&
+ \mathsf{components}(y)&\subseteq\Gamma_{p,k},\\
+ \mathbf b(y,e)&\le\mathcal B_{p,s,k},&
+ \ell&\ge q_{p,s}.
+\end{aligned}
 \]
 Any false or indeterminate conjunct prevents delivery.
 
@@ -99,8 +102,10 @@ JPEG, PNG, static WebP, BMP, and TIFF inputs are probed and decoded to a raster
 \((w_0,h_0)\), \((w_1,h_1)\), and \((w_2,h_2)\) are source probe, source decode,
 and output decode dimensions, respectively, clean delivery requires
 \begin{equation}
- (w_0,h_0)=(w_1,h_1)=(w_2,h_2),\qquad
- 0<w_i h_i\le P_{\max}\quad(i=0,1,2).
+\begin{aligned}
+ (w_0,h_0)&=(w_1,h_1)=(w_2,h_2),\\
+ 0&<w_i h_i\le P_{\max}\quad(i=0,1,2).
+\end{aligned}
  \label{eq:raster-dimension-consistency}
 \end{equation}
 The fresh encoder consumes only \(z\); source EXIF, XMP, ICC, comment,

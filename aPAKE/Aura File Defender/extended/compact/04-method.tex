@@ -36,9 +36,11 @@ is not whole-file evidence \cite{rfc9110}.
 
 For the unique source route \(s\), reconstruction is a total typed operation
 \begin{equation}
-  \mathsf{Rec}_{p,s}(u)\in
-  \mathsf{Result}(\mathcal A,\mathsf{PipelineError}),\qquad
-  a=(y,n_o,m_o,k_o,\ell,e)\in\mathcal A,
+\begin{aligned}
+  \mathsf{Rec}_{p,s}(u)&\in
+  \mathsf{Result}(\mathcal A,\mathsf{PipelineError}),\\
+  a&=(y,n_o,m_o,k_o,\ell,e)\in\mathcal A,
+\end{aligned}
   \label{eq:reconstruction-relation}
 \end{equation}
 where \(y\) is the candidate byte string, \(n_o\) is its generated portable
@@ -101,21 +103,23 @@ the registry. External validators from different tool lineages are used only
 in the empirical protocol and do not enter the analytical acceptance predicate.
 
 The candidate acceptance predicate is
-\begin{align}
-  \Accept_{p,v}(u,a) \equiv {}&
-  R_p(x,n,m)=\{s\}
-  \land \mathsf{Rec}_{p,s}(u)=\mathsf{Ok}(a) \nonumber\\
-  &\land \mathsf{InputOK}_p(n,m,s)
-  \land (s,\ell,k_o)\in\Omega_p \nonumber\\
-  &\land \mathsf{NameOutOK}_p(n_o,k_o)
-  \land \mathsf{TypeOutOK}_p(m_o,k_o) \nonumber\\
-  &\land \mathsf{ByteTypeOK}_p(y,k_o)
-  \land \mathsf{LevelOK}_p(s,\ell) \nonumber\\
-  &\land \mathsf{BoundsOK}_p(x,y,e) \nonumber\\
-  &\land \mathsf{ScanOK}_p(y)
-  \land \mathsf{Valid}_{p,v,k_o}(y).
-  \label{eq:extended-acceptance}
-\end{align}
+\begin{equation}
+\begin{aligned}
+  \Accept_{p,v}(u,a) \equiv {}& \\[-0.6ex]
+  &R_p(x,n,m)=\{s\} \\
+  &\land \mathsf{Rec}_{p,s}(u)=\mathsf{Ok}(a) \\
+  &\land \mathsf{InputOK}_p(n,m,s) \\
+  &\land (s,\ell,k_o)\in\Omega_p \\
+  &\land \mathsf{NameOutOK}_p(n_o,k_o) \\
+  &\land \mathsf{TypeOutOK}_p(m_o,k_o) \\
+  &\land \mathsf{ByteTypeOK}_p(y,k_o) \\
+  &\land \mathsf{LevelOK}_p(s,\ell) \\
+  &\land \mathsf{BoundsOK}_p(x,y,e) \\
+  &\land \mathsf{ScanOK}_p(y) \\
+  &\land \mathsf{Valid}_{p,v,k_o}(y).
+\end{aligned}
+\label{eq:extended-acceptance}
+\end{equation}
 Every conjunct is necessary. Signature policy is evaluated on the reconstructed
 bytes because scanning only the source would not authorize the emitted object.
 An optional pre-scan can reject early but cannot replace the rebuilt-output
@@ -127,7 +131,7 @@ cannot become a weaker pass-through path, and bytes remain unauthorized until
 complete output validation. \Cref{fig:reconstruct-or-reject} summarizes this
 decision.
 
-\begin{figure}[t]
+\begin{figure*}[t]
 \centering
 \resizebox{0.98\textwidth}{!}{%
 \begin{tikzpicture}[
@@ -181,7 +185,7 @@ publication path. Dashed edges denote disagreement, unsupported reconstruction,
 transformation failure, failed or indeterminate authorization, and commit
 failure. All converge on one non-deliverable terminal state.}
 \label{fig:reconstruct-or-reject}
-\end{figure}
+\end{figure*}
 
 \begin{definition}[Operational delivery system]
 \label{def:operational-system}
@@ -224,7 +228,7 @@ The eight analytical invariants are summarized in
 \cref{tab:method-invariants}. Each specifies an observable condition that maps
 directly to a test or release gate.
 
-\begin{table}[t]
+\begin{table*}[t]
 \centering
 \caption{Formal invariants and their empirical interpretation.}
 \label{tab:method-invariants}
@@ -243,7 +247,7 @@ F7 & Validation separate from construction & The authorizing parser is distinct 
 F8 & Clean-result publication & Non-clean and error outcomes expose no bytes, create no new target, and leave any pre-existing target unchanged \\
 \bottomrule
 \end{tabularx}
-\end{table}
+\end{table*}
 
 Let \(w=(s,a,\{\rho_j(y)\})\) be a fixed post-reconstruction witness and
 \(\mathsf{PostOK}_{p,v}(w)\) the acceptance conjunction after removing routing.
@@ -318,7 +322,8 @@ The result constructor exposes bytes only through
   \mathsf{deliverable}(o,u,a)=
   \begin{cases}
     \mathsf{Some}(y), &
-      o=\mathsf{Ok}(\Clean,e)\land\Accept_{p,v}(u,a),\\
+      \substack{o=\mathsf{Ok}(\Clean,e),\\
+      \Accept_{p,v}(u,a)},\\
     \mathsf{None}, & \text{otherwise}.
   \end{cases}
   \label{eq:clean-only-delivery}
@@ -326,12 +331,13 @@ The result constructor exposes bytes only through
 All non-clean and error states remain distinguishable in evidence but map to
 \(\mathsf{None}\).
 
-For filesystem state \(D\), exclusive publication is the partial transition
+For filesystem state \(D\), write
+\(d=\mathsf{deliverable}(o,u,a)\). Exclusive publication is
 \begin{equation}
  \mathsf{Pub}_{p,v}(D,u,a,o)=
  \begin{cases}
   (D\cup\{\zeta\mapsto y\},\zeta),&
-   \substack{\mathsf{deliverable}(o,u,a)=\mathsf{Some}(y),\\
+   \substack{d=\mathsf{Some}(y),\\
    \zeta\notin\mathrm{dom}(D),\ \mathsf{commit}(\zeta,y)},\\
   (D,\bot),&\text{otherwise}.
  \end{cases}

@@ -8,7 +8,7 @@ digest. Optional policy authentication uses a hash-based message authentication
 code (HMAC). \Cref{fig:implementation-planes} shows the separation of policy
 construction, media processing, and publication.
 
-\begin{figure}[H]
+\begin{figure*}[t]
 \centering
 \resizebox{0.96\textwidth}{!}{%
 \begin{tikzpicture}[
@@ -56,7 +56,7 @@ separately. Handlers produce candidates, whereas the
 validation and verdict stages alone authorize bytes for an interface or final
 path.}
 \label{fig:implementation-planes}
-\end{figure}
+\end{figure*}
 
 Construction of \texttt{FileDefender} normalizes media allowlists and denylists
 into lookup sets and compiles baseline plus administrator signatures into one
@@ -87,7 +87,7 @@ authorizing parser.
 Unsupported or non-media input reaches a generic handler that reports an
 unprocessed level and a blocking alert, never a pass-through path.
 
-\begin{table}[t]
+\begin{table*}[t]
 \centering
 \caption{Implementation traceability at reviewed source revision
 \texttt{823a5ec7a0dd}. The table records source boundaries, not empirical
@@ -108,7 +108,7 @@ Non-overwriting path publication & \path{src/lib.rs} & Suffix convergence, same-
 Tenant snapshot selection & \path{src/tenant.rs} & Versioned copy-on-write snapshots resolve to immutable defenders \\
 \bottomrule
 \end{tabularx}
-\end{table}
+\end{table*}
 
 Validation separate from construction distinguishes transformation from
 acceptance. The implementation selects one registered complete-file grammar for

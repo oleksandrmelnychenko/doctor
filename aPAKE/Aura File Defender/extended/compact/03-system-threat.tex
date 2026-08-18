@@ -9,7 +9,7 @@ decoder, an export interface, or another application. Upstream provenance does
 not substitute for validation of the exact octet string crossing this local
 trust boundary.
 
-\begin{figure}[t]
+\begin{figure*}[t]
 \centering
 \resizebox{0.98\textwidth}{!}{%
 \begin{tikzpicture}[
@@ -55,7 +55,7 @@ declared type\\trusted context: policy, deadline, cancellation};
 not authorize media bytes. Each measurable carrier or publication threat is
 assigned a distinct fail-closed control.}
 \label{fig:component-architecture}
-\end{figure}
+\end{figure*}
 
 In an end-to-end encrypted application, this boundary lies after authenticated
 decryption and before local storage or rendering. The relay can remain blind to
@@ -98,7 +98,7 @@ supervision alone does not isolate same-user host effects. Harmful decoded
 meaning and steganography are content-analysis problems outside
 \(\mathcal{T}_{\mathrm{in}}\).
 
-\begin{table}[t]
+\begin{table*}[t]
 \centering
 \caption{Adversary capabilities and the corresponding enforced boundary.}
 \label{tab:adversary-capabilities}
@@ -115,7 +115,7 @@ Counts, dimensions, and timing & Allocation, expansion, or execution exhaustion 
 Fault timing and destination state & Partial publication or overwrite & Temporary output, validation before commit, and non-overwriting persistence with deployment-verified atomic visibility \\
 \bottomrule
 \end{tabularx}
-\end{table}
+\end{table*}
 
 Malware labels organize scenario provenance but do not enter the output verdict.
 The behavioral distinctions defined in \cref{sec:background} prevent a carrier

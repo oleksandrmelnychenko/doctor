@@ -13,97 +13,51 @@ format or profile agreement, fidelity, fault and fuzz outcomes, and warm latency
 \Cref{tab:server-experiment-complete} reports selected retained outcomes and
 their evidentiary limits.
 
-\begingroup
+\begin{table*}[t]
+\centering
+\caption{Selected outcomes of the bounded server experiment. All proportions
+describe only the generated corpus and executed schedules.}
+\label{tab:server-experiment-complete}
 \scriptsize
-\setlength{\tabcolsep}{4pt}
-\begin{longtable}{L{0.17\textwidth}L{0.39\textwidth}L{0.36\textwidth}}
-\caption{Selected retained outcomes for the bounded server experiment. Counts
-and proportions describe only the generated corpus and executed schedules.}
-\label{tab:server-experiment-complete}\\
+\setlength{\tabcolsep}{3.5pt}
+\begin{tabularx}{\textwidth}{L{0.15\textwidth}L{0.42\textwidth}Y}
 \toprule
-Evidence area & Observed result & Evidence boundary \\
+Evidence area & Observed result & Maximum supported interpretation \\
 \midrule
-\endfirsthead
-\toprule
-Evidence area & Observed result & Evidence boundary \\
-\midrule
-\endhead
-\midrule
-\multicolumn{3}{r}{Continued on next page}\\
-\endfoot
+Validation & Run \texttt{\AFDExperimentRunShort};
+\AFDExperimentRustPassed{} Rust and \AFDExperimentResearchPassed{} research
+tests passed & The campaign was not rerun under the final hardened runner \\
+Corpus decisions & \AFDExperimentCorpus{} generated records:
+S0/S1/S6 = \AFDExperimentStratumZero/\AFDExperimentStratumOne/
+\AFDExperimentStratumSix; 80 expected-clean deliveries and 24 expected
+blocks matched their fixture-derived actions & Fixture--policy consistency,
+not independent ground truth; S2--S5 and S7 were absent \\
+Closure and differential checks & \AFDExperimentExactStable{} exact and
+\AFDExperimentLossyClosure{} lossy second-pass closures;
+\AFDExperimentDifferential{} checks over \AFDExperimentUniqueOutputs{} unique
+output digests & External recognition or decodability, not canonical-language
+membership \\
+Fidelity & \AFDExperimentFidelityPassed{} passed: all static-image, GIF, and
+MP4 records; all audio and source-WebM records failed the original metric
+implementation & A usability result separate from structural authorization;
+no failure was waived \\
+Fault and fuzz schedules & \AFDExperimentFaultCampaigns{} selected fault
+checks passed; \AFDExperimentFuzzExecutions{} executions over 210 requested
+target-seconds recorded no failure & The fuzz schedule was about 0.28\% of the
+prespecified 21 target-hours \\
+Performance & \AFDExperimentPerformanceObservations{} observations; warm
+median/p95 \AFDExperimentWarmMedian/\AFDExperimentWarmPninetyfive{} ms and
+mean \AFDExperimentWarmMean{} ms & Repeated calls on a shared host, with no
+bootstrap interval; \AFDExperimentSequentialRate{} calls/s is not concurrent
+capacity \\
+Ablation & Three conditions were prespecified but not executed in this package
+& No mechanism-contribution claim \\
+Scientific gate & $G_{\mathrm{sci}}=0$; release ineligible & Missing strata,
+public-source admission, full fuzz and controlled performance schedules, and
+immutable execution conditions \\
 \bottomrule
-\endlastfoot
-Provenance and validation &
-Run \texttt{\AFDExperimentRunShort}. Corpus, fidelity, performance, and fuzz
-evidence originated at \texttt{\AFDExperimentCorpusPerformanceCommit}.
-external-validator and fault rechecks at
-\texttt{\AFDExperimentAdapterFaultCommit}. Runner hardening occurred at
-\texttt{\AFDExperimentRunnerCommit}, and packaging at
-\texttt{\AFDExperimentEvidenceCommit} &
-The campaign was not rerun under the final hardened runner.
-All \AFDExperimentRustPassed{} Rust and \AFDExperimentResearchPassed{} research
-tests passed. One fixture generator was ignored. Format, Clippy, package,
-native-toolchain, \AFDExperimentBenchmarkSmokes{} benchmark-smoke, and
-\AFDExperimentFuzzTargets{} fuzz-target checks passed \\
-Corpus decisions &
-\AFDExperimentCorpus{} generated records: S0 \(=\AFDExperimentStratumZero\),
-S1 \(=\AFDExperimentStratumOne\), and inert S6
-\(=\AFDExperimentStratumSix\). All 80 expected-clean evaluations delivered and
-all 24 expected-block evaluations were blocked &
-0/80 expected-clean records were withheld and 0/24 inert unsupported records
-were delivered. No action, reason-family, or pipeline-state mismatch was
-recorded \\
-Closure and external validation &
-\AFDExperimentExactStable{} exact and \AFDExperimentLossyClosure{} registered
-semantic second-pass closures. \AFDExperimentDifferential{} record-level
-external checks passed for \AFDExperimentUniqueOutputs{} unique output digests &
-Each accepted record used at least two applicable tools drawn from ImageMagick
-6.9.12-98, FFprobe/libavformat 6.1.1-3ubuntu5, and MediaInfo 24.01. These checks
-established profile recognition or decodability, not canonical closure \\
-Fidelity &
-\AFDExperimentImageFidelity{} static, \AFDExperimentGifFidelity{} GIF,
-\AFDExperimentAudioFidelity{} audio, \AFDExperimentMpFourFidelity{} MP4,
-\AFDExperimentWebmFidelity{} source-WebM. \AFDExperimentFidelityPassed{} overall &
-Audio duration drift \AFDExperimentAudioDurationDrift\% with per-record mean
-scale-invariant signal-to-distortion ratio (SI-SDR)
-\AFDExperimentAudioSiSdr{} dB. Source-WebM structural similarity index (SSIM)
-\AFDExperimentWebmSsim{} with drift
-\(\leq\AFDExperimentWebmDurationDrift\%\). No failure was waived \\
-Fault and fuzz campaigns &
-\AFDExperimentFaultCampaigns{} selected single-test fault checks passed.
-Seven fuzz targets each received one seeded run with a requested 30-second
-budget, for 210 requested target-seconds &
-\AFDExperimentFuzzExecutions{} iterations produced no recorded crash, sanitizer
-finding, timeout, or crash artifact. The protocol requested three one-hour
-repetitions per target \\
-Performance &
-\AFDExperimentPerformanceObservations{} observations =
-\AFDExperimentColdObservations{} cold + \AFDExperimentWarmObservations{} warm.
-Cold median/p95 \AFDExperimentColdMedian{}/\AFDExperimentColdPninetyfive{} ms.
-Warm \AFDExperimentWarmMedian{}/\AFDExperimentWarmPninetyfive{} ms. Peak RSS
-\AFDExperimentPeakRss{} KiB &
-Warm observations equal 104 records \(\times\) 5 repetitions \(\times\) 3
-sessions and are not independent samples. Warm mean
-\AFDExperimentWarmMean{} ms/call corresponds to
-\AFDExperimentSequentialRate{} sequential calls/s for this order and host.
-No bootstrap interval was produced.
-Warm median/p95: unsupported
-\AFDExperimentUnsupportedMedian{}/\AFDExperimentUnsupportedPninetyfive, raster
-\AFDExperimentRasterMedian{}/\AFDExperimentRasterPninetyfive, GIF
-\AFDExperimentGifMedian{}/\AFDExperimentGifPninetyfive, audio
-\AFDExperimentAudioMedian{}/\AFDExperimentAudioPninetyfive, video
-\AFDExperimentVideoMedian{}/\AFDExperimentVideoPninetyfive{} ms \\
-Mechanism ablation &
-Three conditions were prespecified but not executed in this bounded package &
-No paired transition or mechanism-contribution claim is authorized \\
-\(G_{\mathrm{sci}}\) and release candidate &
-Ineligible &
-S2--S5 and S7 absent. Required public-benign coverage absent. Shortened fuzz
-and performance schedules. Thirty-three other containers active on the host.
-External tools were mutable. No append-only publication. Fidelity gate
-failed \\
-\end{longtable}
-\endgroup
+\end{tabularx}
+\end{table*}
 
 \input{extended/figures/06-server-experiment-charts}
 
@@ -161,7 +115,7 @@ from the authority they provide. The sequence increases operational readiness
 for external review but satisfies neither corpus admission nor
 \(G_{\mathrm{sci}}\).
 
-\begin{table}[H]
+\begin{table*}[t]
 \centering
 \caption{Evidence status of the public-source compatibility and readiness
 rehearsals. Counts are retained observations. The evidence boundary states the
@@ -170,65 +124,35 @@ maximum supported interpretation for each stage.}
 \begingroup
 \scriptsize
 \setlength{\tabcolsep}{3.2pt}
-\begin{tabularx}{\textwidth}{L{0.17\textwidth}L{0.43\textwidth}Y}
+\begin{tabularx}{\textwidth}{L{0.16\textwidth}L{0.44\textwidth}Y}
 \toprule
 Stage & Retained evidence & Evidence boundary \\
 \midrule
 Public-benign pilot &
-At runner commit \texttt{\AFDPublicPilotRunnerCommit},
 \AFDPublicPilotAccepted{} expected-benign records were accepted:
 \AFDPublicPilotExactStable{} byte-idempotent and
-\AFDPublicPilotLossyClosure{} registered lossy closures. Evidence commit:
-\texttt{\AFDPublicPilotEvidenceCommit} &
+\AFDPublicPilotLossyClosure{} registered lossy closures &
 No expected-block record was present, so false acceptance was not estimable.
 This is finite compatibility evidence only \\
-Candidate inventory &
+Candidate inventory and review handoff &
 \AFDWikimediaCandidates{} Wikimedia Commons and
 \AFDInternetArchiveCandidates{} Internet Archive candidates yielded
 \AFDCombinedCandidates{} distinct SHA-256 identities totaling
-\AFDCombinedCandidateBytes{} bytes. Evidence commit:
-\texttt{\AFDCandidateEvidenceCommit} &
-The raw shortfall for \AFDRequiredPublicSourceSlots{} planned public-source
-slots fell to zero, but the objects remained candidates rather than audited or
-admitted corpus records \\
-Mechanical packet &
-Commit \texttt{\AFDAuditPacketCommit} verified
-\AFDMechanicallyVerifiedCandidates{} byte identities and retained
-\AFDExactInspectionOutputs{} exact inspection outputs; encoder metadata was
-observed for \AFDEncoderMetadataObserved{} candidates &
-No provenance, license, diversity, or encoder label was independently
-reviewed. All \AFDPendingReviewCandidates{} candidates remained pending and
-the reviewed-slot deficit was \AFDReviewedSlotDeficit{} \\
-Review and selection &
-The worklist required \AFDReviewApprovalsRequired{} matching detached Ed25519
-approvals from different reviewer clusters. At selection commit
-\texttt{\AFDSelectionCommit}, all \AFDSelectionProfileStrata{} cells lacked
-approved sources and \AFDSelectedPublicSources{}/\AFDRequiredPublicSourceSlots{}
-sources were selected &
-No registry, controlled key, signed decision, consensus approval, S0/S1
-assignment, full-file admission, or frozen manifest existed; selection failed
-closed \\
-Offline handoff &
-Commit \texttt{\AFDReviewHandoffCommit} produced a byte-complete,
-write-disabled packet with \AFDReviewHandoffDecisionInputs{} source decision
-contexts, \AFDReviewHandoffProviderEvidence{} provider-evidence references,
-\AFDExactInspectionOutputs{} inspection outputs, and a frozen Ed25519
-author/sign tool. The \AFDReviewHandoffArchiveBytes{}-byte archive has SHA-256
-prefix \texttt{\AFDReviewHandoffArchiveHashShort}; all
-\AFDReviewHandoffResearchTests{} research tests passed. Evidence commit:
-\texttt{\AFDReviewHandoffEvidenceCommit} &
-The packet contains \AFDReviewHandoffPrivateKeys{} private keys,
-\AFDReviewHandoffDecisions{} decisions, and
-\AFDReviewHandoffSignatures{} signatures. It makes independent review
-executable, not completed or approved \\
+\AFDCombinedCandidateBytes{} bytes. The packet verified
+\AFDMechanicallyVerifiedCandidates{} identities and retained
+\AFDExactInspectionOutputs{} inspection outputs; the
+\AFDReviewHandoffArchiveBytes{}-byte handoff supplied decision contexts and a
+frozen Ed25519 tool & No provenance decision was independently signed:
+\AFDReviewHandoffDecisions{} decisions, \AFDReviewHandoffSignatures{}
+signatures, and \AFDSelectedPublicSources/\AFDRequiredPublicSourceSlots{}
+selected sources. Candidate inventory is not corpus admission \\
 Controlled-readiness cycle &
-Runner commit \texttt{\AFDReadinessRunnerCommit} retained
 \AFDReadinessBaseline{} baseline and \AFDReadinessWsThree{} WS3 results,
 \AFDReadinessFidelity{} fidelity and \AFDReadinessDifferential{} differential
 checks, \AFDReadinessAblation{} ablation rows with
 \AFDReadinessAblationErrors{} pipeline errors, \AFDReadinessFaults{} fault
 cases, and \AFDReadinessRegeneration{} available byte-identical regeneration
-checks. Evidence commit: \texttt{\AFDReadinessEvidenceCommit} &
+checks &
 This was a generated, protocol-under-budget rehearsal. Independent signatures
 and admitted sources remained \AFDReadinessReviewerSignatures{} and
 \AFDReadinessAdmittedSources{}. The shared host had
@@ -239,35 +163,29 @@ remained \AFDReadinessFuzzHours{} target-hours and
 \bottomrule
 \end{tabularx}
 \endgroup
-\end{table}
+\end{table*}
 
-The readiness cycle preserved the original fidelity result as a separate
-historical observation. In the versioned rerun, audio duration came from
-decoded sample counts, which excluded container padding. Video comparison
-normalized the source-WebM timebase and frame rate. No frozen threshold
-changed. The maximum audio duration drift was \AFDReadinessAudioMaxDrift{}, and
-the minimum video SSIM was \AFDReadinessVideoMinSsim{} against the unchanged
-0.90 threshold. All \AFDReadinessFidelity{} fidelity records and all
-\AFDReadinessDifferential{} differential records passed.
-
-The generated readiness inventory contained \AFDReadinessRehearsalTotal{}
-records with S0--S7 counts
+In the versioned readiness rerun, decoded-sample duration and normalized
+source-WebM comparison replaced the earlier metric implementations without
+changing thresholds. All \AFDReadinessFidelity{} fidelity and
+\AFDReadinessDifferential{} differential records passed; maximum audio drift
+was \AFDReadinessAudioMaxDrift{} and minimum video SSIM was
+\AFDReadinessVideoMinSsim{} against 0.90. The
+\AFDReadinessRehearsalTotal{}-record inventory had S0--S7 counts
 \AFDReadinessStratumZero{}, \AFDReadinessStratumOne{},
 \AFDReadinessStratumTwo{}, \AFDReadinessStratumThree{},
 \AFDReadinessStratumFour{}, \AFDReadinessStratumFive{},
 \AFDReadinessStratumSix{}, and \AFDReadinessStratumSeven{}. The 25 WS3 records
-were a scaffold, not independently adjudicated ground truth or a
-protocol-budget corpus. In the paired baseline rehearsal, removing the input
-signature prescan or supplied-type evidence caused no decision transition.
+were an under-budget generated scaffold. Removing the input prescan or
+supplied-type evidence caused no baseline decision transition;
 Lowering the reconstruction floor changed \AFDReadinessLoweredFloorTransitions{}
-applicable full-policy accepts to blocks. These frozen-corpus transitions are
-descriptive and do not identify a causal or population-level mechanism effect.
+applicable accepts to blocks. These transitions are descriptive, not causal or
+population estimates.
 
 Only \(G_{\mathrm{schema}}\) and \(G_{\mathrm{fault}}\) passed in the complete
 gate matrix. Provenance failed; independent signatures and admitted sources
 remained absent, and the server was shared. The full corpus, F1--F8, ablation,
 differential, fidelity, fuzz, performance, and regeneration gates remained
-blocked pending independently signed admission and the protocol-budget run. The
-archive contained \AFDReadinessArchiveBytes{} bytes with SHA-256 prefix
-\texttt{\AFDReadinessArchiveHashShort}. No full fuzz hour, controlled
-performance session, or bootstrap replicate was executed in this cycle.
+blocked pending independently signed admission and the protocol-budget run. No
+full fuzz hour, controlled performance session, or bootstrap replicate was
+executed.

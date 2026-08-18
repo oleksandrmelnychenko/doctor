@@ -1,5 +1,5 @@
 % !TEX program = tectonic
-\documentclass[preprint,12pt,a4paper]{elsarticle}
+\documentclass[final,5p,times,twocolumn]{elsarticle}
 \biboptions{numbers}
 
 \usepackage{iftex}
@@ -77,6 +77,8 @@
 \newcommand{\Evidence}{\ensuremath{\mathsf{Evidence}}}
 \newcommand{\Policy}{\ensuremath{\mathsf{Policy}}}
 \newcommand{\Gate}{\ensuremath{\mathsf{Gate}}}
+\newcommand{\RefDOI}[1]{\href{https://doi.org/#1}{doi:\nolinkurl{#1}}}
+\newcommand{\RefOnline}[1]{\href{#1}{[Online]}}
 
 \input{results/server-experiment-results}
 
@@ -123,6 +125,7 @@ publication \sep untrusted media \sep polyglot files \sep media security
 \end{keyword}
 
 \end{frontmatter}
+\fontsize{9.5}{10.5}\selectfont
 
 \input{extended/compact/01-introduction}
 \input{extended/compact/02-background}

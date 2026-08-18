@@ -103,8 +103,10 @@ rather than misrepresented as structurally reconstructed.
 
 Verdicts are separated from pipeline errors:
 \begin{equation}
-  V=\{\Clean,\Suspicious,\Blocked\},\qquad
-  O=\mathsf{Result}(V\times E,\mathsf{PipelineError}),
+\begin{aligned}
+  V&=\{\Clean,\Suspicious,\Blocked\},\\
+  O&=\mathsf{Result}(V\times E,\mathsf{PipelineError}),
+\end{aligned}
   \label{eq:verdict-space}
 \end{equation}
 where $E$ contains bounded stage evidence. In enforcement mode, a clean verdict
@@ -124,7 +126,7 @@ validator} is reserved for external parser or decoder families used in the
 differential evaluation. The distinction prevents separation within one
 implementation from being reported as independent replication.
 
-\begin{table}[t]
+\begin{table*}[t]
 \centering
 \caption{Core notation used by the formal method and evidence model.}
 \label{tab:core-notation}
@@ -145,9 +147,9 @@ Symbol & Meaning \\
 \(\mathbb G,G_{\mathrm{sci}}\) & Three-valued gate domain and aggregate scientific gate \\
 \bottomrule
 \end{tabularx}
-\end{table}
+\end{table*}
 
-\begin{table}[t]
+\begin{table*}[t]
 \centering
 \caption{Research position relative to selected technical lines of work.}
 \label{tab:research-position}
@@ -162,7 +164,7 @@ Content disarm and reconstruction \cite{darpaSafeDocs,belkind2023,dubin2023,dubi
 Parser differentials and polyglots \cite{jana2012,koch2025,you2025} & Detection and characterization of conflicting file interpretations & Routing only when the evidence admits one profile, followed by canonical output observation and fail-closed delivery \\
 \bottomrule
 \end{tabularx}
-\end{table}
+\end{table*}
 
 \Cref{tab:research-position} locates the proposed method at the intersection of
 these lines of work. It combines routing to exactly one admissible profile,

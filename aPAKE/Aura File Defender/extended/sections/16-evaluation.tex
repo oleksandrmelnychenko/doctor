@@ -18,7 +18,7 @@ The server follows the gated sequence in
 digests enter the run record. Schema-invalid, incomplete, or hash-inconsistent
 reports fail their phase.
 
-\begin{figure}[H]
+\begin{figure*}[t]
 \centering
 \resizebox{0.94\textwidth}{!}{%
 \begin{tikzpicture}[
@@ -55,7 +55,7 @@ reports fail their phase.
 retains reportable evidence but prevents entry into controlled performance
 measurement and release-candidate eligibility.}
 \label{fig:evaluation-pipeline}
-\end{figure}
+\end{figure*}
 
 For binary phase-entry and gate variables $E_j,G_j\in\{0,1\}$, the stopping
 rule is
@@ -78,25 +78,16 @@ distinct tests in \cref{tab:property-suite}. Because the global gate is a
 conjunction, aggregate success cannot hide one invalid accepted output or one
 fault case that publishes bytes.
 
-\begingroup
+\begin{table*}[t]
+\centering
 \footnotesize
 \setlength{\tabcolsep}{4pt}
-\begin{longtable}{L{0.07\textwidth}L{0.19\textwidth}L{0.39\textwidth}L{0.24\textwidth}}
 \caption{Property suite, test oracle, and admissible evidence.}
-\label{tab:property-suite}\\
+\label{tab:property-suite}
+\begin{tabularx}{\textwidth}{L{0.07\textwidth}L{0.19\textwidth}L{0.39\textwidth}Y}
 \toprule
 ID & Formal invariant and empirical oracle & Oracle & Evidence unit \\
 \midrule
-\endfirsthead
-\toprule
-ID & Formal invariant and empirical oracle & Oracle & Evidence unit \\
-\midrule
-\endhead
-\midrule
-\multicolumn{4}{r}{Continued on next page}\\
-\endfoot
-\bottomrule
-\endlastfoot
 F1 & Complete consumption & Accepted output parses from offset zero and consumed octets equal output length. An unconsumed suffix prevents acceptance & Accepted output and suffix-mutated pair \\
 F2 & Component closure & Every parsed component is permitted at its exact grammar location. Unknown or forbidden components are removed through valid reconstruction or blocked & Parsed component path \\
 F3 & Output evidence convergence & Generated name, declared output type, byte recognition, and authorizing report resolve to one output profile & Accepted candidate record \\
@@ -105,8 +96,9 @@ F5 & Second-pass stability & Under the same policy and profile, a second pass is
 F6 & Resource boundedness & Each declared counter, cancellation condition, and deadline returns a typed failure when its bound is exceeded & Boundary and injected-failure case \\
 F7 & Validation separate from construction & Every clean candidate is reparsed by a registered authorizing parser distinct from the constructing handler & Accepted candidate and internal authorizing report \\
 F8 & Fail-closed result construction and publication & Every failed conjunct, non-clean verdict, error, race, and persistence failure exposes no deliverable candidate and preserves a pre-existing target & Interface and filesystem trace \\
-\end{longtable}
-\endgroup
+\bottomrule
+\end{tabularx}
+\end{table*}
 
 F1 appends zero, foreign-object, and malformed suffixes after the terminal
 extent. F2 checks parsed component paths, F3 compares normalized profiles, and
@@ -133,9 +125,12 @@ metric \(d_k\), and threshold \(\varepsilon_{p,k}\), define
 \end{equation}
 and require
 \[
- \mathsf{Out}_{p,v}(u)=y\Longrightarrow
- \exists y'=\mathsf{Out}_{p,v}(u[y]):
- \mathsf{profile}(y')=k\land\mathsf{Close}_{p,k}(y,y').
+\begin{aligned}
+ \mathsf{Out}_{p,v}(u)=y&\Longrightarrow
+ \exists y'=\mathsf{Out}_{p,v}(u[y]):\\
+ &\mathsf{profile}(y')=k\land
+ \mathsf{Close}_{p,k}(y,y').
+\end{aligned}
 \]
 Lossy closure is one-step and metric-specific; it implies neither perceptual
 equivalence nor bounded accumulated drift. Unlike
@@ -151,7 +146,7 @@ strict policy and \(\mathcal{C}\) the conditions in
 \(P_0\). Any mismatch in action, verdict, reason, output digest,
 reconstruction, or profile aborts the study.
 
-\begin{table}[H]
+\begin{table*}[t]
 \centering
 \scriptsize
 \setlength{\tabcolsep}{4pt}
@@ -182,7 +177,7 @@ Decision transition under a lower registered reconstruction floor \\
 \caption{Prespecified paired mechanism-ablation conditions. Condition
 identifiers match the machine-readable protocol.}
 \label{tab:mechanism-ablation}
-\end{table}
+\end{table*}
 
 Let \(\mathcal I\) be the full corpus and \(I_c\subseteq\mathcal I\) the
 preregistered applicable set for condition \(c\). The evidence stream retains

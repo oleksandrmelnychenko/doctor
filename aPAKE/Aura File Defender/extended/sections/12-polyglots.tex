@@ -43,7 +43,7 @@ observation most likely to falsify acceptance. Their comparison is shown in
 \cref{eq:extended-acceptance}. The rightmost column names the decisive
 construction-specific control.
 
-\begin{figure}[H]
+\begin{figure*}[t]
 \centering
 \resizebox{0.96\textwidth}{!}{%
 \begin{tikzpicture}[
@@ -75,16 +75,18 @@ construction-specific control.
 camouflage, a suffix, a dual-format interpretation, and a nested component are
 distinct test strata rather than interchangeable uses of ``polyglot.''}
 \label{fig:carrier-control-map}
-\end{figure}
+\end{figure*}
 
 Complete consumption directly addresses trailing material in the candidate.
 For every nonempty suffix \(z\) that an authorizing parser leaves after the
 original terminal point,
 \begin{equation}
-  \mathsf{Parse}_{p,v,k}(y\parallel z)=\rho
-  \land \rho.t=|y|<|y\parallel z|
-  \Longrightarrow
+\begin{aligned}
+  &\mathsf{Parse}_{p,v,k}(y\parallel z)=\rho,\\
+  &\rho.t=|y|<|y\parallel z|\\
+  &\qquad\Longrightarrow
   \neg\mathsf{CompleteOK}_{p}(\rho,k,y\parallel z).
+\end{aligned}
   \label{eq:suffix-rejection}
 \end{equation}
 This implication states non-acceptance by the authorizing parser. It does not infer
