@@ -20,40 +20,52 @@ reports fail their phase.
 
 \begin{figure*}[t]
 \centering
-\resizebox{0.94\textwidth}{!}{%
 \begin{tikzpicture}[
-  phase/.style={draw,rounded corners=2pt,align=center,text width=38mm,
-    minimum height=15mm,font=\small,inner sep=3pt},
+  phase/.style={draw,rounded corners=2pt,align=center,text width=23mm,
+    minimum height=18mm,font=\scriptsize,inner sep=1.7pt},
   freeze/.style={phase,fill=blue!7},
   functional/.style={phase,fill=green!8},
   adversarial/.style={phase,fill=yellow!10},
   terminal/.style={phase,fill=gray!12},
-  failbox/.style={draw,rounded corners=2pt,align=center,text width=27mm,
-    minimum height=13mm,font=\small,inner sep=3pt,fill=gray!12},
+  failbox/.style={draw,rounded corners=2pt,align=center,text width=47mm,
+    minimum height=10mm,font=\footnotesize,inner sep=2.5pt,fill=gray!12},
   arrow/.style={-{Latex[length=2mm]},thick},
-  fail/.style={-{Latex[length=2mm]},dashed,thick}
+  fail/.style={-{Latex[length=2mm]},dashed,thick},
+  failbranch/.style={dashed,thick}
 ]
-\node[freeze] (p1) at (0,0) {\textbf{1. Freeze}\\run ID and all input hashes};
-\node[freeze] (p2) at (5.2,0) {\textbf{2. Build}\\release build, tests, lint, audit};
-\node[functional] (p3) at (10.4,0) {\textbf{3. Functional evidence}\\corpus, ablation, differential, fidelity};
-\node[adversarial] (p4) at (10.4,-2.2) {\textbf{4. Adversarial evidence}\\fuzz budgets and injected faults};
-\node[adversarial] (p5) at (5.2,-2.2) {\textbf{5. Measurement}\\pinned performance sessions};
-\node[terminal] (p6) at (0,-2.2) {\textbf{6. Reduction}\\regenerate artifacts and evaluate $G_{\mathrm{sci}}$};
-\node[failbox] (failed) at (15.1,-1.1) {retain failed run\\no controlled\\measurement or release};
+\node[freeze] (p1) {\textbf{1. Freeze}\\[-1pt]
+  run ID and\\input hashes};
+\node[freeze,right=3mm of p1] (p2) {\textbf{2. Build}\\[-1pt]
+  release build;\\tests, lint, audit};
+\node[functional,right=3mm of p2] (p3) {\textbf{3. Functional}\\[-1pt]
+  corpus and ablation;\\differential and fidelity};
+\node[adversarial,right=3mm of p3] (p4) {\textbf{4. Adversarial}\\[-1pt]
+  fuzz budgets and\\injected faults};
+\node[adversarial,right=3mm of p4] (p5) {\textbf{5. Measurement}\\[-1pt]
+  pinned\\performance runs};
+\node[terminal,right=3mm of p5] (p6) {\textbf{6. Reduction}\\[-1pt]
+  regenerate artifacts;\\evaluate $G_{\mathrm{sci}}$};
 \draw[arrow] (p1) -- (p2);
 \draw[arrow] (p2) -- (p3);
 \draw[arrow] (p3) -- (p4);
 \draw[arrow] (p4) -- (p5);
 \draw[arrow] (p5) -- (p6);
-\draw[fail] (p2.east) -- node[above,sloped,font=\scriptsize]{$G_j=0$} (failed.north west);
-\draw[fail] (p3.east) -- (failed.north west);
-\draw[fail] (p4.east) -- (failed.south west);
-\draw[fail] (p5.east) -- (failed.south west);
-\end{tikzpicture}%
+\foreach \phase/\branch in {p1/f1,p2/f2,p3/f3,p4/f4,p5/f5,p6/f6}{
+  \coordinate (\branch) at ($(\phase.south)+(0,-5mm)$);
+  \draw[failbranch] (\phase.south) -- (\branch);
 }
+\draw[failbranch] (f1) --
+  node[pos=0.76,above=0.5pt,font=\scriptsize,fill=white,inner sep=1pt]
+  {failed or incomplete phase} (f6);
+\coordinate (failmid) at ($(f3)!0.5!(f4)$);
+\node[failbox,below=8mm of failmid] (failed) {retain the immutable run record;
+  exclude downstream phases and release claims};
+\draw[fail] (failmid) -- (failed.north);
+\end{tikzpicture}
 \caption{Controlled evaluation sequence. Functional or adversarial failure
 retains reportable evidence but prevents entry into controlled performance
-measurement and release-candidate eligibility.}
+measurement and release-candidate eligibility. Dashed branches collect any
+failed or incomplete phase without crossing the primary execution path.}
 \label{fig:evaluation-pipeline}
 \end{figure*}
 
