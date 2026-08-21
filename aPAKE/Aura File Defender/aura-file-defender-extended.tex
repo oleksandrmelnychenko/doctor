@@ -94,29 +94,24 @@ Fail-Closed Delivery of Untrusted Media}
 \address{Khmelnytskyi National University, Khmelnytskyi, Ukraine}
 
 \begin{abstract}
-Authenticated channels may deliver ambiguous media unsuitable for local use.
-We define a transport-independent method that reconciles filename, declared
-type, and bounded byte evidence; applies policy-required reconstruction;
-validates the candidate independently; and publishes only clean,
-non-overwriting output. The method
-addresses type confusion, ambiguous structures, retained codec payloads,
-resource amplification, and publication faults across image, audio, ISO base
-media, and WebM profiles. The analysis gives conditional canonical-delivery and
-fixed-witness post-reconstruction monotonicity theorems under
-authorizing-parser soundness. A bounded experiment used 104 generated benign
-or inert-unsupported records. Fixture-derived action oracles matched, measuring
-fixture-policy consistency rather than independent ground truth. Eighty
-accepted evaluations produced 40 unique outputs that passed at least two
-applicable external checks. A later versioned readiness cycle, without relaxed
-thresholds, recorded 80/80 fidelity and differential checks, 312/312
-paired-ablation rows, 14/14 fault cases, and 6/6 available byte-identical
-regeneration checks. Its 129 generated rehearsal records spanned S0--S7 but did
-not meet the frozen protocol budgets. Public-source discovery retained 316
-candidates, yet no independent signature was received and 0/246 sources were
-admitted. A shared host, 0/21 fuzz target-hours, and 0/10 controlled
-performance sessions kept \(G_{\mathrm{sci}}\) and release eligibility false;
-the observations authorize no release, population, malware-detection, or
-capacity claim.
+Authenticated channels can deliver media that remain ambiguous or unsuitable
+for local use. We present a transport-independent, policy-indexed method that
+reconciles filename, declared type, and bounded byte evidence; selects one
+source profile; enforces the required structural or semantic reconstruction;
+validates the complete candidate on a code path separate from construction;
+and publishes only clean, non-overwriting output. Conditional canonical-
+delivery and fixed-witness monotonicity results make authorizing-parser,
+construction, and filesystem assumptions explicit. The Rust implementation
+covers image, audio, ISO base media, and WebM profiles. In a bounded experiment,
+fixture-derived actions matched for 104 generated benign or inert-unsupported
+records, measuring fixture--policy consistency rather than independent ground
+truth. A later versioned rehearsal completed differential, fidelity, paired-
+ablation, 14-case fault, and available-regeneration checks, but used an under-
+budget generated corpus. No public source received independent admission, and
+the prescribed fuzzing and controlled-performance schedules were not run on a
+dedicated host. Consequently, \(G_{\mathrm{sci}}\) and release eligibility
+remain false: the retained observations support the method and finite-run
+traceability, not population efficacy, malware detection, capacity, or release.
 \end{abstract}
 
 \begin{keyword}

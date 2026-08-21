@@ -264,8 +264,10 @@ interpretation, malware-detection rate, or prevalence claim.
 Every accepted output is checked by the authorizing parser and at least two
 applicable external format or profile validators. Distinct families use
 different executable or library lineages. Separate process boundaries alone do
-not establish diversity. Reports bind output digests to executable identities,
-detected profiles, and outcomes. Any missing, rejecting, or disagreeing result
+not establish diversity. Reports bind output digests to executable versions and
+hashes, material parser or codec dependencies, detected profiles, and outcomes;
+validators are grouped by implementation lineage before the diversity count is
+evaluated. Any missing, rejecting, or disagreeing result
 fails the gate. These external checks corroborate decodability or profile
 recognition only. They do not independently establish complete consumption,
 component closure, the expected action, or the fixture-derived decision oracle,

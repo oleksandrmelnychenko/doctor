@@ -3,102 +3,78 @@
 
 Digital media cross local trust boundaries through email, web download, cloud
 synchronization, direct import, and messaging. Upstream controls can establish
-channel authenticity, access rights, or transport confidentiality without
-establishing that the received octet string is an admissible input for a local
-parser, decoder, preview generator, or file-opening application. A file can
-arrive through an authenticated channel and still exploit a decoder, preserve
-privacy-bearing metadata, conceal an active object, amplify resource demand, or
-present different meanings to different parsers. End-to-end encrypted
-messaging is one relevant instance because a blind relay cannot inspect
-plaintext without changing the confidentiality model
+channel authenticity, access rights, or confidentiality, but they do not prove
+that the received octet string is admissible to a local parser or decoder. It
+may still preserve privacy-bearing metadata, amplify resource demand, exploit a
+decoder, or admit conflicting parser interpretations. End-to-end encrypted
+messaging is one instance because a blind relay cannot inspect plaintext
+without changing the confidentiality model
 \cite{unger2015,cohngordon2020,abelson2024}. The underlying file-admission
 problem is not specific to that transport.
 
-Conventional file controls do not fully settle the problem. A filename
-suffix and a caller-supplied media type are declarations rather than proof of a
-complete file grammar. A magic-byte recognizer can identify a plausible prefix
-while leaving a trailing object unaccounted for. A malware signature can match
-a known byte pattern but cannot establish that every accepted output belongs to
-one intended format or that all excluded metadata and structures were removed.
-A successful external transcoder exit establishes only that one tool produced
-bytes. It does not establish that the bytes satisfy the local canonical
-output policy. These mechanisms remain useful evidence, but none of them alone
-authorizes publication to the endpoint filesystem or renderer.
+A suffix and caller-supplied media type are declarations, a magic-byte match
+may cover only a prefix, and a signature scan cannot establish whole-object
+grammar or removal of excluded structures. A successful transcoder exit proves
+only that one tool emitted bytes. Each mechanism supplies evidence, but none
+alone authorizes the emitted object for an endpoint filesystem or renderer.
 
 Content disarm and reconstruction methods address part of this problem by
-replacing an input with a reduced representation. Existing work has established the
-importance of parser agreement, complete input consumption, generated parsers,
-and canonical output languages \cite{samuel2012,jana2012,momot2016,nail2014,
-everparse2019,ipg2023,darpaSafeDocs}. This paper addresses their composition at
-a local publication boundary. Classification, transformation, authorization,
-and filesystem publication remain separate decisions, and the claimed
-reconstruction strength records whether compressed source payloads were retained
-or replaced from decoded pixels, frames, or samples.
+replacing input with a reduced representation. Prior work establishes the
+importance of parser agreement, complete consumption, generated parsers, and
+canonical languages \cite{samuel2012,jana2012,momot2016,nail2014,
+everparse2019,ipg2023,darpaSafeDocs}. The unresolved systems question addressed
+here is how route selection, reconstruction strength, complete-output
+authorization, and filesystem publication compose at one local trust boundary.
 
 This study develops a transport-agnostic method for policy-indexed canonical
-media reconstruction and fail-closed delivery. Here, \emph{delivery} denotes
-any exposure of authorized bytes through the component interface, whereas
-\emph{publication} denotes the narrower non-overwriting filesystem transition.
-The protected transition is from an untrusted media tuple to either a
-policy-admissible reconstructed object or no deliverable bytes. The method first
-converges evidence from the portable name, supplied media type, and bounded byte
-recognizer. It then selects one source profile, performs the reconstruction
-level required by policy, subjects the candidate to an authorizing parser on a
-code path separate from reconstruction, applies post-rebuild signature and
-resource policy, and invokes publication only after a clean verdict. Delivery
-therefore depends jointly on one source route, a registered source-to-output
-mapping, policy-indexed canonicality, reconstruction-level sufficiency, output
-scanning, resource bounds, and non-overwriting publication. Every other result
-exposes no deliverable bytes, creates no new target through the component
-interface, and leaves any pre-existing target unchanged.
+media reconstruction and fail-closed delivery. \emph{Delivery} is any exposure
+of authorized bytes through the component interface; \emph{publication} is the
+narrower non-overwriting filesystem transition. The method converges portable
+name, supplied type, and bounded byte evidence to one source profile, enforces
+the policy-required reconstruction level, reparses the complete candidate on a
+code path separate from construction, applies rebuilt-output scanning and
+resource bounds, and permits publication only after a clean verdict. Every
+other outcome exposes no deliverable bytes and leaves any pre-existing target
+unchanged.
 
-The claim has separate analytical and empirical falsifiers. Analytically,
-under the registered-parser and filesystem assumptions, every delivered byte
-string must belong to one policy-indexed canonical language, and every
-non-clean terminal state must expose no deliverable bytes. Empirical conformance
-requires each accepted manifest record to satisfy its prespecified action,
-reason-family, pipeline-state, reconstruction, closure, and resource oracles,
-together with the executed fault schedule. One violated obligation falsifies
-conformance for that run. Fidelity is evaluated independently and cannot
-authorize a structurally invalid output. The contribution evaluated here is the
-policy-indexed authorization relation that makes route selection,
-source-to-output conversion, reconstruction strength, output validation, and
-publication jointly auditable.
+The analytical claim is conditional: under registered-parser, semantic-
+construction, and filesystem assumptions, accepted output belongs to one
+policy-indexed language and a non-deliverable result cannot publish. Empirical
+conformance is falsified when a manifest record violates any prespecified
+action, reason, state, reconstruction, closure, resource, or fault oracle.
+Fidelity remains a separate usability condition and cannot authorize an
+invalid structure.
 
-The novelty lies in making reconstruction strength part of a policy-indexed
-authorization relation rather than treating successful transformation as
-authorization: a structurally valid candidate cannot satisfy a semantic policy,
-and publication remains a separate guarded state transition. The scientific
-contribution comprises four linked parts. \emph{C1 (methodological)} is that
-authorization relation, which composes unique routing, a registered
-source-level-output mapping, reconstruction sufficiency, complete candidate
-validation, rebuilt-output scanning, resource bounds, and clean-only delivery.
-\emph{C2 (analytical)} is the explicit
-assumption-to-claim boundary for conditional canonical delivery and
-fixed-witness post-reconstruction monotonicity. \emph{C3 (systems)} is the
-typed realization of the eight auditable obligations F1--F8, including
-separation of construction from authorization and non-overwriting publication.
-\emph{C4 (empirical)} is a versioned falsification protocol that binds each
-obligation to a record-level oracle, retains negative and incomplete runs, and
-withholds controlled or release claims whenever any scientific gate remains
-false.
+The novelty is the authorization relation: successful transformation is not
+authorization, reconstruction strength is policy checked, and publication is a
+separate guarded transition. Four linked contributions follow. \emph{C1
+(method)} composes unique routing, a registered source--level--output mapping,
+reconstruction sufficiency, complete candidate validation, rebuilt-output
+scanning, resource bounds, and clean-only delivery. \emph{C2 (analysis)} states
+the assumption-to-claim boundary for conditional canonical delivery and fixed-
+witness post-reconstruction monotonicity. \emph{C3 (system)} realizes the eight
+auditable obligations F1--F8 with typed failures, validation separate from
+construction, and non-overwriting publication. \emph{C4 (evaluation protocol)}
+binds each obligation to record-level falsifiers, retains negative and
+incomplete runs, and withholds controlled or release claims whenever a
+scientific gate is not passed. C4 is a protocol contribution, not a completed
+population-level empirical result.
 
 Research question 1 (RQ1) asks when heterogeneous endpoint evidence selects
 exactly one admissible route. RQ2 asks which conditions are sufficient to
 restrict canonical delivery to clean verdicts at each reconstruction level.
-RQ3 asks whether the
-implementation preserves those conditions on a frozen corpus under malformed
+RQ3 asks whether the implementation preserves those conditions on a frozen
+corpus under malformed
 and ambiguous carriers, decoder and publication faults, cancellation, and fixed
 resource limits, and what fidelity and latency costs accompany the observed
 paths. The first two questions receive analytical answers. RQ3 is only
 partially exercised by the bounded finite-corpus experiment and remains
 unanswered at its declared controlled and population scope.
 
-The scope is limited to measurable media-carrier properties. Malware family and
-operational role require behavioral evidence that media bytes alone do not
-provide, as detailed in \cref{sec:background}. The method also does not remove
-harmful visual or auditory meaning, prove the absence of steganography,
-compensate for a compromised endpoint, or make an unsafe decoder trustworthy.
-For a frozen set of supported profiles and explicit assumptions, it restricts
-publication to canonical outputs validated separately from their construction
-and produced at or above the policy-required reconstruction level.
+The scope is measurable carrier structure. Malware family and operational role
+require behavioral evidence unavailable from media bytes alone. The method does
+not remove harmful decoded meaning, prove absence of steganography, compensate
+for a compromised endpoint, or make an unsafe decoder trustworthy. For frozen
+profiles and explicit assumptions, it restricts publication to candidates
+validated separately from construction and produced at or above the required
+reconstruction level.

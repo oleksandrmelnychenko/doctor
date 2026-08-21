@@ -92,20 +92,17 @@ iOS & In-process checks and fail-closed policy handling & Conventional applicati
 \end{tabularx}
 \end{table*}
 
-On Linux, \texttt{SIGXFSZ} is reported as an exceeded output bound rather than
-an unspecified decoder failure. Across all platforms, the decoder retains the
-filesystem authority of its host process unless the enclosing deployment
-narrows it.
-
-The decoder boundary is a supervision boundary, not a general code-execution
-sandbox. It bounds direct-child lifetime, diagnostics, and candidate size during
-ordinary failure or hang behavior on the platforms listed in
-\cref{tab:platform-containment}. Protocol restrictions constrain media-library
-input selection. They do not constrain arbitrary system calls after code
-execution is compromised. Output authorization and publication gating still
-apply to a normally returning child. Host integrity, descendant lifetime, and
-filesystem effects after decoder compromise require an enclosing platform
-sandbox and are not guaranteed here.
+\paragraph{Deployment security contract.}
+Four claims remain distinct. Process supervision bounds the direct child's
+lifetime, diagnostics, and candidate size during ordinary failure or hang
+behavior; on Linux, \texttt{SIGXFSZ} is classified as an exceeded output bound.
+Decoder isolation is not supplied: protocol restrictions constrain library
+input selection but not arbitrary system calls after code execution is
+compromised, so filesystem authority must be narrowed by an enclosing sandbox.
+Publication provides non-overwrite and only platform-conditional atomic
+visibility. Crash durability is outside the contract because the parent
+directory is not synchronized. Thus supervision, isolation, visibility, and
+power-loss durability must not be reported as one guarantee.
 
 Cancellation is cooperative for in-process work and supervised for external
 work. \texttt{DefenseContext} carries an atomic token, an optional start time,
@@ -130,7 +127,8 @@ output profile before staging. The supported claim is non-overwrite: a
 pre-existing or concurrently created destination is not replaced. Atomic
 visibility depends on the pinned crate version, operating system, and filesystem
 primitive and must be verified for the deployment. The parent directory is not
-synchronized, so crash durability after power loss is not claimed.
+synchronized, so crash durability after power loss is not claimed, as required
+by the deployment contract above.
 
 At the result boundary, a blocked candidate may be summarized in an in-memory
 quarantine envelope containing its reason, digest, sizes, and stage details.

@@ -182,6 +182,66 @@ Lowering the reconstruction floor changed \AFDReadinessLoweredFloorTransitions{}
 applicable accepts to blocks. These transitions are descriptive, not causal or
 population estimates.
 
+\Cref{tab:review-disclosures} makes the executed fault schedule and metric
+change auditable at manuscript scale. Panel A is bound to
+\texttt{aura-fault-injection-v4} at source commit
+\texttt{50e0c8ff7a7422c2aa5b55ad2b7ad80d6720f84e}; full test names and command-
+output digests remain in the linked evidence. Panel B compares the 80 sample
+identities retained by the original and readiness fidelity reports. Sixty-four
+output digests were identical. All 16 video digests changed, so their improved
+result cannot be attributed to the evaluator change alone.
+
+\begin{table*}[t]
+\centering
+\caption{Review disclosures from the controlled-readiness evidence. Panel A
+lists every executed fault case. Panel B separates metric-version effects from
+changed output identity; thresholds were not relaxed.}
+\label{tab:review-disclosures}
+\begingroup
+\scriptsize
+\setlength{\tabcolsep}{2.5pt}
+\renewcommand{\arraystretch}{0.94}
+\textbf{Panel A: complete 14-case fault schedule}\\[-0.4ex]
+\begin{tabularx}{\textwidth}{L{0.20\textwidth}L{0.36\textwidth}L{0.18\textwidth}L{0.07\textwidth}Y}
+\toprule
+Injection point & Required observation & Observed terminal state & \(B^{\mathrm{del}}\) & Cleanup / target \\
+\midrule
+Pre-cancelled token & Stop before decoding & cancelled & 0 & passed \\
+Expired deadline & Stop before processing & timed-out & 0 & passed \\
+Missing child executable & No deliverable artifact & launch-failed & 0 & passed \\
+Child exceeds timeout & Terminate child/process group & timed-out & 0 & passed \\
+Diagnostic flood & Bound captured diagnostics & terminated & 0 & passed \\
+Oversized child output & Terminate before publication & terminated & 0 & passed \\
+Incomplete output parse & Prevent candidate delivery & validation-failed & 0 & passed \\
+Handler panic & Return typed error, no artifact & panic-contained & 0 & passed \\
+Blocking signature & Deny non-clean publication & publication-denied & 0 & passed \\
+Allocator failure & Leave no artifact or staging residue & publication-failed & 0 & passed \\
+Temporary-file failure & Leave no artifact or staging residue & publication-failed & 0 & passed \\
+Persistence failure & Remove staging, publish nothing & publication-failed & 0 & passed \\
+Pre-existing destination & Preserve bytes exactly & publication-denied & 0 & passed; hash equal \\
+Concurrent destination race & Preserve winner, remove losing stage & publication-failed & 0 & passed; winner kept \\
+\bottomrule
+\end{tabularx}
+\vspace{0.65ex}
+\textbf{Panel B: versioned fidelity comparison}\\[-0.4ex]
+\begin{tabularx}{\textwidth}{L{0.17\textwidth}L{0.29\textwidth}L{0.30\textwidth}Y}
+\toprule
+Records / output identity & Original evaluator (v3) & Readiness evaluator (v5) & Frozen acceptance conditions \\
+\midrule
+Static image/GIF, 32/32 identical & 32/32 passed & 32/32 passed & Dimensions/canvas/frame agreement; PSNR \(\ge40\) dB; timing drift \(\le2\%\) where applicable \\
+Audio, 32/32 identical & Container-duration comparison; maximum relative drift 0.129482; 0/32 passed & Decoded-sample duration; maximum drift 0; 32/32 passed & Equal channels, duration drift \(\le2\%\), SI-SDR \(\ge20\) dB \\
+Video, 0/16 identical & Unnormalized source-WebM comparison; minimum SSIM 0.667352; 8/16 passed & Normalized timebase/frame-rate comparison; minimum SSIM 0.969366; 16/16 passed & Equal dimensions, duration drift \(\le2\%\), SSIM \(\ge0.90\) \\
+\bottomrule
+\end{tabularx}
+\endgroup
+\end{table*}
+
+The audio comparison isolates an evaluator change on byte-identical outputs.
+The video comparison does not: reconstruction and evaluator versions changed
+together. It is therefore a versioned before/after observation, not a paired
+estimate of a metric-only effect. Neither panel upgrades the under-budget,
+non-admitted rehearsal to controlled or population evidence.
+
 Only \(G_{\mathrm{schema}}\) and \(G_{\mathrm{fault}}\) passed in the complete
 gate matrix. Provenance failed; independent signatures and admitted sources
 remained absent, and the server was shared. The full corpus, F1--F8, ablation,

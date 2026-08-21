@@ -31,12 +31,12 @@ complete scientific gate passes.
   two-column manuscript.
 - `aura-file-defender-extended.docx` is a visually verified 23-page A4
   scientific-layout copy. Its title block and abstract are full width; the
-  body and references use two columns; and all 13 tables and 7 figures retain
+  body and references use two columns; and all 14 tables and 7 figures retain
   full-width sections. Word equation objects, clickable links, numbered
   references, and human-readable internal references are preserved.
 - `aura-file-defender-extended.md` is the semantic interchange copy. Its
   relative figure links resolve through `word-assets/`; a tested Pandoc
-  round-trip retains all 13 tables and 7 figures without conversion warnings.
+  round-trip retains all 14 tables and 7 figures without conversion warnings.
 
 The Word and Markdown files are derived snapshots for editing and exchange;
 scientific changes must be reconciled back into the LaTeX source before the

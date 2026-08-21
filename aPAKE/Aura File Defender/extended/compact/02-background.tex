@@ -55,7 +55,9 @@ Throughout, let \(\mathbb O=\{0,\ldots,255\}\) be the octet alphabet and
 proposition \(P\); and \(\bot\) denotes an undefined selector result or an
 absent published path, according to type. Sets and finite maps are compared only
 within their declared domains; all indexed sums, products, and conjunctions use
-the finite index sets stated locally.
+the finite index sets stated locally. One invocation fixes policy snapshot
+\(p\) and parser-registry version \(v\). Subscripts retain them only where
+policy comparison or evidence traceability would otherwise be ambiguous.
 
 Let the attacker-influenced request evidence be \(r=(x,n,m)\), where \(x\) is
 the input octet string, \(n\) is one portable display basename, and \(m\) is
@@ -139,43 +141,44 @@ implementation from being reported as independent replication.
 \caption{Core notation used by the formal method and evidence model.}
 \label{tab:core-notation}
 \small
-\begin{tabularx}{\textwidth}{L{0.22\textwidth}Y}
+\begin{tabularx}{\textwidth}{L{0.16\textwidth}L{0.24\textwidth}Y}
 \toprule
-Symbol & Meaning \\
+Scope & Symbol & Meaning \\
 \midrule
-\(u=((x,n,m),(p,d))\) & One request: bytes, portable name, supplied type, immutable policy, and deadline context \\
-\(s,k\) & Registered source and output profiles \\
-\(R_p,\mathsf{Route}_p\) & Eligible-profile set and its fail-closed partial selector \\
-\(\ell,q_{p,s}\) & Performed and minimum required reconstruction levels \\
-\(\Omega_p\) & Registered source--level--output relation \\
-\(L_{p,k},\Gamma_{p,k}\) & Canonical output language and location-aware component policy \\
-\(a=(y,n_o,m_o,k_o,\ell,e)\) & Reconstructed candidate and bounded stage evidence \\
-\(\rho_j,\Pi^{\mathrm{auth}}_{p,v,k}\) & Parser report and configured authorizing-parser set \\
-\(\Accept_{p,v},\mathsf{Pub}_{p,v}\) & Candidate authorization and non-overwriting publication transition \\
-\(\mathbb G,G_{\mathrm{sci}}\) & Three-valued gate domain and aggregate scientific gate \\
+Request & \(u=((x,n,m),(p,d))\) & Bytes, portable name, supplied type, immutable policy, deadline, and cancellation context \\
+Registry & \(s,k;\ R_p,\mathsf{Route}_p\) & Source/output profiles, eligible set, and fail-closed selector \\
+Policy & \(\ell,q_{p,s};\ \Omega_p\) & Performed/required level and source--level--output relation \\
+Policy & \(L_{p,k},\Gamma_{p,k}\) & Canonical byte language and location-aware component policy \\
+Candidate & \(a=(y,n_o,m_o,k_o,\ell,e)\) & Reconstructed bytes, generated evidence, performed level, and bounded stage record \\
+Validation & \(\rho_j,\Pi^{\mathrm{auth}}_{p,v,k}\) & Parser report and configured authorizing-parser set \\
+Decision & \(\Accept_{p,v},\mathsf{Pub}_{p,v}\) & Candidate authorization and non-overwriting publication transition \\
+Study & \(\mathbb G,G_{\mathrm{sci}}\) & Three-valued gate domain and aggregate scientific gate \\
 \bottomrule
 \end{tabularx}
 \end{table*}
 
 \begin{table*}[t]
 \centering
-\caption{Research position relative to selected technical lines of work.}
+\caption{Direct overlap between representative prior-work lines and obligations
+F1--F8. ``Evidence'' means that a line can test or motivate an obligation but
+does not establish it as a publication-boundary guarantee.}
 \label{tab:research-position}
 \small
-\begin{tabularx}{\textwidth}{L{0.20\textwidth}L{0.33\textwidth}Y}
+\begin{tabularx}{\textwidth}{L{0.27\textwidth}L{0.20\textwidth}Y}
 \toprule
-Line of work & Established contribution & Boundary addressed in this work \\
+Representative line & Direct F1--F8 overlap & Remaining composition gap \\
 \midrule
-Signature and malware scanning \cite{nist80083} & Recognition of configured indicators and known malicious structures & Does not establish complete grammar, reconstruction strength, or publication safety \\
-Canonical and verified parsing \cite{samuel2012,nail2014,everparse2019,ipg2023} & Grammar-defined recognition, complete parsing, and reduced parser ambiguity & Joint route, reconstruction-strength, output-validation, and publication judgment \\
-Content disarm and reconstruction \cite{darpaSafeDocs,belkind2023,dubin2023,dubin2024ole} & Format-specific transformation into reduced representations & Policy-indexed claim strength and authorization of the emitted object rather than handler success \\
-Parser differentials and polyglots \cite{jana2012,koch2025,you2025} & Detection and characterization of conflicting file interpretations & Routing only when the evidence admits one profile, followed by canonical output observation and fail-closed delivery \\
+Signature and malware scanning \cite{nist80083} & Supporting evidence for F8 & No direct F1--F7 guarantee; a clean scan does not authorize grammar or reconstruction \\
+Canonical/generated parsing \cite{samuel2012,nail2014,everparse2019,ipg2023} & F1--F2 & Does not jointly enforce F3--F8 at reconstruction and publication boundaries \\
+Content disarm and reconstruction \cite{darpaSafeDocs,belkind2023,dubin2023,dubin2024ole} & Format-dependent F2/F4 evidence & Transformation success alone does not establish F1, F3, F5--F8 \\
+Parser differentials and polyglot analysis \cite{jana2012,koch2025,you2025} & Evidence for F1/F3 & Detects disagreement but does not supply reconstruction, bounds, or clean-only publication \\
+This work & F1--F8 as one authorization relation & Guarantees remain conditional on registered-parser, construction, and filesystem assumptions \\
 \bottomrule
 \end{tabularx}
 \end{table*}
 
-\Cref{tab:research-position} locates the proposed method at the intersection of
-these lines of work. It combines routing to exactly one admissible profile,
-explicit reconstruction strength, separate output validation, and publication
-restricted to clean verdicts, with a distinct falsification oracle for each
-obligation.
+\Cref{tab:research-position} does not claim that the cited systems are weaker
+within their own scopes. It identifies the combination studied here: unique
+routing, explicit reconstruction strength, complete validation of emitted
+bytes, resource control, and publication restricted to clean verdicts, with a
+distinct falsifier for every obligation.

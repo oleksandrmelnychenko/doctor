@@ -29,7 +29,10 @@ paired-ablation rows with no pipeline error, and 14/14 fault cases. Removing the
 input prescan or supplied-type evidence caused no decision transition in the
 baseline rehearsal; lowering the configurable reconstruction floor changed
 8/48 applicable accepts to blocks. These are descriptive generated-corpus
-observations, not causal mechanism estimates. The full protocol-budget manifest
+observations, not causal mechanism estimates. A controlled rerun must add
+preregistered challenge records that cross the prescan and supplied-type
+decision boundaries; otherwise zero transitions remain uninformative about
+those mechanisms. The full protocol-budget manifest
 was not frozen, independent signatures and admitted sources remained zero,
 provenance failed on a shared host, and neither the 21 fuzz target-hours nor the
 10 controlled performance sessions ran. The complete gate therefore remained
@@ -113,7 +116,12 @@ policy must remain separate so that perceptual similarity does not authorize
 unsafe output. A profile can be secure under its structural claim and still be
 operationally unacceptable, or it can satisfy a perceptual metric while failing
 canonical closure. The \(G_{\mathrm{sci}}\) gate rejects both cases for
-different reasons.
+different reasons. The versioned comparison in
+\cref{tab:review-disclosures} isolates the audio evaluator change because all
+32 audio output digests were preserved. It does not isolate a video metric
+effect because all 16 video outputs changed between runs; that improvement is
+therefore descriptive and jointly confounded by reconstruction and evaluator
+versions.
 
 Availability claims remain local. The formal model and implementation are
 designed to bound bytes, dimensions, expansion, elements, deadlines, and
@@ -135,14 +143,13 @@ article makes no endpoint execution-integrity claim against decoder compromise.
 Current evidence comprises implementation traceability, the release-ineligible
 104-record server experiment, a 129-record S0--S7 readiness inventory, a
 ten-file public-benign compatibility pilot, and a 316-object candidate
-inventory. The readiness cycle closed the earlier measurement-level fidelity
-failures under unchanged thresholds, completed the baseline paired-ablation and
-14-case fault rehearsals, and regenerated six available outputs
-byte-identically. A mechanical packet verified all candidate byte identities
-and retained 948 inspection outputs. Without an independent registry or
-signatures, selection still returned 0/246 sources across 22 cells. The
-readiness archive makes the remaining work executable but does not create an
-audited corpus record or support efficacy or release claims.
+inventory. The readiness cycle corrected the audio metric on byte-identical
+outputs, recorded v5 video metrics on regenerated outputs, completed the
+paired-ablation and fault rehearsals, and regenerated six available outputs.
+The review packet verified 316 candidate identities and retained 948 inspection
+outputs, but unsigned selection returned 0/246 sources. These records make the
+remaining work executable; they do not establish an admitted corpus, efficacy,
+or release.
 
 Next, the write-disabled handoff archive must be delivered outside the audit
 host to reviewers with distinct key lineages and independence clusters.
@@ -150,5 +157,5 @@ Matching signed decisions must precede selection, S0/S1 assignment, full-file
 admission, and a protocol-budget S0--S7 manifest. The controlled run must then
 move to a single-purpose host, execute the 21-hour fuzz and 10-session
 performance schedules with 10,000 hierarchical bootstrap replicates, and
-regenerate the complete evidence package. The completed rehearsal fault and
-ablation schedules must be rerun against that admitted frozen corpus.
+regenerate the evidence package, including the fault and ablation schedules,
+against that admitted frozen corpus.

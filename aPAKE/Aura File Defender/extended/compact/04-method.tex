@@ -308,7 +308,7 @@ monotone authorizing predicate. Hence every \(p_2\) conjunct implies its
 \(p_1\) counterpart.
 \end{proof}
 
-\begin{theorem}[Post-reconstruction validation monotonicity]
+\begin{theorem}[Fixed-witness post-reconstruction validation monotonicity]
 \label{thm:validation-monotonicity}
 For a fixed post-reconstruction witness \(w\) and parser-registry version
 \(v\),
@@ -392,7 +392,7 @@ replaces none. If \(\zeta\) already exists or is created concurrently, \(\zeta\)
 remains unchanged.
 \end{assumption}
 
-\begin{theorem}[Conditional canonical delivery]
+\begin{theorem}[Conditional canonical delivery under registered-parser soundness]
 \label{thm:conditional-delivery}
 Under \cref{asm:parser-soundness,asm:semantic-construction,asm:publication},
 \begin{equation}
@@ -418,9 +418,10 @@ state preservation when no bytes are deliverable.
 the acceptance predicate is engineered so that soundness of the hand-written
 authorizing parsers is the sole load-bearing premise of canonical membership.
 \Cref{asm:parser-soundness} is therefore the central limitation of the
-analytical contribution. It is not discharged here; the differential and fuzzing
-protocol of \cref{sec:evaluation} reduces, but cannot prove, the risk of an
-unsound parser, and a mechanized correctness proof of the registered grammars
-remains future work. \Cref{thm:conditional-delivery} permits coincidental byte
+analytical contribution, and no output is claimed canonical independently of
+that premise. It is not discharged here; the differential and fuzzing protocol
+of \cref{sec:evaluation} can expose, but cannot prove the absence of, an
+unsound parser. A generated or mechanically verified authorizing parser for at
+least one central output profile remains future work. \Cref{thm:conditional-delivery} permits coincidental byte
 equality and does not exclude harmful decoded meaning, and none of its clauses
 proves codec correctness or malware absence.
